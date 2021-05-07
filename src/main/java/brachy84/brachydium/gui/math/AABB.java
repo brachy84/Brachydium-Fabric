@@ -17,12 +17,12 @@ public final class AABB {
         this.height = this.y1 - this.y0;
     }
 
-    public static AABB ltlt(float x0, float x1, float y0, float y1) {
-        return new AABB(x0, x1, y0, y1);
-    }
-
     public static AABB ofPoints(Point p0,Point p1) {
         return new AABB(p0.getX(), p0.getY(), p1.getX(), p1.getY());
+    }
+
+    public static AABB of(Size size, Point point) {
+        return new AABB(point.getX(), size.width, point.getY(), size.height);
     }
 
     /**
@@ -51,5 +51,9 @@ public final class AABB {
 
     public float getArea() {
         return width * height;
+    }
+
+    public Size getSize() {
+        return new Size(width, height);
     }
 }
