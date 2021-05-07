@@ -1,0 +1,7 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "mechtech:item/tool/handle_saw",
+    "layer1": "mechtech:item/tool/saw"
+  }
+}

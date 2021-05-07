@@ -1,33 +1,39 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "brachydium",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Brachydium",
+  "description": "GregTech but Mech",
   "authors": [
-    "Me!"
+    "brachy84"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "homepage": "",
+    "sources": ""
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/brachydium/icon.png",
 
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "brachy84.brachydium.Brachydium"
+    ],
+    "client": [
+      "brachy84.brachydium.client.BrachydiumClient"
+    ],
+    "rrp:pregen": [
+      "brachy84.brachydium.api.resource.RRPEntry"
     ]
   },
   "mixins": [
-    "modid.mixins.json"
+    "brachydium.mixins.json"
   ],
 
   "depends": {
-    "fabricloader": ">=0.7.4",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
     "minecraft": "1.16.x"
   },

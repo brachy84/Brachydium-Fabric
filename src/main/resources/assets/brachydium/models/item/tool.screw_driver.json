@@ -1,0 +1,7 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "mechtech:item/tool/handle_screwdriver",
+    "layer1": "mechtech:item/tool/screwdriver"
+  }
+}
