@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '0.6-SNAPSHOT'
+	id 'fabric-loom' version '0.5-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -11,11 +11,37 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-	// Add repositories to retrieve artifacts from in here.
-	// You should only use this when depending on other mods because
-	// Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
-	// See https://docs.gradle.org/current/userguide/declaring_repositories.html
-	// for more information about repositories.
+    // Add repositories to retrieve artifacts from in here.
+    // You should only use this when depending on other mods because
+    // Loom adds the essential maven repositories to download Minecraft and libraries from automatically.
+    // See https://docs.gradle.org/current/userguide/declaring_repositories.html
+    // for more information about repositories.
+
+	// REI
+	maven { url "https://maven.shedaniel.me/" }
+
+	// LibMultiPart & LibBlockAttributes
+	maven {
+		name = "BuildCraft"
+		url = "https://mod-buildcraft.com/maven"
+	}
+	// ARRP
+	maven {
+		url = 'https://raw.githubusercontent.com/Devan-Kerman/Devan-Repo/master/'
+	}
+	// temporary
+	maven {
+		name = "Technici4n"
+		url = "https://raw.githubusercontent.com/Technici4n/Technici4n-maven/master/"
+		content {
+			includeGroup "net.fabricmc.fabric-api"
+			includeGroup "dev.technici4n"
+		}
+	}
+	// Astarre
+	maven {
+		url "https://storage.googleapis.com/devan-maven/"
+	}
 }
 
 dependencies {
@@ -24,11 +50,30 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
+	// Experimental fluid API
+	//include modImplementation("net.fabricmc.fabric-api:fabric-transfer-api-v1:0.1.0+751df5d17d")
+
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// PSA: Some older mods, compiled on Loom 0.2.1, might have outdated Maven POMs.
-	// You may need to force-disable transitiveness on them.
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${project.rei_version}"
+	modRuntime "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
+	//modCompile "alexiil.mc.lib:libmultipart-base:${project.libmultipart_version}"
+	//modCompile "alexiil.mc.lib:libblockattributes-all:0.8.4"
+	//modImplementation "com.lettuce.fudge:artifice:${project.artifice_version}"
+	//include "com.lettuce.fudge:artifice:${project.artifice_version}"
+	//modImplementation "de.siphalor:nbtcrafting-1.16:2+"
+	modImplementation group: 'net.devtech', name: 'arrp', version: project.arrp_version
+
+	//include modApi("dev.technici4n:FastTransferLib:${project.ftl_version}")
+
+	//modImplementation "io.github.astrarre:astrarre-fabric:0.0.0"
+	modImplementation 'io.github.astrarre:astrarre-gui-v0-fabric:1.0.0'
+	include(modImplementation('io.github.astrarre:astrarre-access-v0-fabric:1.0.0'))
+	include('io.github.astrarre:astrarre-util-v0-fabric:1.0.0')
+	include('io.github.astrarre:astrarre-itemview-v0-fabric:1.0.0')
+	modImplementation 'io.github.astrarre:astrarre-transfer-v0-fabric:1.1.0'
+	include('io.github.astrarre:astrarre-transfer-compat-v0-fabric:0.0.0');
 }
 
 processResources {
@@ -81,12 +126,16 @@ publishing {
 			}
 		}
 	}
+    
+    // See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
+    repositories {
+        // Add repositories to publish to here.
+        // Notice: This block does NOT have the same function as the block in the top level.
+        // The repositories here will be used for publishing your artifact, not for
+        // retrieving dependencies.
+    }
+}
 
-	// See https://docs.gradle.org/current/userguide/publishing_maven.html for information on how to set up publishing.
-	repositories {
-		// Add repositories to publish to here.
-		// Notice: This block does NOT have the same function as the block in the top level.
-		// The repositories here will be used for publishing your artifact, not for
-		// retrieving dependencies.
-	}
+runClient {
+	jvmArgs "-Xmx4G"
 }
