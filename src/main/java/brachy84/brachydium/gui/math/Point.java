@@ -1,5 +1,7 @@
 package brachy84.brachydium.gui.math;
 
+import java.util.Objects;
+
 public class Point {
 
     public static final Point ZERO = new Point(0f, 0f);
@@ -52,7 +54,7 @@ public class Point {
     public float angle(Point p) {
         float x = this.x - p.x;
         float y = this.y - p.y;
-        return (float) Math.cos(Math.toDegrees(y / distance(p)));
+        return (float) Math.toDegrees(Math.atan(y / x)) - 90;
     }
 
     public float getX() {
@@ -65,5 +67,26 @@ public class Point {
 
     public me.shedaniel.math.Point toReiPoint() {
         return new me.shedaniel.math.Point(x, y);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Point point = (Point) o;
+        return Float.compare(point.x, x) == 0 && Float.compare(point.y, y) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x, y);
+    }
+
+    @Override
+    public String toString() {
+        return "Point{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

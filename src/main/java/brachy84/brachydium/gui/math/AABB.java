@@ -1,5 +1,7 @@
 package brachy84.brachydium.gui.math;
 
+import java.util.Objects;
+
 /**
  * Describes an area in a gui
  */
@@ -22,7 +24,7 @@ public final class AABB {
     }
 
     public static AABB of(Size size, Point point) {
-        return new AABB(point.getX(), size.width, point.getY(), size.height);
+        return AABB.ltwh(point.getX(), point.getY(), size.width, size.height);
     }
 
     /**
@@ -55,5 +57,28 @@ public final class AABB {
 
     public Size getSize() {
         return new Size(width, height);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AABB aabb = (AABB) o;
+        return Float.compare(aabb.x0, x0) == 0 && Float.compare(aabb.x1, x1) == 0 && Float.compare(aabb.y0, y0) == 0 && Float.compare(aabb.y1, y1) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x0, x1, y0, y1);
+    }
+
+    @Override
+    public String toString() {
+        return "AABB{" +
+                "x0=" + x0 +
+                ", x1=" + x1 +
+                ", y0=" + y0 +
+                ", y1=" + y1 +
+                '}';
     }
 }
