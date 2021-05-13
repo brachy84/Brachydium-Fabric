@@ -4,17 +4,17 @@
   "version": "${version}",
 
   "name": "Brachydium",
-  "description": "GregTech but Mech",
+  "description": "The ultimate tech mod API",
   "authors": [
     "brachy84"
   ],
   "contact": {
-    "homepage": "",
-    "sources": ""
+    "sources": "https://github.com/brachy84/Brachydium",
+    "issues": "https://github.com/brachy84/Brachydium/issues"
   },
 
-  "license": "CC0-1.0",
-  "icon": "assets/brachydium/icon.png",
+  "license": "LGPL-3.0",
+  "icon": "assets/brachydium/galaxy.png",
 
   "environment": "*",
   "entrypoints": {
@@ -35,9 +35,13 @@
   "depends": {
     "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.16.x"
+    "minecraft": "1.16.x",
+    "nbtcrafting": ">=2.0.0"
+  },
+  "breaks": {
+    "sodium": "*"
   },
   "suggests": {
-    "another-mod": "*"
+    "canvas": "*"
   }
 }
