@@ -17,6 +17,7 @@ import java.util.function.BiConsumer;
 public class BrachydiumRegistry<K, V>  {
 
     private final Map<K, V> registries = new HashMap<>();
+    private final Map<V, K> keyMap = new HashMap<>();
 
     public BrachydiumRegistry() {}
 
@@ -24,6 +25,7 @@ public class BrachydiumRegistry<K, V>  {
         Objects.requireNonNull(k);
         Objects.requireNonNull(v);
         registries.put(k, v);
+        keyMap.put(v, k);
         return v;
     }
 
@@ -36,12 +38,11 @@ public class BrachydiumRegistry<K, V>  {
     }
 
     public K getKey(V v) {
-        for(Map.Entry<K, V> entrySet : registries.entrySet()) {
-            if(v.equals(entrySet.getValue())) {
-                return entrySet.getKey();
-            }
+        K k = keyMap.get(v);
+        if(k == null) {
+            throw new NullPointerException("No entry found for key " + v);
         }
-        throw new NullPointerException("No key found for entry " + v);
+        return k;
     }
 
     @Nullable

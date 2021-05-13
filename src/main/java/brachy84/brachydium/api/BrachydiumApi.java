@@ -38,16 +38,6 @@ public class BrachydiumApi {
         return entity;
     }
 
-    public static void registerBlockEntitiesClient() {
-        /*META_BLOCK_ENTITY_REGISTRY.foreach((id, tile) -> {
-            // if has screen -> register
-            Brachydium.LOGGER.log(Level.INFO, "Registering client screen for " + id);
-            if(tile.hasUi()) {
-                ScreenRegistry.<ModularScreenHandler, ModularHandledScreen>register(tile.getScreenHandlerType(), (gui, inventory, title) -> new ModularHandledScreen(gui, inventory));
-            }
-        });*/
-    }
-
     private static <T extends Block> T registerBlock(Identifier id, T block) {
         return Registry.register(Registry.BLOCK, id, block);
     }
