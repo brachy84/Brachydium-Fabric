@@ -4,6 +4,7 @@ import brachy84.brachydium.api.blockEntity.IWorkable;
 import brachy84.brachydium.api.blockEntity.MBETrait;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.recipe.MTRecipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import net.minecraft.item.ItemStack;

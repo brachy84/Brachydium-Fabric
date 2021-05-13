@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.recipe;
 
-import brachy84.brachydium.api.handlers.FluidStack;
+import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;

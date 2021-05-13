@@ -4,7 +4,7 @@ import brachy84.brachydium.Brachydium;
 
 public class Voltages {
 
-    public static final Voltage ELV = new Voltage(0, 2L, "elv");
+    public static final Voltage ELV = new Voltage(0, 2L, "ELV");
     public static final Voltage ULV = new Voltage(10, 8L, "ULV");
     public static final Voltage LV = new Voltage(20, 32L, "LV");
     public static final Voltage MV = new Voltage(30, 128L, "MV");

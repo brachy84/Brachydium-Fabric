@@ -3,17 +3,16 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.api.BrachydiumApi;
 import brachy84.brachydium.api.cover.Cover;
 import brachy84.brachydium.api.cover.ICoverable;
-import brachy84.brachydium.api.gui_v1.BrachydiumGui;
-import brachy84.brachydium.api.gui_v1.IUiHolder;
 import brachy84.brachydium.api.handlers.*;
-import brachy84.brachydium.api.handlers.astrarre.ItemHandler;
 import brachy84.brachydium.api.render.OverlayRenderer;
 import brachy84.brachydium.api.render.Renderer;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.RecipeTable;
+import brachy84.brachydium.gui.widgets.RootWidget;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -22,31 +21,27 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.Tickable;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class MetaBlockEntity implements ICoverable, Tickable, IUiHolder, IInventoryHolder {
+public abstract class MetaBlockEntity implements ICoverable, Tickable, IInventoryHolder {
 
     private final Identifier id;
     private Block block;
     private BlockItem item;
     private BlockEntityType<MetaBlockEntityHolder> entityType;
-    //private ScreenHandlerType<ModularScreenHandler> screenHandlerType;
 
-    private List<MBETrait> traits = new ArrayList<>();
-    private Map<Class<?>, MBETrait> traitMap = new HashMap<>();
-    private List<OverlayRenderer> overlays = new ArrayList<>();
-    //private ModularGui modularGui;
+    private final List<MBETrait> traits = new ArrayList<>();
+    private final List<MBETrait> nullTraits = new ArrayList<>();
+    private final List<OverlayRenderer> overlays = new ArrayList<>();
     private Direction frontFacing;
 
     protected MetaBlockEntityHolder holder;
-
-    protected MetaBlockEntity metaTileEntity;
 
     protected Inventory importItems;
     protected Inventory exportItems;
@@ -106,8 +101,12 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IUiHolder
     }
 
     public void addTrait(MBETrait trait) {
-        traits.add(trait);
-        //traitMap.put(trait.getClass(), trait);
+        if(trait != null) {
+            Brachydium.LOGGER.info("Adding trait " + trait.getName());
+            traits.add(trait);
+        } else {
+            Brachydium.LOGGER.fatal("Can't add trait to MetaBlockEntity, because it's null");
+        }
     }
 
     public String getRawLangKey() {
@@ -125,26 +124,39 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IUiHolder
 
     @Override
     public void tick() {
-        for(MBETrait trait : traits) {
+        List<Integer> nulls = new ArrayList<>();
+        for(int i = 0; i < traits.size(); i++) {
+            MBETrait trait = traits.get(i);
+            if(trait == null) {
+                Brachydium.LOGGER.error("trait is null");
+                nulls.add(i);
+                continue;
+            }
             if(shouldUpdate(trait)) {
                 trait.update();
             }
         }
+        for(int i = nulls.size() - 1; i >= 0; i--) {
+            int j = nulls.get(i);
+            traits.remove(j);
+        }
     }
 
-    @Override
     public boolean hasUi() {
         return false;
     }
 
-    //@Nullable
-    //public ModularGui createUi(PlayerInventory inventory) {
-    //    return null;
-    //};
-
-    @Override
-    public BrachydiumGui.Builder buildUi(BrachydiumGui.Builder builder) {
+    @NotNull
+    public RootWidget.Builder createUITemplate(PlayerEntity player, RootWidget.Builder builder) {
         return builder;
+    }
+
+    /*public ModularGuiOld createUiOld(PlayerEntity player) {
+        return createUITemplate(player, ModularGuiOld.defaultBuilder()).build(getHolder(), player);
+    };*/
+
+    public RootWidget createUi(PlayerEntity player) {
+        return createUITemplate(player, RootWidget.builder()).build();
     }
 
     public CompoundTag serializeTag() {
@@ -278,11 +290,6 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IUiHolder
         if(this.entityType != null) return;
         this.entityType = entityType;
     }
-
-    /*public void setScreenHandlerType(ScreenHandlerType<ModularScreenHandler> screenHandlerType) {
-        if(this.screenHandlerType != null) return;
-        this.screenHandlerType = screenHandlerType;
-    }*/
 
     public Supplier<BlockEntityType<MetaBlockEntityHolder>> getEntityTypeSupplier() {
         return this::getEntityType;

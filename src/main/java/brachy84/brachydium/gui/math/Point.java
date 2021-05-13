@@ -22,9 +22,9 @@ public class Point {
     }
 
     public static Point polar(float angle, float length) {
-        float sin = (float) Math.sin(Math.toDegrees(angle));
-        float cos = (float) Math.cos(Math.toDegrees(angle));
-        return new Point(sin * length, cos * length);
+        float sin = (float) Math.sin(Math.toRadians(angle));
+        float cos = (float) Math.cos(Math.toRadians(angle));
+        return new Point(cos * length, sin * length);
     }
 
     public Point add(Point p) {
@@ -54,7 +54,7 @@ public class Point {
     public float angle(Point p) {
         float x = this.x - p.x;
         float y = this.y - p.y;
-        return (float) Math.toDegrees(Math.atan(y / x)) - 90;
+        return (float) Math.toDegrees(Math.atan(y / x)) + 90;
     }
 
     public float getX() {

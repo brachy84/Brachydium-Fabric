@@ -33,14 +33,14 @@ public class RRPHelper {
 
     public static void initOtherResources() {
         for(Map.Entry<String, byte[]> entry : otherResources.entrySet()) {
-            System.out.println("Loading other resources: " + entry.getKey());
+            //System.out.println("Loading other resources: " + entry.getKey());
             RESOURCE_PACK.addResource(ResourceType.SERVER_DATA, Brachydium.id(entry.getKey()), entry.getValue());
         }
     }
 
     public static void addNbtRecipe(String id, Function<CraftingRecipeBuilder, CraftingRecipeBuilder> recipeBuilder) {
             String recipe = recipeBuilder.apply(new CraftingRecipeBuilder(id)).end();
-            System.out.println("Adding recipe: \n" + recipe);
+            //System.out.println("Adding recipe: \n" + recipe);
             otherResources.put("recipes/" + id + ".json", recipe.getBytes());
     }
 

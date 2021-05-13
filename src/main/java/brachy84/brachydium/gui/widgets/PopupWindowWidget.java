@@ -1,17 +1,18 @@
 package brachy84.brachydium.gui.widgets;
 
-import brachy84.brachydium.gui.math.AABB;
+import brachy84.brachydium.gui.api.Widget;
+import brachy84.brachydium.gui.math.Point;
+import com.google.common.collect.BiMap;
+import net.minecraft.client.util.math.MatrixStack;
 
-import java.util.List;
+public class PopupWindowWidget extends ParentWidget {
 
-public class PopupWindowWidget extends SingleChildWidget {
-
-    public PopupWindowWidget(AABB bounds) {
-        super(bounds);
+    public PopupWindowWidget(BackgroundWidget background, BiMap<Integer, Widget> children) {
+        super(background, children);
     }
 
     @Override
-    public List<Widget> getChildren() {
-        return null;
+    public void draw(MatrixStack matrices, Point mousePos, float delta) {
+
     }
 }

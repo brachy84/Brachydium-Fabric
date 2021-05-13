@@ -1,5 +1,6 @@
 package brachy84.brachydium.gui.widgets;
 
+import brachy84.brachydium.gui.api.Widget;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Color;
 import brachy84.brachydium.gui.math.Point;
@@ -10,16 +11,17 @@ public class ShapeWidget extends Widget {
 
     private final Shape shape;
     private final Color color;
+    private final Point point;
 
-    public ShapeWidget(AABB bounds, Shape shape, Color color) {
-        super(bounds);
+    public ShapeWidget(Shape shape, Color color, Point point) {
+        super(AABB.of(shape.calculateSize(), point));
         this.shape = shape;
         this.color = color;
+        this.point = point;
     }
 
     @Override
-    public void render(MatrixStack matrices, Point mousePos, float delta) {
-        super.render(matrices, mousePos, delta);
-        guiHelper.drawShape(shape, color);
+    public void draw(MatrixStack matrices, Point mousePos, float delta) {
+        guiHelper.drawShape(pos, shape, color);
     }
 }

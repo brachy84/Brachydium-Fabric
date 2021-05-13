@@ -1,9 +1,9 @@
 package brachy84.brachydium.api.recipe;
 
-import brachy84.brachydium.api.gui_v1.BrachydiumGui;
-import brachy84.brachydium.api.gui_v1.widgets.AItemSlot;
-import brachy84.brachydium.api.handlers.FluidStack;
+import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.handlers.IFluidInventory;
+import brachy84.brachydium.gui.math.Point;
+import brachy84.brachydium.gui.widgets.RootWidget;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.DoubleSupplier;
 
 public class RecipeTable<R extends RecipeBuilder<R>> {
 
@@ -98,11 +97,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
      * This is different to the other find methods, because
      * the other methods try to find the exact recipe, while this one
      * checks if the machine has AT LEAST the required inputs
-     * // TODO: implement current machine tier
-     * @param inputs
-     * @param fluidInputs
-     * @return
-     */
+     * // TODO: implement current machine tier*/
     /*public MTRecipe findRecipeForProcessing(List<ItemStack> inputs, List<FluidVolume> fluidInputs) {
         if(inputs == null || fluidInputs == null) {
             System.out.println("one list is null");
@@ -187,11 +182,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return recipeList;
     }
 
-    public BrachydiumGui.Builder createUITemplate(BrachydiumGui.Builder builder, Inventory importItems, Inventory exportItems, IFluidInventory importFluids, IFluidInventory exportFluids) {
+    public RootWidget.Builder createUITemplate(RootWidget.Builder builder, Inventory importItems, Inventory exportItems, IFluidInventory importFluids, IFluidInventory exportFluids) {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
-        builder.bindInventory();
         //TODO: duration bar
         addInventorySlotGroup(builder, importItems, importFluids, false);
         addInventorySlotGroup(builder, exportItems, exportFluids, true);
@@ -213,7 +207,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return builder;
     }*/
 
-    protected void addInventorySlotGroup(BrachydiumGui.Builder builder, Inventory itemHandler, IFluidInventory fluidHandler, boolean isOutputs) {
+    protected void addInventorySlotGroup(RootWidget.Builder builder, Inventory itemHandler, IFluidInventory fluidHandler, boolean isOutputs) {
         int itemInputsCount = itemHandler.size();
         int fluidInputsCount = fluidHandler.size();
         boolean invertFluids = false;
@@ -241,28 +235,28 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 int startSpecX = isOutputs ? startInputsX + itemSlotsToLeft * 18 : startInputsX - 18;
                 for (int i = 0; i < fluidInputsCount; i++) {
                     int y = startInputsY + 18 * i;
-                    addSlot(builder, startSpecX, y, i, itemHandler, fluidHandler, !invertFluids, isOutputs);
+                    addSlot(builder, startSpecX, y, i, itemHandler, fluidHandler, true, isOutputs);
                 }
             } else {
                 int startSpecY = startInputsY + itemSlotsToDown * 18;
                 for (int i = 0; i < fluidInputsCount; i++) {
                     int x = isOutputs ? startInputsX + 18 * (i % 3) : startInputsX + itemSlotsToLeft * 18 - 18 - 18 * (i % 3);
                     int y = startSpecY + (i / 3) * 18;
-                    addSlot(builder, x, y, i, itemHandler, fluidHandler, !invertFluids, isOutputs);
+                    addSlot(builder, x, y, i, itemHandler, fluidHandler, true, isOutputs);
                 }
             }
         }
     }
 
-    protected void addSlot(BrachydiumGui.Builder builder, int x, int y, int slotIndex, Inventory itemHandler, IFluidInventory fluidHandler, boolean isFluid, boolean isOutputs) {
-        AItemSlot.Type type = isOutputs ? AItemSlot.Type.EXPORT : AItemSlot.Type.IMPORT;
+    protected void addSlot(RootWidget.Builder builder, int x, int y, int slotIndex, Inventory itemHandler, IFluidInventory fluidHandler, boolean isFluid, boolean isOutputs) {
+        // AItemSlot.Type type = isOutputs ? AItemSlot.Type.EXPORT : AItemSlot.Type.IMPORT;
         if (!isFluid) {
 
-            builder.slot(type, fluidHandler, slotIndex, x, y);
+            builder.slot(fluidHandler, slotIndex, new Point(x, y));
             //builder.slot(new Slot(itemHandler.getMCInventory(), slotIndex, x, y, isOutputs));
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, false, slotIndex == itemHandler.getSlots() - 1)));
         } else {
-            builder.slot(type, itemHandler, slotIndex, x, y);
+            builder.slot(itemHandler, slotIndex, new Point(x, y));
             //builder.slot(new FluidSlot(fluidHandler, slotIndex, x, y, isOutputs));
             //.setAlwaysShowFull(true)
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, true, slotIndex == fluidHandler.getTanks() - 1))

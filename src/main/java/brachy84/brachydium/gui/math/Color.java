@@ -21,6 +21,14 @@ public class Color {
         return of(red, green, blue, 255);
     }
 
+    public static Color of(float red, float green, float blue, float alpha) {
+        return new Color((byte) (red * 255), (byte) (green * 255), (byte) (blue * 255), (byte) (alpha * 255));
+    }
+
+    public static Color of(float red, float green, float blue) {
+        return of(red, green, blue, 1f);
+    }
+
     public static Color of(int color) {
         byte a = (byte) (color >> 24 & 255);
         byte r = (byte) (color >> 16 & 255);
@@ -64,6 +72,10 @@ public class Color {
 
     public byte getAlpha() {
         return a;
+    }
+
+    public int toInt() {
+        return (r << 24) + (g << 16) + (b << 8) + (a);
     }
 
     @Override

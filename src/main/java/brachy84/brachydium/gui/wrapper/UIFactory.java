@@ -1,57 +1,76 @@
 package brachy84.brachydium.gui.wrapper;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
-import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.api.IUIHolder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 
-import java.util.Objects;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.OptionalInt;
 
 public abstract class UIFactory<T extends IUIHolder> {
 
     public static final Identifier UI_SYNC_ID = new Identifier("brachydium", "modular_gui");
     public static final BrachydiumRegistry<Identifier, UIFactory<?>> UI_FACTORY_REGISTRY = new BrachydiumRegistry<>();
+    public static final Map<Integer, IUIHolder> holderCache = new HashMap<>();
+
+    public static IUIHolder getCachedHolder(int syncId) {
+        return holderCache.get(syncId);
+    }
+
+    public final Identifier id;
+
+    public UIFactory(Identifier id) {
+        this.id = id;
+    }
 
     public final void openUI(T uiHolder, ServerPlayerEntity player) {
-        ModularGui gui = uiHolder.createUi(player);
+        if(!uiHolder.hasUI()) return;
+        Brachydium.LOGGER.info("Building UI");
 
-        PacketByteBuf buf = PacketByteBufs.create();
-        writeHolderToSyncData(buf, uiHolder);
-        Identifier factoryId = UI_FACTORY_REGISTRY.tryGetKey(this);
-        Objects.requireNonNull(factoryId);
-        buf.writeIdentifier(factoryId);
-
-        ServerPlayNetworking.send(player, UI_SYNC_ID, buf);
-
+        OptionalInt optionalInt = player.openHandledScreen(ModularScreenHandler.createFactory(uiHolder));
+        if(optionalInt.isPresent()) {
+            int syncId = optionalInt.getAsInt();
+            holderCache.put(syncId, uiHolder);
+        }
     }
 
     @Environment(EnvType.CLIENT)
-    public final void openClientUi(PacketByteBuf buf) {
-        T uiHolder = readHolderFromSyncData(buf);
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
-
-        ModularGui gui = createUITemplate(uiHolder, player);
-        gui.initWidgets();
-
-        ModularGuiScreen screen = new ModularGuiScreen(gui);
-        screen.initializeInteractables();
-        MinecraftClient.getInstance().openScreen(new ModularGuiScreen(gui));
+    public final void openClientUi(IUIHolder uiHolder, int syncId) {
     }
 
-    public abstract ModularGui createUITemplate(T holder, PlayerEntity entityPlayer);
+    public Identifier getId() {
+        return id;
+    }
 
     @Environment(EnvType.CLIENT)
     public abstract T readHolderFromSyncData(PacketByteBuf syncData);
 
     public abstract void writeHolderToSyncData(PacketByteBuf syncData, T holder);
+
+    public static class SyncPacket {
+
+        public static void read(PacketByteBuf buf) {
+            Identifier factoryId = buf.readIdentifier();
+            UIFactory<?> factory = UIFactory.UI_FACTORY_REGISTRY.tryGetEntry(factoryId);
+            if(factory != null) {
+                IUIHolder holder = factory.readHolderFromSyncData(buf);
+                factory.openClientUi(holder, buf.readInt());
+            }
+        }
+
+        public static <T extends IUIHolder> PacketByteBuf write(Identifier id, T uiHolder, UIFactory<T> factory) {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeIdentifier(id);
+            factory.writeHolderToSyncData(buf, uiHolder);
+            return buf;
+        }
+    }
+
 }

@@ -2,7 +2,7 @@ package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
-import brachy84.brachydium.api.gui_v1.BrachydiumGui;
+import brachy84.brachydium.api.blockEntity.MetaBlockEntityUIFactory;
 import brachy84.brachydium.Brachydium;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
@@ -12,7 +12,6 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -22,8 +21,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 public class BlockMachine extends Block implements BlockEntityProvider {
 
@@ -91,17 +88,13 @@ public class BlockMachine extends Block implements BlockEntityProvider {
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if(!world.isClient()) {
             Brachydium.LOGGER.info("Right click BlockEntity");
-            if(getMetaBlockEntity(world, pos) != null && metaBlockEntity.hasUi()) {
-                metaBlockEntity.open((ServerPlayerEntity) player, metaBlockEntity);
-            }
-            /*NamedScreenHandlerFactory screenHandlerFactory = state.createScreenHandlerFactory(world, pos);
-
-            if(screenHandlerFactory != null) {
-                Brachydium.LOGGER.info("-- opening HandledScreen");
-                 player.openHandledScreen(screenHandlerFactory);
+            BlockEntity blockEntity = world.getBlockEntity(pos);
+            if(blockEntity instanceof MetaBlockEntityHolder) {
+                MetaBlockEntityUIFactory.INSTANCE.openUI((MetaBlockEntityHolder) blockEntity, (ServerPlayerEntity) player);
             } else {
-                System.out.println("ScreenHandler Factory is null");
-            }*/
+                // this should never be the case
+                Brachydium.LOGGER.info("BlockEntity is not valid");
+            }
         }
         return ActionResult.SUCCESS;
     }

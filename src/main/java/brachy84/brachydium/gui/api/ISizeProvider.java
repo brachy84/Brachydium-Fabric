@@ -1,21 +1,13 @@
 package brachy84.brachydium.gui.api;
 
 import brachy84.brachydium.gui.math.AABB;
+import brachy84.brachydium.gui.math.Size;
 
 public interface ISizeProvider {
 
+    Size getScreenSize();
 
-    int getScreenWidth();
-
-    int getScreenHeight();
-
-    default float getWidth() {
-        return getBounds().width;
-    }
-
-    default float getHeight() {
-        return getBounds().height;
-    }
+    Size getGuiSize();
 
     AABB getBounds();
 }

@@ -1,4 +1,4 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.fluid;
 
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;

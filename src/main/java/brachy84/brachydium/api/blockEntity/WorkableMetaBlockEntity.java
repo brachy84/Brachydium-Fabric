@@ -1,17 +1,12 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.gui_v1.BrachydiumGui;
 import brachy84.brachydium.api.handlers.*;
-import brachy84.brachydium.api.handlers.astrarre.FluidHandler;
-import brachy84.brachydium.api.handlers.astrarre.IFluidHandler;
-import brachy84.brachydium.api.handlers.astrarre.ItemHandler;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.fluid.Fluid;
+import brachy84.brachydium.gui.widgets.RootWidget;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.Identifier;
-import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -32,16 +27,10 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
         return true;
     }
 
-    /*@Override
-    public @Nullable ModularGui createUi(PlayerInventory inventory) {
-        Brachydium.LOGGER.info("Creating UI (WorkableBlockEntity)");
-        ModularGui.Builder builder = recipeTable.createUITemplate(() -> 0, ItemHandler.of(importItems), ItemHandler.of(exportItems), FluidHandler.of(importFluids), FluidHandler.of(exportFluids));
-        builder.bindPlayInventory(inventory);
-        return builder.build();
-    }*/
-
+    @NotNull
     @Override
-    public BrachydiumGui.Builder buildUi(BrachydiumGui.Builder builder) {
+    public RootWidget.Builder createUITemplate(PlayerEntity player, RootWidget.Builder builder) {
+        builder.bindPlayerInventory(player.inventory);
         return recipeTable.createUITemplate(builder, getImportItems(), getExportItems(), getImportFluids(), getExportFluids());
     }
 

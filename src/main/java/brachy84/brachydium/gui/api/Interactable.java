@@ -1,18 +1,20 @@
 package brachy84.brachydium.gui.api;
 
 import brachy84.brachydium.gui.math.Point;
-import brachy84.brachydium.gui.widgets.Widget;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.Keyboard;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.InputUtil;
 import org.jetbrains.annotations.ApiStatus;
+import org.lwjgl.glfw.GLFW;
 
-@Environment(EnvType.CLIENT)
-public interface Interactable<T extends Widget> {
+public interface Interactable extends ISyncedWidget {
 
     /**
      * @return the implementing class
      */
-    T getParent();
+    <T extends Widget> T getParent();
 
     /**
      * called when ever the mouse moves on the screen
@@ -84,7 +86,9 @@ public interface Interactable<T extends Widget> {
     /**
      * try change the focus
      * @param lookForwards should look for next focus
+     * Not yet implemented
      */
+    @Deprecated
     @ApiStatus.NonExtendable
     default void changeFocus(boolean lookForwards) {}
 
@@ -94,5 +98,42 @@ public interface Interactable<T extends Widget> {
      */
     default boolean isMouseOver(Point point) {
         return getParent().isHovering(point);
+    }
+
+    /**
+     * @return if left or right ctrl/cmd is pressed
+     */
+    @Environment(EnvType.CLIENT)
+    default boolean hasControlDown() {
+        if (MinecraftClient.IS_SYSTEM_MAC) {
+            return isKeyPressed(GLFW.GLFW_KEY_LEFT_SUPER) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_SUPER);
+        } else {
+            return isKeyPressed(GLFW.GLFW_KEY_LEFT_CONTROL) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_CONTROL);
+        }
+    }
+
+    /**
+     * @return if left or right shift is pressed
+     */
+    @Environment(EnvType.CLIENT)
+    default boolean hasShiftDown() {
+        return isKeyPressed(GLFW.GLFW_KEY_LEFT_SHIFT) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_SHIFT);
+    }
+
+    /**
+     * @return if alt or alt gr is pressed
+     */
+    @Environment(EnvType.CLIENT)
+    default boolean hasAltDown() {
+        return isKeyPressed(GLFW.GLFW_KEY_LEFT_ALT) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_ALT);
+    }
+
+    /**
+     * @param codec of the key, see {@link GLFW}
+     * @return if the key of codec is pressed
+     */
+    @Environment(EnvType.CLIENT)
+    default boolean isKeyPressed(int codec) {
+        return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), codec);
     }
 }
