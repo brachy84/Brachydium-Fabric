@@ -12,6 +12,7 @@ import brachy84.brachydium.gui.widgets.RootWidget;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Participant;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
+import io.github.astrarre.transfer.v0.fabric.participants.FabricParticipants;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
@@ -90,7 +91,8 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         for(MBETrait trait : traits) {
             trait.addApis(getEntityType());
         }
-        //FabricParticipants.ITEM_WORLD.forBlockEntity(getEntityType(), ((direction, state, world, pos, entity) -> new ItemHandler(importItems)));
+        FabricParticipants.ITEM_WORLD.forBlockEntity(getEntityType(), ((direction, state, world, pos, entity) -> getItemInventory()));
+        FabricParticipants.FLUID_WORLD.forBlockEntity(getEntityType(), (((direction, state, world, pos, entity) -> getFluidInventory())));
     }
 
     public void render(QuadEmitter emitter) {
