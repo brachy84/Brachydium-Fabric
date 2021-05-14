@@ -7,8 +7,12 @@ import brachy84.brachydium.gui.math.Point;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.internal.compat.PlayerInventoryParticipant;
+import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.Inventory;
 
 import java.util.HashMap;
@@ -67,8 +71,12 @@ public class RootWidget extends ParentWidget {
             return widget(new DynamicLabelWidget(x, y, text, color));
         }
     */
-        public Builder slot(Inventory inventory, int slotIndex, Point point, ISprite... overlays) {
-            return widget(new ItemSlotWidget(inventory, slotIndex, point).setBackgroundSprites(overlays));
+        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, ISprite... overlays) {
+            return widget(new ItemSlotWidget(itemSlot, point).setBackgroundSprites(overlays));
+        }
+
+        public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, ISprite... overlays) {
+            return widget(new FluidSlotWidget(fluidSlot, point).setBackgroundSprites(overlays));
         }
 /*
         public MainWidget progressBar(DoubleSupplier progressSupplier, int x, int y, int width, int height, TextureArea texture, MoveType moveType) {
@@ -77,17 +85,17 @@ public class RootWidget extends ParentWidget {
 */
 
         public Builder bindPlayerInventory(PlayerInventory inventoryPlayer, float startY) {
-            return bindPlayerInventory(inventoryPlayer, new Point(7, startY));
+            return bindPlayerInventory(new PlayerInventoryParticipant(inventoryPlayer), new Point(7, startY));
         }
 
         public Builder bindPlayerInventory(PlayerInventory inventoryPlayer) {
-            return bindPlayerInventory(inventoryPlayer, new Point(7, 84));
+            return bindPlayerInventory(new PlayerInventoryParticipant(inventoryPlayer), new Point(7, 84));
         }
 
-        public Builder bindPlayerInventory(PlayerInventory inventoryPlayer, Point point) {
+        public Builder bindPlayerInventory(PlayerInventoryParticipant inv, Point point) {
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 9; col++) {
-                    slot(inventoryPlayer, col + (row + 1) * 9, point);
+                    itemSlot(inv.getSlots().get(col + (row + 1) * 9), point);
                     point.translate(18, 0); // move point 18 pixels to the right
                     /*this.widget(new SlotWidget(new PlayerMainInvWrapper(inventoryPlayer), col + (row + 1) * 9, x + col * 18, y + row * 18)
                             .setBackgroundTexture(imageLocation)
@@ -96,13 +104,13 @@ public class RootWidget extends ParentWidget {
                 point.translate(-9 * 18, 18); // move 9 slots to the left and 1 slot down
             }
             point.translate(0, 4);
-            return bindPlayerHotbar(inventoryPlayer, point);
+            return bindPlayerHotbar(inv, point);
         }
 
-        public Builder bindPlayerHotbar(PlayerInventory inventoryPlayer, Point point) {
+        public Builder bindPlayerHotbar(PlayerInventoryParticipant inv, Point point) {
             for (int slot = 0; slot < 9; slot++) {
 
-                slot(inventoryPlayer, slot, point);
+                itemSlot(inv.getSlots().get(slot), point);
                 point.translate(18, 0); // move point 18 pixels to the right
                 /*this.widget(new SlotWidget(new PlayerMainInvWrapper(inventoryPlayer), slot, x + slot * 18, y)
                         .setBackgroundTexture(imageLocation)
