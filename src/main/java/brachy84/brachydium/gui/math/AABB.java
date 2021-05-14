@@ -44,7 +44,7 @@ public final class AABB {
     }
 
     public Point getCenter() {
-        return new Point((x1 - x0) / 2, (y1 - y0) / 2);
+        return new Point((x1 - x0) / 2 + x0, (y1 - y0) / 2 + y0);
     }
 
     public Point getTopLeft() {

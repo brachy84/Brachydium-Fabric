@@ -5,7 +5,6 @@ import brachy84.brachydium.gui.Networking;
 import brachy84.brachydium.gui.api.IUIHolder;
 import brachy84.brachydium.gui.api.Interactable;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
-import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Shape;
 import brachy84.brachydium.gui.math.Size;
@@ -83,8 +82,9 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         //drawBackground(matrices, delta, mouseX, mouseY);
         //gui.forEachWidget(widget -> widget.render(matrices, Point.cartesian(mouseX, mouseY), delta));
         gui.render(matrices, new Point(mouseX, mouseY), delta);
-        guiHelper.setZ(1000);
-        guiHelper.drawItem(player.inventory.getCursorStack(), AABB.of(new Size(16, 16), new Point(mouseX, mouseY)).getCenter());
+        guiHelper.setZ(Integer.MAX_VALUE);
+        Point point = new Point(mouseX - 9, mouseY - 9);
+        guiHelper.drawItem(player.inventory.getCursorStack(), point);
     }
 
     @Override

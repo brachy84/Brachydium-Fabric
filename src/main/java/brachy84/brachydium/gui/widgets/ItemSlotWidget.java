@@ -38,7 +38,9 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     @Override
     public void setResource(ItemStack resource) {
-        itemSlot.set(Transaction.GLOBAL, ItemKey.of(resource), resource.getCount());
+        if(!itemSlot.set(Transaction.GLOBAL, ItemKey.of(resource), resource.getCount())) {
+            Brachydium.LOGGER.error("Could not set " + resource + " in ItemSlot");
+        }
     }
 
     @Override
@@ -59,8 +61,8 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     @Override
     public void receiveData(PacketByteBuf data) {
         setResource(data.readItemStack());
-        MinecraftClient.getInstance().player.inventory.setCursorStack(data.readItemStack());
-        //setCursorStack(data.readItemStack());
+        setCursorStack(data.readItemStack());
+        //MinecraftClient.getInstance().player.inventory.setCursorStack(data.readItemStack());
     }
 
     @Override
@@ -87,8 +89,10 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
                 int cursorAmount = cursorStack.getCount();
                 int slotAmount = slotStack.getCount();
                 int moved = Math.min(cursorAmount, slotStack.getItem().getMaxCount() - slotAmount);
-                cursorStack.setCount(cursorAmount + moved);
-                slotStack.setCount(slotAmount - moved);
+                //cursorStack.setCount(cursorAmount + moved);
+                setCursorStack(newStack(cursorStack, cursorAmount - moved));
+                setResource(newStack(slotStack, slotAmount + moved));
+                //slotStack.setCount(slotAmount - moved);
             } else if(slotStack.isEmpty()) {
                 setResource(cursorStack.copy());
                 setCursorStack(ItemStack.EMPTY);
@@ -101,8 +105,9 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
             if(cursorStack.isEmpty()) {
                 if(slotStack.isEmpty()) return;
                 int taken = slotStack.getCount() / 2;
-                slotStack.setCount(slotStack.getCount() - taken);
-                setCursorStack(new ItemStack(slotStack.getItem(), taken));
+                //slotStack.setCount(slotStack.getCount() - taken);
+                setResource(newStack(slotStack, slotStack.getCount() - taken));
+                setCursorStack(newStack(slotStack, taken));
             } else if(slotStack.isEmpty()) {
                 setResource(new ItemStack(cursorStack.getItem()));
                 cursorStack.setCount(cursorStack.getCount() - 1);
@@ -122,5 +127,9 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
         if(gui.player instanceof ServerPlayerEntity) {
             sendToClient((ServerPlayerEntity) gui.player);
         }
+    }
+
+    private ItemStack newStack(ItemStack stack, int amount) {
+        return new ItemStack(stack.getItem(), amount);
     }
 }
