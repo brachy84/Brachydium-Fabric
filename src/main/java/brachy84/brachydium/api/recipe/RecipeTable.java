@@ -1,9 +1,12 @@
 package brachy84.brachydium.api.recipe;
 
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.handlers.IFluidInventory;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.widgets.RootWidget;
+import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
+import io.github.astrarre.transfer.v0.api.participants.array.Slot;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -182,7 +185,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return recipeList;
     }
 
-    public RootWidget.Builder createUITemplate(RootWidget.Builder builder, Inventory importItems, Inventory exportItems, IFluidInventory importFluids, IFluidInventory exportFluids) {
+    public RootWidget.Builder createUITemplate(RootWidget.Builder builder, ArrayParticipant<ItemKey> importItems, ArrayParticipant<ItemKey> exportItems, ArrayParticipant<Fluid> importFluids, ArrayParticipant<Fluid> exportFluids) {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
@@ -207,9 +210,9 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return builder;
     }*/
 
-    protected void addInventorySlotGroup(RootWidget.Builder builder, Inventory itemHandler, IFluidInventory fluidHandler, boolean isOutputs) {
-        int itemInputsCount = itemHandler.size();
-        int fluidInputsCount = fluidHandler.size();
+    protected void addInventorySlotGroup(RootWidget.Builder builder, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isOutputs) {
+        int itemInputsCount = itemHandler.getSlots().size();
+        int fluidInputsCount = fluidHandler.getSlots().size();
         boolean invertFluids = false;
         if (itemInputsCount == 0) {
             int tmp = itemInputsCount;
@@ -248,15 +251,16 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         }
     }
 
-    protected void addSlot(RootWidget.Builder builder, int x, int y, int slotIndex, Inventory itemHandler, IFluidInventory fluidHandler, boolean isFluid, boolean isOutputs) {
+    protected void addSlot(RootWidget.Builder builder, int x, int y, int slotIndex, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isFluid, boolean isOutputs) {
         // AItemSlot.Type type = isOutputs ? AItemSlot.Type.EXPORT : AItemSlot.Type.IMPORT;
         if (!isFluid) {
-
-            builder.slot(fluidHandler, slotIndex, new Point(x, y));
+            Slot<ItemKey> itemSlot = itemHandler.getSlots().get(slotIndex);
+            builder.itemSlot(itemSlot, new Point(x, y));
             //builder.slot(new Slot(itemHandler.getMCInventory(), slotIndex, x, y, isOutputs));
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, false, slotIndex == itemHandler.getSlots() - 1)));
         } else {
-            builder.slot(itemHandler, slotIndex, new Point(x, y));
+            Slot<Fluid> fluidSlot = fluidHandler.getSlots().get(slotIndex);
+            builder.fluidSlot(fluidSlot, new Point(x, y));
             //builder.slot(new FluidSlot(fluidHandler, slotIndex, x, y, isOutputs));
             //.setAlwaysShowFull(true)
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, true, slotIndex == fluidHandler.getTanks() - 1))

@@ -2,7 +2,7 @@ package brachy84.brachydium.api.handlers;
 
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
-import brachy84.brachydium.api.energy.IEnergyContainer;
+import brachy84.brachydium.api.energy.IEnergyContainer2;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
@@ -11,9 +11,9 @@ import java.util.function.Supplier;
 
 public class RecipeEnergyLogic extends AbstractRecipeLogic {
 
-    Supplier<IEnergyContainer> energyContainer;
+    Supplier<IEnergyContainer2> energyContainer;
 
-    public RecipeEnergyLogic(MetaBlockEntity mbe, RecipeTable<?> recipeTable, Supplier<IEnergyContainer> energyContainer) {
+    public RecipeEnergyLogic(MetaBlockEntity mbe, RecipeTable<?> recipeTable, Supplier<IEnergyContainer2> energyContainer) {
         super(mbe, recipeTable);
         this.energyContainer = energyContainer;
     }

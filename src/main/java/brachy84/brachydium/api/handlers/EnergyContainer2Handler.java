@@ -3,7 +3,7 @@ package brachy84.brachydium.api.handlers;
 import brachy84.brachydium.api.blockEntity.MBETrait;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
-import brachy84.brachydium.api.energy.IEnergyContainer;
+import brachy84.brachydium.api.energy.IEnergyContainer2;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import net.minecraft.block.entity.BlockEntityType;
@@ -11,14 +11,14 @@ import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class EnergyContainerHandler extends MBETrait implements IEnergyContainer {
+public class EnergyContainer2Handler extends MBETrait implements IEnergyContainer2 {
 
     private final long capacity;
     private long stored;
     private final long inputVoltage;
     private final long outputVoltage;
 
-    public EnergyContainerHandler(MetaBlockEntity mbe, long capacity, long stored, long inputVoltage, long outputVoltage) {
+    public EnergyContainer2Handler(MetaBlockEntity mbe, long capacity, long stored, long inputVoltage, long outputVoltage) {
         super(mbe);
         this.capacity = capacity;
         this.stored = stored;
@@ -26,7 +26,7 @@ public class EnergyContainerHandler extends MBETrait implements IEnergyContainer
         this.outputVoltage = outputVoltage;
     }
 
-    public EnergyContainerHandler(MetaBlockEntity mbe, long capacity, long voltage, boolean input) {
+    public EnergyContainer2Handler(MetaBlockEntity mbe, long capacity, long voltage, boolean input) {
         this(mbe, capacity, 0, input ? voltage : 0, input ? 0 : voltage);
     }
 
@@ -79,7 +79,7 @@ public class EnergyContainerHandler extends MBETrait implements IEnergyContainer
 
     @Override
     public void addApis(BlockEntityType<MetaBlockEntityHolder> type) {
-        BrachydiumAccess.ENERGY_WORLD_ACCES.forBlockEntity(type, ((direction, state, world, pos, entity) -> this));
+        BrachydiumAccess.ENERGY_WORLD.forBlockEntity(type, ((direction, state, world, pos, entity) -> this));
     }
 
     @Override

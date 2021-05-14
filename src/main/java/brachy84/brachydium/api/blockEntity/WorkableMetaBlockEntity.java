@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.api.energy.Voltages;
 import brachy84.brachydium.api.handlers.*;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.gui.widgets.RootWidget;
@@ -17,7 +18,7 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
     private final RecipeTable<?> recipeTable;
     private final AbstractRecipeLogic recipeLogic;
 
-    public WorkableMetaBlockEntity(Identifier id, int tier, RecipeTable<?> recipeTable) {
+    public WorkableMetaBlockEntity(Identifier id, Voltages.Voltage tier, RecipeTable<?> recipeTable) {
         super(id, tier);
         Objects.requireNonNull(recipeTable);
         this.recipeTable = recipeTable;

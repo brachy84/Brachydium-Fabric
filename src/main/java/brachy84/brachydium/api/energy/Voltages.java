@@ -2,7 +2,12 @@ package brachy84.brachydium.api.energy;
 
 import brachy84.brachydium.Brachydium;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Voltages {
+
+    public static final Voltage ZERO = new Voltage(Integer.MIN_VALUE, 0, "ZERO");
 
     public static final Voltage ELV = new Voltage(0, 2L, "ELV");
     public static final Voltage ULV = new Voltage(10, 8L, "ULV");
@@ -38,7 +43,8 @@ public class Voltages {
     // 2.305.843.009.213.693.952            cubic infinity    ∞³V
     // 9.223.372.036.854.775.807                       cum     CV      max 64 bit int
 
-    public static class Voltage extends Number {
+    public static class Voltage {
+
         public final int tier;
         public final String shortName;
         public final String langKey;
@@ -49,26 +55,6 @@ public class Voltages {
             this.voltage = voltage;
             this.shortName = name.toLowerCase();
             this.langKey = Brachydium.MOD_ID + ".voltage." + name + ".name";
-        }
-
-        @Override
-        public int intValue() {
-            return (int) voltage;
-        }
-
-        @Override
-        public long longValue() {
-            return voltage;
-        }
-
-        @Override
-        public float floatValue() {
-            return voltage;
-        }
-
-        @Override
-        public double doubleValue() {
-            return voltage;
         }
     }
 }
