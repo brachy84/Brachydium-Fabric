@@ -7,9 +7,11 @@ import brachy84.brachydium.gui.api.ResourceSlotWidget;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
+import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.v0.api.participants.array.Slot;
+import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -17,13 +19,11 @@ import net.minecraft.server.network.ServerPlayerEntity;
 public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     private static final Size SIZE = new Size(18, 18);
-    private final Inventory inventory;
-    private final int slotIndex;
+    private final Slot<ItemKey> itemSlot;
 
-    public ItemSlotWidget(Inventory inventory, int slotIndex, Point point) {
+    public ItemSlotWidget(Slot<ItemKey> itemSlot, Point point) {
         super(AABB.of(SIZE, point));
-        this.inventory = inventory;
-        this.slotIndex = slotIndex;
+        this.itemSlot = itemSlot;
     }
 
     @Override
@@ -33,12 +33,12 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     @Override
     public ItemStack getResource() {
-        return inventory.getStack(slotIndex);
+        return itemSlot.getKey(Transaction.GLOBAL).createItemStack(itemSlot.getQuantity(Transaction.GLOBAL));
     }
 
     @Override
     public void setResource(ItemStack resource) {
-        inventory.setStack(slotIndex, resource);
+        itemSlot.set(Transaction.GLOBAL, ItemKey.of(resource), resource.getCount());
     }
 
     @Override
