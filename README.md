@@ -17,6 +17,7 @@ Things I have planned for the future:
  - REI compat
  - Ores
  - Multiblocks
+ - Crafting tools  
  - Armor and tools
 
 Brachydium uses Astrarre transfer and acces as a Capability and fluid-item transfer api as Fabric doesn't currently have it's own;
@@ -27,7 +28,7 @@ You can see exact Progress in the Project tab
 
 ## Contribution
 I gladly accept contributions in form of issues and pull request.
-Please discuss your idea on ![Discord](https://discord.gg/XwFsQjSwq7) before you begin to code.
+Please discuss your idea on [Discord](https://discord.gg/XwFsQjSwq7) before you begin to code.
 ### Requirements
 Pull requests have to have decent code quality and good modularity. Remember this is an Api for anyone!
 I will help if you have questions, just ask.
@@ -44,7 +45,6 @@ dependencies {
 }
 ```
 You can should replace `-SNAPSHOT` with the latest version.
-`-SNAPSHOT` is most of the time unstable
-
-[![Release](https://jitpack.io/v/brachy84/Brachydium.svg)]
-(https://jitpack.io/#brachy84/Brachydium)
+`-SNAPSHOT` is most of the time unstable\
+latest:\
+[![Release](https://jitpack.io/v/brachy84/Brachydium.svg)](https://jitpack.io/#brachy84/Brachydium)
