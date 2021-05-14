@@ -9,11 +9,14 @@ import brachy84.brachydium.api.render.Renderer;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.gui.widgets.RootWidget;
+import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.v0.api.Participant;
+import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
@@ -29,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public abstract class MetaBlockEntity implements ICoverable, Tickable, IInventoryHolder {
+public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     private final Identifier id;
     private Block block;
@@ -43,10 +46,10 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IInventor
 
     protected MetaBlockEntityHolder holder;
 
-    protected Inventory importItems;
-    protected Inventory exportItems;
-    protected IFluidInventory importFluids;
-    protected IFluidInventory exportFluids;
+    protected ArrayParticipant<ItemKey> importItems;
+    protected ArrayParticipant<ItemKey> exportItems;
+    protected ArrayParticipant<Fluid> importFluids;
+    protected ArrayParticipant<Fluid> exportFluids;
 
     public MetaBlockEntity(Identifier id) {
         this.id = id;
@@ -186,24 +189,20 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IInventor
         return null;
     }
 
-    @Override
-    public Inventory createImportItemHandler() {
-        return new ItemInventory(0);
+    public ArrayParticipant<ItemKey> createImportItemHandler() {
+        return ItemInventory.importInventory(0);
     }
 
-    @Override
-    public Inventory createExportItemHandler() {
-        return new ItemInventory(0);
+    public ArrayParticipant<ItemKey> createExportItemHandler() {
+        return ItemInventory.exportInventory(0);
     }
 
-    @Override
-    public IFluidInventory createImportFluidHandler() {
-        return new FluidInventory(0);
+    public ArrayParticipant<Fluid> createImportFluidHandler() {
+        return FluidTankList.importTanks(0);
     }
 
-    @Override
-    public IFluidInventory createExportFluidHandler() {
-        return new FluidInventory(0);
+    public ArrayParticipant<Fluid> createExportFluidHandler() {
+        return FluidTankList.exportTanks(0);
     }
 
     @Nullable
@@ -248,24 +247,28 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable, IInventor
 
     abstract public Renderer getRenderer();
 
-    @Override
-    public Inventory getImportItems() {
+    public ArrayParticipant<ItemKey> getImportItems() {
         return importItems;
     }
 
-    @Override
-    public Inventory getExportItems() {
+    public ArrayParticipant<ItemKey> getExportItems() {
         return exportItems;
     }
 
-    @Override
-    public IFluidInventory getImportFluids() {
+    public ArrayParticipant<Fluid> getImportFluids() {
         return importFluids;
     }
 
-    @Override
-    public IFluidInventory getExportFluids() {
+    public ArrayParticipant<Fluid> getExportFluids() {
         return exportFluids;
+    }
+
+    public Participant<ItemKey> getItemInventory() {
+        return new CombinedItemInventory(importItems, exportItems);
+    }
+
+    public Participant<Fluid> getFluidInventory() {
+        return new CombinedFluidTankList(importFluids, exportFluids);
     }
 
     public Direction getFrontFacing() {

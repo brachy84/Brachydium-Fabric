@@ -3,8 +3,10 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.api.handlers.*;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.gui.widgets.RootWidget;
+import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,22 +37,22 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
     }
 
     @Override
-    public Inventory createImportItemHandler() {
-        return new ItemInventory(recipeTable.getMaxInputs());
+    public ArrayParticipant<ItemKey> createImportItemHandler() {
+        return ItemInventory.importInventory(recipeTable.getMaxInputs());
     }
 
     @Override
-    public Inventory createExportItemHandler() {
-        return new ItemInventory(recipeTable.getMaxOutputs());
+    public ArrayParticipant<ItemKey> createExportItemHandler() {
+        return ItemInventory.exportInventory(recipeTable.getMaxOutputs());
     }
 
     @Override
-    public IFluidInventory createImportFluidHandler() {
-        return new FluidInventory(recipeTable.getMaxFluidInputs());
+    public ArrayParticipant<Fluid> createImportFluidHandler() {
+        return FluidTankList.importTanks(recipeTable.getMaxFluidInputs());
     }
 
     @Override
-    public IFluidInventory createExportFluidHandler() {
-        return new FluidInventory(recipeTable.getMaxFluidOutputs());
+    public ArrayParticipant<Fluid> createExportFluidHandler() {
+        return FluidTankList.exportTanks(recipeTable.getMaxFluidOutputs());
     }
 }
