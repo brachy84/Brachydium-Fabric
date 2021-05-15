@@ -26,6 +26,9 @@
     ],
     "rrp:pregen": [
       "brachy84.brachydium.api.resource.RRPEntry"
+    ],
+    "rei_plugins": [
+      "brachy84.brachydium.compat.ReiCompat"
     ]
   },
   "mixins": [
