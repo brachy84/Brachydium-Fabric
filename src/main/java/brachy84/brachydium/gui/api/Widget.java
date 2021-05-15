@@ -11,6 +11,8 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.MatrixStack;
 import org.jetbrains.annotations.ApiStatus;
 
+import java.util.Optional;
+
 /**
  * A primitive Widget which only can render stuff
  */
@@ -140,6 +142,10 @@ public abstract class Widget {
 
     public Point getRelativPos() {
         return relativPos;
+    }
+
+    public Optional<me.shedaniel.rei.gui.widget.Widget> getReiWidget() {
+        return Optional.empty();
     }
 
     public static final Widget NULL = new Widget(AABB.ltwh(0, 0, 0, 0)) {
