@@ -11,10 +11,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class RecipeTable<R extends RecipeBuilder<R>> {
 
@@ -36,20 +33,21 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     /**
      * The recipes that were registered on this table
      */
-    private final Collection<MTRecipe> recipeList = new ArrayList<>();
+    //private final Collection<MTRecipe> recipeList = new ArrayList<>();
+    private final Map<String, MTRecipe> recipeMap = new HashMap<>();
 
     public RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
                        int maxOutputs, int minFluidInputs, int maxFluidInputs, int minFluidOutputs, int maxFluidOutputs,
                        R defaultRecipe) {
         if(minInputs < 0 || minFluidInputs < 0 || minOutputs < 0 || minFluidOutputs < 0) {
-            throw new IllegalArgumentException("minInputs or mayOutoutputs can't be smaller than 0");
+            throw new IllegalArgumentException("inputs and outputs can't be smaller than 0");
         }
         if(minInputs > maxInputs || minOutputs > maxOutputs || minFluidInputs > maxFluidInputs || minFluidOutputs > maxFluidOutputs) {
             throw new IllegalArgumentException("Max can't be smaller than Min in RecipeTable");
         }
-        if(minInputs == 0 && minFluidInputs == 0) {
+        /*if(minInputs == 0 && minFluidInputs == 0) {
             throw new IllegalArgumentException("minInputs and minFluidInputs can not be both null");
-        }
+        }*/
         this.unlocalizedName = unlocalizedName;
 
         this.minInputs = minInputs;
@@ -76,23 +74,26 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 .findFirst().orElse(null);
     }
 
+    public Collection<MTRecipe> getRecipeList() {
+        return recipeMap.values();
+    }
+
+    public Map<String, MTRecipe> getRecipeMap() {
+        return recipeMap;
+    }
+
     public MTRecipe findRecipe(List<ItemStack> inputs, List<FluidStack> fluidInputs) {
         if(inputs == null || fluidInputs == null) {
             return null;
         }
-        for(MTRecipe recipe : recipeList) {
+        for(MTRecipe recipe : getRecipeList()) {
 
         }
         return null;
     }
 
     public MTRecipe findRecipe(String name) {
-        for(MTRecipe recipe : recipeList) {
-            if(recipe.getName().equals(name)) {
-                return recipe;
-            }
-        }
-        return null;
+        return recipeMap.get(name);
     }
 
     /**
@@ -127,7 +128,8 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }*/
 
     public void addRecipe(MTRecipe recipe) {
-        recipeList.add(recipe);
+        //recipeList.add(recipe);
+        recipeMap.put(recipe.getName(), recipe);
         System.out.println("---Recipe added to " + unlocalizedName);
     }
 
@@ -181,10 +183,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return maxFluidOutputs;
     }
 
-    public Collection<MTRecipe> getRecipes() {
-        return recipeList;
-    }
-
     public RootWidget.Builder createUITemplate(RootWidget.Builder builder, ArrayParticipant<ItemKey> importItems, ArrayParticipant<ItemKey> exportItems, ArrayParticipant<Fluid> importFluids, ArrayParticipant<Fluid> exportFluids) {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
@@ -195,20 +193,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
 
         return builder;
     }
-
-    // copy pasted from GTCE
-    /*public ModularGui.Builder createUITemplate(DoubleSupplier progressSupplier, ItemHandler importItems, ItemHandler exportItems, FluidHandler importFluids, FluidHandler exportFluids) {
-        Brachydium.LOGGER.info("Creating UI (RecipeTable)");
-        ModularGui.Builder builder = ModularGui.defaultBuilder();
-        if(importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
-            throw new NullPointerException("Item and Fluid handlers must not be null!");
-        }
-        //builder.widget(new ProgressWidget(progressSupplier, 77, 22, 21, 20, progressBarTexture, moveType));
-        builder.widget(new DurationBar(GuiTextures.ARROW_BAR, 77, 22));
-        addInventorySlotGroup(builder, importItems, importFluids, false);
-        addInventorySlotGroup(builder, exportItems, exportFluids, true);
-        return builder;
-    }*/
 
     protected void addInventorySlotGroup(RootWidget.Builder builder, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isOutputs) {
         int itemInputsCount = itemHandler.getSlots().size();
@@ -269,61 +253,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }
 
     // copy pasted from GTCE
-    /*protected void addInventorySlotGroup(ModularGui.Builder builder, ItemHandler itemHandler, FluidHandler fluidHandler, boolean isOutputs) {
-        int itemInputsCount = itemHandler.getSlotCount();
-        int fluidInputsCount = fluidHandler.getTankCount();
-        boolean invertFluids = false;
-        if (itemInputsCount == 0) {
-            int tmp = itemInputsCount;
-            itemInputsCount = fluidInputsCount;
-            fluidInputsCount = tmp;
-            invertFluids = true;
-        }
-        int[] inputSlotGrid = determineSlotsGrid(itemInputsCount);
-        int itemSlotsToLeft = inputSlotGrid[0];
-        int itemSlotsToDown = inputSlotGrid[1];
-        int startInputsX = isOutputs ? 106 : 69 - itemSlotsToLeft * 18;
-        int startInputsY = 32 - (int) (itemSlotsToDown / 2.0 * 18);
-        for (int i = 0; i < itemSlotsToDown; i++) {
-            for (int j = 0; j < itemSlotsToLeft; j++) {
-                int slotIndex = i * itemSlotsToLeft + j;
-                int x = startInputsX + 18 * j;
-                int y = startInputsY + 18 * i;
-                addSlot(builder, x, y, slotIndex, itemHandler, fluidHandler, invertFluids, isOutputs);
-            }
-        }
-        if (fluidInputsCount > 0 || invertFluids) {
-            if (itemSlotsToDown >= fluidInputsCount && itemSlotsToLeft < 3) {
-                int startSpecX = isOutputs ? startInputsX + itemSlotsToLeft * 18 : startInputsX - 18;
-                for (int i = 0; i < fluidInputsCount; i++) {
-                    int y = startInputsY + 18 * i;
-                    addSlot(builder, startSpecX, y, i, itemHandler, fluidHandler, !invertFluids, isOutputs);
-                }
-            } else {
-                int startSpecY = startInputsY + itemSlotsToDown * 18;
-                for (int i = 0; i < fluidInputsCount; i++) {
-                    int x = isOutputs ? startInputsX + 18 * (i % 3) : startInputsX + itemSlotsToLeft * 18 - 18 - 18 * (i % 3);
-                    int y = startSpecY + (i / 3) * 18;
-                    addSlot(builder, x, y, i, itemHandler, fluidHandler, !invertFluids, isOutputs);
-                }
-            }
-        }
-    }
-
-    // copy pasted from GTCE
-    protected void addSlot(ModularGui.Builder builder, int x, int y, int slotIndex, ItemHandler itemHandler, FluidHandler fluidHandler, boolean isFluid, boolean isOutputs) {
-        if (!isFluid) {
-            builder.slot(new Slot(itemHandler.getMCInventory(), slotIndex, x, y, isOutputs));
-                    //.setBackgroundTexture(getOverlaysForSlot(isOutputs, false, slotIndex == itemHandler.getSlots() - 1)));
-        } else {
-            builder.slot(new FluidSlot(fluidHandler, slotIndex, x, y, isOutputs));
-                    //.setAlwaysShowFull(true)
-                    //.setBackgroundTexture(getOverlaysForSlot(isOutputs, true, slotIndex == fluidHandler.getTanks() - 1))
-                    //.setContainerClicking(true, !isOutputs));
-        }
-    }*/
-
-    // copy pasted from GTCE
     protected static int[] determineSlotsGrid(int itemInputsCount) {
         int itemSlotsToLeft = 0;
         int itemSlotsToDown = 0;
@@ -341,5 +270,12 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             itemSlotsToLeft = 2;
         }
         return new int[]{itemSlotsToLeft, itemSlotsToDown};
+    }
+
+    public static class Builder {
+
+        private Builder() {
+
+        }
     }
 }
