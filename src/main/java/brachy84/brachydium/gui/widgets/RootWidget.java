@@ -29,14 +29,14 @@ public class RootWidget extends ParentWidget {
         return builder(new BackgroundWidget(Sprites.BACKGROUND));
     }
 
+    public static Builder builder(BackgroundWidget widget) {
+        return new Builder(widget);
+    }
+
     @Override
     public void draw(MatrixStack matrices, Point mousePos, float delta) {
         super.draw(matrices, mousePos, delta);
         background.render(matrices, mousePos, delta);
-    }
-
-    public static Builder builder(BackgroundWidget widget) {
-        return new Builder(widget);
     }
 
     public static class Builder {
