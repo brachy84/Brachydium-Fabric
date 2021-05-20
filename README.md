@@ -37,7 +37,7 @@ I will help if you have questions, just ask.
 To include Brachydium in you project add this to your build.gradle:
 ```gradle
 repositories {
-	maven { url 'https://jitpack.io' }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
