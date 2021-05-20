@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,9 +27,9 @@ public class MTRecipe implements Recipe<Inventory> {
     private final Identifier id;
     private final List<CountableIngredient> inputs;
     private final List<ItemStack> outputs;
-    private final List<FluidStack> fluidInputs; // TODO: convert to FluidVolume
+    private final List<FluidStack> fluidInputs;
     private final List<FluidStack> fluidOutputs;
-    //private final List<FluidStack> fluidInputs; // TODO: convert to FluidVolume
+    //private final List<FluidStack> fluidInputs;
     //private final List<FluidStack> fluidOutputs;
 
     private final int EUt, duration;
@@ -78,19 +79,19 @@ public class MTRecipe implements Recipe<Inventory> {
     }
 
     public List<CountableIngredient> getInputs() {
-        return inputs;
+        return Collections.unmodifiableList(inputs);
     }
 
     public List<ItemStack> getOutputs() {
-        return outputs;
+        return Collections.unmodifiableList(outputs);
     }
 
     public List<FluidStack> getFluidInputs() {
-        return fluidInputs;
+        return Collections.unmodifiableList(fluidInputs);
     }
 
     public List<FluidStack> getFluidOutputs() {
-        return fluidOutputs;
+        return Collections.unmodifiableList(fluidOutputs);
     }
 
     public int getEUt() {
@@ -104,9 +105,6 @@ public class MTRecipe implements Recipe<Inventory> {
     public boolean isHidden() {
         return hidden;
     }
-
-    // vanilla shit
-    // I'm just gonna copy Modern Industrialization here
 
     /**
      * This will throw an UnsupportedOperationException !
