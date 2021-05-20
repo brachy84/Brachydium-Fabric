@@ -2,7 +2,6 @@ package brachy84.brachydium.api.handlers;
 
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Insertable;
-import io.github.astrarre.transfer.v0.api.item.ItemSlotParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
@@ -19,7 +18,7 @@ public class ItemInventory implements ArrayParticipant<ItemKey> {
     private final boolean extractable, insertable;
 
     public ItemInventory(int slots, boolean extractable, boolean insertable) {
-        this.items = DefaultedList.ofSize(slots, new ItemSlotParticipant());
+        this.items = DefaultedList.ofSize(slots, new ItemSlot(extractable, insertable));
         this.extractable = extractable;
         this.insertable = insertable;
     }
