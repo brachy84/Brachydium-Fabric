@@ -18,10 +18,10 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     private String name;
 
-    private List<CountableIngredient> inputs;
-    private List<ItemStack> outputs;
-    private List<FluidStack> fluidInputs; // TODO: Fluid Stack !!!
-    private List<FluidStack> fluidOutputs;
+    private final List<CountableIngredient> inputs;
+    private final List<ItemStack> outputs;
+    private final List<FluidStack> fluidInputs; // TODO: Fluid Stack !!!
+    private final List<FluidStack> fluidOutputs;
 
     private int duration, EUt;
     private boolean hidden = false;
@@ -151,13 +151,13 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     protected boolean validate() {
         boolean matchesII, matchesIO, matchesFI, matchesFO;
-        matchesII = inputs != null && inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
+        matchesII = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
         if(!matchesII) return false;
-        matchesIO = outputs != null && outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
+        matchesIO = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
         if(!matchesIO) return false;
-        matchesFI = fluidInputs != null && fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
+        matchesFI = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
         if(!matchesFI) return false;
-        matchesFO = fluidOutputs != null && fluidOutputs.size() >= recipeTable.getMaxFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
+        matchesFO = fluidOutputs.size() >= recipeTable.getMaxFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
         if(!matchesFO) return false;
 
         return EUt != 0 && duration > 0;
