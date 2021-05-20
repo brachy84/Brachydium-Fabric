@@ -4,6 +4,7 @@ import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
@@ -20,7 +21,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     private final List<CountableIngredient> inputs;
     private final List<ItemStack> outputs;
-    private final List<FluidStack> fluidInputs; // TODO: Fluid Stack !!!
+    private final List<FluidStack> fluidInputs;
     private final List<FluidStack> fluidOutputs;
 
     private int duration, EUt;
@@ -68,15 +69,14 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
-    public R inputs(ItemStack... inputs) {
+    public R input(Item item, int amount) {
+        return input(new ItemStack(item, amount));
+    }
+
+    public R input(ItemStack... inputs) {
         for(ItemStack stack : inputs) {
             this.inputs.add(new CountableIngredient(stack));
         }
-        return (R) this;
-    }
-
-    public R input(ItemStack input) {
-        this.inputs.add(new CountableIngredient(input));
         return (R) this;
     }
 
@@ -98,6 +98,10 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     public R fluidInputs(FluidStack... fluidInputs) {
         Collections.addAll(this.fluidInputs, fluidInputs);
         return (R) this;
+    }
+
+    public R fluidInput(Fluid fluid, int amount) {
+        return fluidInputs(new FluidStack(fluid, amount));
     }
 
     public R fluidOutputs(FluidStack... fluidOutputs) {
