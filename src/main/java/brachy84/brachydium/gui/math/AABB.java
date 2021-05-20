@@ -1,5 +1,7 @@
 package brachy84.brachydium.gui.math;
 
+import me.shedaniel.math.Rectangle;
+
 import java.util.Objects;
 
 /**
@@ -80,5 +82,9 @@ public final class AABB {
                 ", y0=" + y0 +
                 ", y1=" + y1 +
                 '}';
+    }
+
+    public Rectangle toReiRectangle() {
+        return new Rectangle((int) x0, (int) y0, (int) width, (int) height);
     }
 }
