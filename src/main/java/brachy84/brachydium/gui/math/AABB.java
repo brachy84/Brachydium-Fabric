@@ -21,6 +21,10 @@ public final class AABB {
         this.height = this.y1 - this.y0;
     }
 
+    public static AABB of(Rectangle rect) {
+        return ltwh(rect.x, rect.y, rect.width, rect.height);
+    }
+
     public static AABB ofPoints(Point p0,Point p1) {
         return new AABB(p0.getX(), p0.getY(), p1.getX(), p1.getY());
     }
@@ -45,12 +49,28 @@ public final class AABB {
         return isInBounds(point.getX(), point.getY());
     }
 
+    public boolean intersects(AABB bounds) {
+        for(Alignment alignment : Alignment.CORNERS) {
+            if(isInBounds(corner(alignment))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Point getCenter() {
         return new Point((x1 - x0) / 2 + x0, (y1 - y0) / 2 + y0);
     }
 
     public Point getTopLeft() {
         return new Point(x0, y0);
+    }
+
+    public Point corner(Alignment alignment) {
+        Point center = getCenter();
+        float x = center.getX() + width / 2 * alignment.x;
+        float y = center.getY() + height / 2 * alignment.y;
+        return new Point(x, y);
     }
 
     public float getArea() {

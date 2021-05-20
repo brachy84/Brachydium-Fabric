@@ -27,6 +27,10 @@ public class Point {
         return new Point(cos * length, sin * length);
     }
 
+    public static Point of(me.shedaniel.math.Point point) {
+        return new Point(point.x, point.y);
+    }
+
     public Point add(Point p) {
         return new Point(x + p.x, y + p.y);
     }
