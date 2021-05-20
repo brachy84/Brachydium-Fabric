@@ -1,9 +1,13 @@
 package brachy84.brachydium.api.fluid;
 
+import com.google.common.collect.Lists;
+import me.shedaniel.rei.api.EntryStack;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+
+import java.util.List;
 
 public class FluidStack {
 
@@ -59,5 +63,9 @@ public class FluidStack {
             id = Registry.FLUID.getId(fluid);
         }
         return id;
+    }
+
+    public List<EntryStack> toEntryStack() {
+        return Lists.newArrayList(EntryStack.create(fluid, amount));
     }
 }
