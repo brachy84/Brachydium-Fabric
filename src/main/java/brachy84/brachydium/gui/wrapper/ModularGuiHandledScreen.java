@@ -254,4 +254,8 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Deprecated
     @Override
     public final void setFocused(@Nullable Element focused) { }
+
+    public ModularGui getGui() {
+        return gui;
+    }
 }
