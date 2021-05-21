@@ -47,4 +47,8 @@ public abstract class GuiHelper extends DrawableHelper {
      * @param drawSize The size the drawn image should have
      */
     public abstract void drawSprite(ISprite sprite, Point point, float u, float v, Size drawSize);
+
+    public abstract void drawTextureArea(TextureArea texture, Point point);
+
+    public abstract void drawTextureArea(TextureArea texture, Point point, Size drawSize);
 }
