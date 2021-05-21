@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.EntryStack;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
@@ -20,6 +21,11 @@ public class FluidStack {
     public FluidStack(Fluid fluid, int amount) {
         this.fluid = fluid;
         this.amount = amount;
+    }
+
+    public static FluidStack fromTag(CompoundTag tag) {
+        Fluid fluid = Registry.FLUID.get(new Identifier(tag.getString("id")));
+        return new FluidStack(fluid, tag.getInt("amount"));
     }
 
     public FluidStack(Fluid fluid) {
@@ -67,5 +73,12 @@ public class FluidStack {
 
     public List<EntryStack> toEntryStack() {
         return Lists.newArrayList(EntryStack.create(fluid, amount));
+    }
+
+    public CompoundTag toTag(CompoundTag tag) {
+        Identifier id = getId();
+        tag.putString("id", id == null ? "minecraft:empty" : id.toString());
+        tag.putInt("amount", amount);
+        return tag;
     }
 }
