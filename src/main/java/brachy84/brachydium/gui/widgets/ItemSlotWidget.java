@@ -140,7 +140,7 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     @Override
     public void getReiWidgets(List<Widget> widgets, Point origin) {
         Point reiPos = origin.add(relativPos);
-        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(reiPos.toReiPoint());
+        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Point(1, 1)).toReiPoint());
         slot.backgroundEnabled(false);
         if (itemSlot.supportsInsertion()) {
             slot.markInput();
