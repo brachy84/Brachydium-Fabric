@@ -1,11 +1,12 @@
 package brachy84.brachydium.gui;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.gui.impl.Sprite;
+import brachy84.brachydium.gui.api.ProgressTexture;
+import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.math.Size;
 import net.minecraft.util.Identifier;
 
-public class Sprites {
+public class GuiTextures {
 
     public static final TextureArea BACKGROUND = TextureArea.fullImage(id("textures/gui/base/background"), new Size(176, 166));
     public static final TextureArea BORDERED_BACKGROUND = TextureArea.fullImage(id("textures/gui/base/bordered_background"), new Size(195, 136));
