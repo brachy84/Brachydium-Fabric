@@ -3,6 +3,7 @@ package brachy84.brachydium.gui.widgets;
 import brachy84.brachydium.gui.GuiTextures;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.api.Widget;
+import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -132,5 +133,8 @@ public class RootWidget extends ParentWidget {
             return new RootWidget(background, HashBiMap.create(children));
         }
 
+        public AABB getBounds() {
+            return background.getBounds();
+        }
     }
 }
