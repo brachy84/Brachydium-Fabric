@@ -27,17 +27,33 @@ public class RecipeTableDisplay implements RecipeDisplay {
     @Override
     public @NotNull List<List<EntryStack>> getInputEntries() {
         return Stream.concat(
-                recipe.getInputs().stream().map(CountableIngredient::toEntryStack),
-                recipe.getFluidInputs().stream().map(FluidStack::toEntryStack)
+                getItemInputs(),
+                getFluidInputs()
         ).collect(Collectors.toList());
+    }
+
+    public Stream<List<EntryStack>> getItemInputs() {
+        return recipe.getInputs().stream().map(CountableIngredient::toEntryStack);
+    }
+
+    public Stream<List<EntryStack>> getFluidInputs() {
+        return recipe.getFluidInputs().stream().map(FluidStack::toEntryStack);
     }
 
     @Override
     public @NotNull List<List<EntryStack>> getResultingEntries() {
         return Stream.concat(
-                recipe.getOutputs().stream().map(RecipeTableDisplay::toEntryStack),
-                recipe.getFluidOutputs().stream().map(FluidStack::toEntryStack)
+                getItemOutputs(),
+                getFluidOutputs()
         ).collect(Collectors.toList());
+    }
+
+    public Stream<List<EntryStack>> getItemOutputs() {
+        return recipe.getOutputs().stream().map(RecipeTableDisplay::toEntryStack);
+    }
+
+    public Stream<List<EntryStack>> getFluidOutputs() {
+        return recipe.getFluidOutputs().stream().map(FluidStack::toEntryStack);
     }
 
     @Override
