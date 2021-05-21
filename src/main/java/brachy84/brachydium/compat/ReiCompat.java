@@ -4,20 +4,26 @@ import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.MTRecipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
-import me.shedaniel.rei.api.DisplayHelper;
-import me.shedaniel.rei.api.EntryStack;
-import me.shedaniel.rei.api.OverlayDecider;
-import me.shedaniel.rei.api.RecipeHelper;
+import me.shedaniel.math.Rectangle;
+import me.shedaniel.rei.api.*;
 import me.shedaniel.rei.api.plugins.REIPluginV0;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.item.BlockItem;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class ReiCompat implements REIPluginV0 {
+
+    public static Identifier category(RecipeTable<?> recipeTable) {
+        return Brachydium.id(recipeTable.unlocalizedName + "_recipes");
+    }
 
     @Override
     public Identifier getPluginIdentifier() {
@@ -34,9 +40,8 @@ public class ReiCompat implements REIPluginV0 {
     @Override
     public void registerRecipeDisplays(RecipeHelper recipeHelper) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            Identifier id = Brachydium.id(recipeTable.unlocalizedName + "_recipes");
             for(MTRecipe recipe : recipeTable.getRecipeList()) {
-                recipeHelper.registerDisplay(new RecipeTableDisplay(recipe, id));
+                recipeHelper.registerDisplay(new RecipeTableDisplay(recipe, category(recipeTable)));
             }
         }
     }
@@ -45,12 +50,23 @@ public class ReiCompat implements REIPluginV0 {
     public void registerOthers(RecipeHelper recipeHelper) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
             Identifier id = Brachydium.id(recipeTable.unlocalizedName + "_recipes");
-            recipeHelper.registerWorkingStations(id, recipeTable.getTileItems().stream().map(EntryStack::create).collect(Collectors.toList()));
+            for(BlockItem item : recipeTable.getTileItems()) {
+                recipeHelper.registerWorkingStations(id, EntryStack.create(item));
+            }
         }
     }
 
     @Override
     public void registerBounds(DisplayHelper displayHelper) {
+        BaseBoundsHandler boundsHandler = BaseBoundsHandler.getInstance();
+        boundsHandler.registerExclusionZones(ModularGuiHandledScreen.class, () -> {
+            List<Rectangle> zones = new ArrayList<>();
+            Screen screen = MinecraftClient.getInstance().currentScreen;
+            if(screen instanceof ModularGuiHandledScreen) {
+                zones.add(((ModularGuiHandledScreen) screen).getGui().getBounds().toReiRectangle());
+            }
+            return zones;
+        });
         displayHelper.registerHandler(new OverlayDecider() {
             @Override
             public boolean isHandingScreen(Class<?> screen) {
