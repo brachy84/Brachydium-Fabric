@@ -18,7 +18,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 
-import java.util.Optional;
+import java.util.List;
 
 public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
@@ -138,26 +138,27 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     }
 
     @Override
-    public Optional<Widget> getReiWidget() {
-        me.shedaniel.math.Point point = relativPos.toReiPoint();
-        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(point);
+    public void getReiWidgets(List<Widget> widgets, Point origin) {
+        Point reiPos = origin.add(relativPos);
+        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(reiPos.toReiPoint());
         slot.backgroundEnabled(false);
-        GuiHelperImpl guiHelper = new GuiHelperImpl(new MatrixStack());
-        Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
-            guiHelper.setMatrixStack(matrices);
-            if (getTextures().size() > 0) {
-                for (TextureArea sprite : getTextures()) {
-                    guiHelper.drawTextureArea(sprite, relativPos, size);
-                }
-            } else {
-                guiHelper.drawTextureArea(getDefaultTexture(), relativPos, size);
-            }
-        }));
         if (itemSlot.supportsInsertion()) {
             slot.markInput();
         } else if (itemSlot.supportsExtraction()) {
             slot.markOutput();
         }
-        return Optional.of(slot);
+        widgets.add(slot);
+        GuiHelperImpl guiHelper = new GuiHelperImpl(new MatrixStack());
+        Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
+            guiHelper.setMatrixStack(matrices);
+            if (getTextures().size() > 0) {
+                for (TextureArea sprite : getTextures()) {
+                    guiHelper.drawTextureArea(sprite, reiPos, size);
+                }
+            } else {
+                guiHelper.drawTextureArea(getDefaultTexture(), reiPos, size);
+            }
+        }));
+        widgets.add(render);
     }
 }
