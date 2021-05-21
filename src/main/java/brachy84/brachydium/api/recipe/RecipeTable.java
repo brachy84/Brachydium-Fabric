@@ -1,17 +1,22 @@
 package brachy84.brachydium.api.recipe;
 
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.gui.GuiTextures;
+import brachy84.brachydium.gui.api.MoveDirection;
+import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
+import brachy84.brachydium.gui.math.Size;
+import brachy84.brachydium.gui.widgets.ProgressBarWidget;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 
 import java.util.*;
+import java.util.function.DoubleSupplier;
 
 public class RecipeTable<R extends RecipeBuilder<R>> {
 
@@ -60,6 +65,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         this.maxOutputs = maxOutputs;
         this.maxFluidOutputs = maxFluidOutputs;
 
+        defaultRecipe.setRecipeTable(this);
         this.recipeBuilderSample = defaultRecipe;
         RECIPE_TABLES.add(this);
     }
@@ -134,9 +140,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }
 
     public R recipeBuilder(String name) {
-        R builder = recipeBuilderSample.copyWithName(name);
-        builder.setRecipeTable(this);
-        return builder;
+        return recipeBuilderSample.copyWithName(name);
     }
 
     public void addTileItem(BlockItem item) {
@@ -183,11 +187,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return maxFluidOutputs;
     }
 
-    public RootWidget.Builder createUITemplate(RootWidget.Builder builder, ArrayParticipant<ItemKey> importItems, ArrayParticipant<ItemKey> exportItems, ArrayParticipant<Fluid> importFluids, ArrayParticipant<Fluid> exportFluids) {
+    public RootWidget.Builder createUITemplate(DoubleSupplier progress, RootWidget.Builder builder, ArrayParticipant<ItemKey> importItems, ArrayParticipant<ItemKey> exportItems, ArrayParticipant<Fluid> importFluids, ArrayParticipant<Fluid> exportFluids) {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
-        //TODO: duration bar
+        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Point(0, 0)), MoveDirection.RIGHT));
         addInventorySlotGroup(builder, importItems, importFluids, false);
         addInventorySlotGroup(builder, exportItems, exportFluids, true);
 
