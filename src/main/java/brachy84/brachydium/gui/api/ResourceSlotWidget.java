@@ -17,9 +17,9 @@ import java.util.List;
  * (like ItemStack or FluidStack)
  * @param <T> Resource f.e. ItemStack
  */
-public abstract class ResourceSlotWidget<T> extends Widget implements Interactable, ISyncedWidget {
+public abstract class ResourceSlotWidget<T> extends Widget implements Interactable {
 
-    private final List<ISprite> textures = new ArrayList<>();
+    private final List<TextureArea> textures = new ArrayList<>();
     public ResourceSlotWidget(AABB bounds) {
         super(bounds);
     }
@@ -27,9 +27,9 @@ public abstract class ResourceSlotWidget<T> extends Widget implements Interactab
     @Override
     public void draw(MatrixStack matrices, Point mousePos, float delta) {
         if(textures.size() > 0) {
-            textures.forEach(sprite -> guiHelper.drawSprite(sprite, pos));
+            textures.forEach(sprite -> guiHelper.drawTextureArea(sprite, pos, size));
         } else {
-            guiHelper.drawSprite(getDefaultTexture(), pos);
+            guiHelper.drawTextureArea(getDefaultTexture(), pos);
         }
         renderResource(matrices);
     }
@@ -48,9 +48,13 @@ public abstract class ResourceSlotWidget<T> extends Widget implements Interactab
 
     public abstract boolean isEmpty();
 
-    public abstract ISprite getDefaultTexture();
+    public abstract TextureArea getDefaultTexture();
 
-    public ResourceSlotWidget<T> setBackgroundSprites(ISprite... sprite) {
+    public List<TextureArea> getTextures() {
+        return textures;
+    }
+
+    public ResourceSlotWidget<T> setBackgroundSprites(TextureArea... sprite) {
         textures.addAll(Arrays.asList(sprite));
         return this;
     }

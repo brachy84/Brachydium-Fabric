@@ -1,9 +1,9 @@
 package brachy84.brachydium.gui.widgets;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.gui.Sprites;
-import brachy84.brachydium.gui.api.ISprite;
+import brachy84.brachydium.gui.GuiTextures;
 import brachy84.brachydium.gui.api.ResourceSlotWidget;
+import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
@@ -13,7 +13,6 @@ import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import me.shedaniel.rei.api.widgets.Widgets;
 import me.shedaniel.rei.gui.widget.Widget;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
@@ -54,8 +53,8 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     }
 
     @Override
-    public ISprite getDefaultTexture() {
-        return Sprites.SLOT;
+    public TextureArea getDefaultTexture() {
+        return GuiTextures.SLOT;
     }
 
 
@@ -147,11 +146,11 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
         Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
             guiHelper.setMatrixStack(matrices);
             if (getTextures().size() > 0) {
-                for (ISprite sprite : getTextures()) {
-                    guiHelper.drawSprite(sprite, relativPos);
+                for (TextureArea sprite : getTextures()) {
+                    guiHelper.drawTextureArea(sprite, relativPos, size);
                 }
             } else {
-                guiHelper.drawSprite(getDefaultTexture(), relativPos);
+                guiHelper.drawTextureArea(getDefaultTexture(), relativPos, size);
             }
         }));
         if (itemSlot.supportsInsertion()) {
