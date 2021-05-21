@@ -1,7 +1,7 @@
 package brachy84.brachydium.gui.widgets;
 
-import brachy84.brachydium.gui.Sprites;
-import brachy84.brachydium.gui.api.ISprite;
+import brachy84.brachydium.gui.GuiTextures;
+import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.api.Widget;
 import brachy84.brachydium.gui.math.Point;
 import com.google.common.base.Preconditions;
@@ -13,7 +13,6 @@ import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.inventory.Inventory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class RootWidget extends ParentWidget {
     }
 
     public static Builder builder() {
-        return builder(new BackgroundWidget(Sprites.BACKGROUND));
+        return builder(new BackgroundWidget(GuiTextures.BACKGROUND));
     }
 
     public static Builder builder(BackgroundWidget widget) {
@@ -71,11 +70,11 @@ public class RootWidget extends ParentWidget {
             return widget(new DynamicLabelWidget(x, y, text, color));
         }
     */
-        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, ISprite... overlays) {
+        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, TextureArea... overlays) {
             return widget(new ItemSlotWidget(itemSlot, point).setBackgroundSprites(overlays));
         }
 
-        public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, ISprite... overlays) {
+        public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, TextureArea... overlays) {
             return widget(new FluidSlotWidget(fluidSlot, point).setBackgroundSprites(overlays));
         }
 /*
