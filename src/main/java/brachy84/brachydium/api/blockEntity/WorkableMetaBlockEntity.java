@@ -34,7 +34,7 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
     @Override
     public RootWidget.Builder createUITemplate(PlayerEntity player, RootWidget.Builder builder) {
         builder.bindPlayerInventory(player.inventory);
-        return recipeTable.createUITemplate(builder, getImportItems(), getExportItems(), getImportFluids(), getExportFluids());
+        return recipeTable.createUITemplate(recipeLogic::getProgressPercent, builder, getImportItems(), getExportItems(), getImportFluids(), getExportFluids());
     }
 
     @Override
