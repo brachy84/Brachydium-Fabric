@@ -60,6 +60,11 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
+    public R input(String tag, int amount) {
+        this.inputs.add(CountableIngredient.of(tag, amount));
+        return (R) this;
+    }
+
     public R input(String component, Material material, int amount) {
         if(!component.endsWith("s")) Brachydium.LOGGER.warn(component + " doesn't end with 's'. All oreDict tags should end with s (f.e. ingots)");
         this.inputs.add(CountableIngredient.of("c:" + material.getName() + "_" + component, amount));
