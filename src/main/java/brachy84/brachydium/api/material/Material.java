@@ -35,6 +35,8 @@ public class Material {
         this.name = name;
         this.color = color;
         addFlags(flags);
+        addMaterial(this);
+        register();
     }
 
     private static void addMaterial(Material material) {
