@@ -20,11 +20,4 @@ public class SimpleRecipeBuilder extends RecipeBuilder<SimpleRecipeBuilder> {
     public SimpleRecipeBuilder copy() {
         return new SimpleRecipeBuilder(this);
     }
-
-    @Override
-    public SimpleRecipeBuilder copyWithName(String name) {
-        SimpleRecipeBuilder recipeBuilder = new SimpleRecipeBuilder(this);
-        recipeBuilder.setName(name);
-        return recipeBuilder;
-    }
 }
