@@ -98,6 +98,11 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     protected abstract boolean drawEnergy(long amount);
 
+    public double getProgressPercent() {
+        if(!isActive) return 0;
+        return progress / (double) duration;
+    }
+
     /**
      * Called when machine inventory changes
      */
