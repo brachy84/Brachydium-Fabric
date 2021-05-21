@@ -4,6 +4,7 @@
   "package": "brachy84.brachydium.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "TagManagerLoaderMixin"
   ],
   "client": [
   ],
