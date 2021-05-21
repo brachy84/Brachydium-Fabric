@@ -191,7 +191,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
-        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Point(0, 0)), MoveDirection.RIGHT));
+        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Point(builder.getBounds().width / 2 - 9, 22)), MoveDirection.RIGHT));
         addInventorySlotGroup(builder, importItems, importFluids, false);
         addInventorySlotGroup(builder, exportItems, exportFluids, true);
 
