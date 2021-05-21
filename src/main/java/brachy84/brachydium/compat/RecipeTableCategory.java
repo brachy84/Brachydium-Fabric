@@ -59,7 +59,6 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
     public @NotNull List<Widget> setupDisplay(RecipeTableDisplay recipeDisplay, Rectangle rect) {
         AABB bounds = AABB.of(rect);
         Point origin = bounds.getTopLeft();
-        Brachydium.LOGGER.info("Setting up display");
         RootWidget rootWidget = recipeTable.createUITemplate(() -> 0, RootWidget.builder(),
                 ItemInventory.importInventory(recipeTable.getMaxInputs()),
                 ItemInventory.exportInventory(recipeTable.getMaxOutputs()),
@@ -70,16 +69,15 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
         AtomicReference<Float> lowestY = new AtomicReference<>(0f);
         Map<ResourceSlotWidget<?>, Slot> slots = new HashMap<>();
         rootWidget.forAllChildren(child -> {
-            Brachydium.LOGGER.info("Checking widget for REI");
             List<Widget> innerWidgets = new ArrayList<>();
             child.getReiWidgets(innerWidgets, origin);
             for(Widget widget : innerWidgets) {
                 if(widget instanceof Slot && child instanceof ResourceSlotWidget) {
                     slots.put((ResourceSlotWidget<?>) child, (Slot) widget);
                 }
-                lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
                 widgets.add(widget);
             }
+            lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
         });
         setEntries(recipeDisplay, slots);
         Point point = origin.add(new Point(1, lowestY.get() + 3));
