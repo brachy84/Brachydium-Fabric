@@ -11,7 +11,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.util.math.MatrixStack;
 import org.jetbrains.annotations.ApiStatus;
 
-import java.util.Optional;
+import java.util.List;
 
 /**
  * A primitive Widget which only can render stuff
@@ -144,9 +144,12 @@ public abstract class Widget {
         return relativPos;
     }
 
-    public Optional<me.shedaniel.rei.gui.widget.Widget> getReiWidget() {
-        return Optional.empty();
-    }
+    /**
+     * this called when the gui will be created for REI
+     * add rei widgets to the list that represents this widget
+     */
+    @ApiStatus.OverrideOnly
+    public void getReiWidgets(List<me.shedaniel.rei.gui.widget.Widget> widgets, Point origin) {}
 
     public static final Widget NULL = new Widget(AABB.ltwh(0, 0, 0, 0)) {
         @Override
