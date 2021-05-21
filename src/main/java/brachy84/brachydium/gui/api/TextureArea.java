@@ -5,11 +5,27 @@ import net.minecraft.util.Identifier;
 
 public class TextureArea {
 
+    /**
+     * The path where the image is located
+     * if it doesn't end with .png, .png will be appended
+     */
     private final Identifier path;
+
+    /**
+     * The is ALWAYS the actual size of the image
+     */
     private final Size imageSize;
+
+    /**
+     * uv values between 0 and 1
+     * u corresponds to the x axis and v to y
+     */
     public final float u0, v0, u1, v1;
 
     public TextureArea(Identifier path, Size imageSize, float u0, float v0, float u1, float v1) {
+        if(!path.getPath().endsWith(".png")) {
+            path = new Identifier(path.getNamespace(), path.getPath() + ".png");
+        }
         this.path = path;
         this.imageSize = imageSize;
         this.u0 = u0;
