@@ -29,6 +29,9 @@
     ],
     "rei_plugins": [
       "brachy84.brachydium.compat.ReiCompat"
+    ],
+    "brachydium": [
+      "brachy84.brachydium.common.TestPlugin"
     ]
   },
   "mixins": [

@@ -18,7 +18,7 @@ public class TestRecipes {
                 .buildAndRegister();
 
         RecipeTables.ALLOYER_RECIPES.recipeBuilder("special_gold")
-                .inputs(Materials.Aluminium.dust(1), Materials.Copper.ingot(1))
+                .input(Materials.Aluminium.dust(1), Materials.Copper.ingot(1))
                 .outputs(Util.getStack(Items.GOLD_INGOT, 2))
                 .duration(40)
                 .EUt(28)

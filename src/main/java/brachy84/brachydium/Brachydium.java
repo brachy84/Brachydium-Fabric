@@ -35,7 +35,7 @@ public class Brachydium implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        plugins.addAll(FabricLoader.getInstance().getEntrypoints("main", BrachydiumInitializer.class));
+        plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
         System.out.println("--------------------------------------------------");
         for(BrachydiumInitializer plugin : plugins) {
             RecipeLoadEvent.EVENT.register(plugin::registerRecipes);
