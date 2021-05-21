@@ -4,9 +4,7 @@ import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,5 +56,4 @@ public abstract class ResourceSlotWidget<T> extends Widget implements Interactab
         textures.addAll(Arrays.asList(sprite));
         return this;
     }
-
 }
