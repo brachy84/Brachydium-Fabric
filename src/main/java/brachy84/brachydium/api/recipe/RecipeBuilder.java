@@ -19,28 +19,24 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     private String name;
 
-    private final List<CountableIngredient> inputs;
-    private final List<ItemStack> outputs;
-    private final List<FluidStack> fluidInputs;
-    private final List<FluidStack> fluidOutputs;
+    private final List<CountableIngredient> inputs = new ArrayList<>();
+    private final List<ItemStack> outputs = new ArrayList<>();
+    private final List<FluidStack> fluidInputs = new ArrayList<>();
+    private final List<FluidStack> fluidOutputs = new ArrayList<>();
 
     private int duration, EUt;
     private boolean hidden = false;
 
     protected RecipeBuilder() {
-        this.inputs = new ArrayList<>();
-        this.outputs = new ArrayList<>();
-        this.fluidInputs = new ArrayList<>();
-        this.fluidOutputs = new ArrayList<>();
     }
 
     protected RecipeBuilder(MTRecipe recipe, RecipeTable<R> recipeTable) {
         this.recipeTable = recipeTable;
-        this.inputs = recipe.getInputs();
-        this.outputs = recipe.getOutputs();
+        this.inputs.addAll(recipe.getInputs());
+        this.outputs.addAll(recipe.getOutputs());
 
-        this.fluidInputs = recipe.getFluidInputs();
-        this.fluidOutputs = recipe.getFluidOutputs();
+        this.fluidInputs.addAll(recipe.getFluidInputs());
+        this.fluidOutputs.addAll(recipe.getFluidOutputs());
 
         this.duration = recipe.getDuration();
         this.EUt = recipe.getEUt();
@@ -49,10 +45,11 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     protected RecipeBuilder(RecipeBuilder<R> recipeBuilder) {
         this.recipeTable = recipeBuilder.recipeTable;
-        this.inputs = recipeBuilder.inputs;
-        this.outputs = recipeBuilder.outputs;
-        this.fluidInputs = recipeBuilder.fluidInputs;
-        this.fluidOutputs = recipeBuilder.fluidOutputs;
+        this.inputs.addAll(recipeBuilder.inputs);
+        this.outputs.addAll(recipeBuilder.outputs);
+
+        this.fluidInputs.addAll(recipeBuilder.fluidInputs);
+        this.fluidOutputs.addAll(recipeBuilder.fluidOutputs);
         this.EUt = recipeBuilder.EUt;
         this.duration = recipeBuilder.duration;
         this.hidden = recipeBuilder.hidden;
@@ -147,7 +144,11 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     public abstract R copy();
 
-    public abstract R copyWithName(String name);
+    public R copyWithName(String name) {
+        R builder = copy();
+        builder.setName(name);
+        return builder;
+    }
 
     public void setName(String name) {
         this.name = name;
