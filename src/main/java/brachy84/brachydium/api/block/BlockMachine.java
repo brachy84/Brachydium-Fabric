@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.ShapeContext;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -18,6 +19,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -69,7 +71,6 @@ public class BlockMachine extends Block implements BlockEntityProvider {
             throw new NullPointerException("A MetaBlockEntity with id " + id + " doesn't exist");
         }
 
-        metaBlockEntity.reinitializeInventories();
         return new MetaBlockEntityHolder(metaBlockEntity);
     }
 
@@ -77,36 +78,22 @@ public class BlockMachine extends Block implements BlockEntityProvider {
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
         super.onPlaced(world, pos, state, placer, itemStack);
         Brachydium.LOGGER.info("BlockEntity placed!");
-        ensureBlockEntityNotNull(world, pos);
-        if(metaBlockEntity != null && placer != null) {
-            Brachydium.LOGGER.info("-- setting front");
-            metaBlockEntity.setFrontFacing(placer.getMovementDirection().getOpposite());
+        if(!world.isClient()) {
+            ensureBlockEntityNotNull(world, pos);
+            if(metaBlockEntity != null && placer != null) {
+                metaBlockEntity.setFrontFacing(placer.getMovementDirection().getOpposite());
+            }
         }
     }
 
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if(!world.isClient()) {
-            Brachydium.LOGGER.info("Right click BlockEntity");
             BlockEntity blockEntity = world.getBlockEntity(pos);
             if(blockEntity instanceof MetaBlockEntityHolder) {
                 MetaBlockEntityUIFactory.INSTANCE.openUI((MetaBlockEntityHolder) blockEntity, (ServerPlayerEntity) player);
-            } else {
-                // this should never be the case
-                Brachydium.LOGGER.info("BlockEntity is not valid");
             }
         }
         return ActionResult.SUCCESS;
     }
-
-    /*@Nullable
-    @Override
-    public NamedScreenHandlerFactory createScreenHandlerFactory(BlockState state, World world, BlockPos pos) {
-        Brachydium.LOGGER.info("Creating screenHandlerFactory");
-        ensureBlockEntityNotNull(world, pos);
-        if(metaBlockEntity != null && metaBlockEntity.getHolder() != null) return metaBlockEntity.getHolder();
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        return blockEntity instanceof NamedScreenHandlerFactory ? (NamedScreenHandlerFactory) blockEntity : null;
-    }*/
-
 }
