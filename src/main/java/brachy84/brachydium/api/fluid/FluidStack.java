@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.fluid;
 
+import brachy84.brachydium.api.util.MatchingType;
 import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.EntryStack;
 import net.minecraft.fluid.Fluid;
@@ -46,6 +47,16 @@ public class FluidStack {
 
     public Fluid getFluid() {
         return fluid;
+    }
+
+    public boolean matches(FluidStack stack, MatchingType type) {
+        if(type == MatchingType.EXACT)
+            return amount == stack.getAmount() && stack.getFluid() == fluid;
+        else if(type == MatchingType.AT_LEAST)
+            return amount <= stack.getAmount() && stack.getFluid() == fluid;
+        else if(type == MatchingType.IGNORE_AMOUNT)
+            return stack.getFluid() == fluid;
+        return false;
     }
 
     public boolean isEqual(Fluid fluid) {

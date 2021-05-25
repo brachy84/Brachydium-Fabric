@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.item;
 
 import brachy84.brachydium.api.tag.Tags;
+import brachy84.brachydium.api.util.MatchingType;
 import me.shedaniel.rei.api.EntryStack;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -48,18 +49,14 @@ public class CountableIngredient {
                 Util.equalsIngredient(ingredient, countableIngredient.ingredient);
     }*/
 
-    public boolean matches(ItemStack stack) {
-        return amount == stack.getCount() && ingredient.test(stack);
-    }
-
-    /**
-     * @param stack
-     * @return true if ingredient has stack and at least amount
-     */
-    public boolean contains(ItemStack stack) {
-        boolean matches = false;
-        matches = ingredient.test(stack);
-        return amount <= stack.getCount() && matches;
+    public boolean matches(ItemStack stack, MatchingType type) {
+        if(type == MatchingType.EXACT)
+            return amount == stack.getCount() && ingredient.test(stack);
+        else if(type == MatchingType.AT_LEAST)
+            return amount <= stack.getCount() && ingredient.test(stack);
+        else if(type == MatchingType.IGNORE_AMOUNT)
+            return ingredient.test(stack);
+        return false;
     }
 
     public Ingredient getIngredient() {
@@ -69,14 +66,6 @@ public class CountableIngredient {
     public int getAmount() {
         return amount;
     }
-/*
-    @Override
-    public String toString() {
-        return "CountableIngredient {" +
-                "  ingredient=" + Util.stacksToString(ingredient.getMatchingStacksClient()) +
-                ", amount=" + amount +
-                '}';
-    }*/
 
     public ItemStack toItemStack() {
         ItemStack stack = ingredient.getMatchingStacksClient()[0];
