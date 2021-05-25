@@ -29,8 +29,6 @@ public class MTRecipe implements Recipe<Inventory> {
     private final List<ItemStack> outputs;
     private final List<FluidStack> fluidInputs;
     private final List<FluidStack> fluidOutputs;
-    //private final List<FluidStack> fluidInputs;
-    //private final List<FluidStack> fluidOutputs;
 
     private final int EUt, duration;
     private final boolean hidden;
@@ -46,33 +44,6 @@ public class MTRecipe implements Recipe<Inventory> {
         this.duration = duration;
         this.hidden = hidden;
     }
-
-    /*@Deprecated
-    public boolean matches(long maxEU, ItemHandler importItems, FluidHandler importFluids) {
-        return EUt <= maxEU && importItems.containsItems(inputs) && importFluids.containsFluids(fluidInputs);
-    }*/
-
-    /*public boolean matches(long maxEU, Insertable<ItemKey> importItems, Extractable<ItemKey> importFluids) {
-        //return EUt <= maxEU && importItems.containsItems(inputs) && importFluids.containsFluids(fluidInputs);
-        return false;
-    }*/
-
-    /*
-    public boolean matches(Recipe recipe) {
-        if(name.equals(recipe.name) &&
-            EUt == recipe.EUt &&
-            duration == recipe.duration &&
-            hidden == recipe.hidden &&
-                inputs.equals(recipe.inputs) &&
-                Util.equalsIngredientList(inputs, recipe.inputs) &&
-                Util.equalsItemList(outputs, recipe.outputs) &&
-                Util.equalsFluidList(fluidInputs, recipe.fluidInputs) &&
-                Util.equalsFluidList(fluidOutputs, recipe.fluidOutputs)
-        ) {
-            return true;
-        }
-        return false;
-    }*/
 
     public String getName() {
         return id.getPath();

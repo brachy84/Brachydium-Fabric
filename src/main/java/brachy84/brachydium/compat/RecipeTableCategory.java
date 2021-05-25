@@ -7,6 +7,7 @@ import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.gui.api.ResourceSlotWidget;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
+import brachy84.brachydium.gui.widgets.BackgroundWidget;
 import brachy84.brachydium.gui.widgets.FluidSlotWidget;
 import brachy84.brachydium.gui.widgets.ItemSlotWidget;
 import brachy84.brachydium.gui.widgets.RootWidget;
@@ -68,6 +69,7 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
         List<Widget> widgets = new ArrayList<>();
         AtomicReference<Float> lowestY = new AtomicReference<>(0f);
         Map<ResourceSlotWidget<?>, Slot> slots = new HashMap<>();
+        widgets.add(Widgets.createRecipeBase(rect));
         rootWidget.forAllChildren(child -> {
             List<Widget> innerWidgets = new ArrayList<>();
             child.getReiWidgets(innerWidgets, origin);
@@ -77,10 +79,12 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
                 }
                 widgets.add(widget);
             }
-            lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
+            if(!(child instanceof BackgroundWidget)) {
+                lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
+            }
         });
         setEntries(recipeDisplay, slots);
-        Point point = origin.add(new Point(1, lowestY.get() + 3));
+        Point point = origin.add(new Point(4, lowestY.get() + 6));
         widgets.add(simpleLabel(point, new TranslatableText("brachydium.text.eu_t", recipeDisplay.getEUt())));
         point.translate(0, 10);
         widgets.add(simpleLabel(point, new TranslatableText("brachydium.text.duration_sec", recipeDisplay.getDuration() / 20f)));
@@ -95,7 +99,7 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
         return label;
     }
 
-    public void setEntries(RecipeTableDisplay display, Map<ResourceSlotWidget<?>, Slot> slots) {
+    private void setEntries(RecipeTableDisplay display, Map<ResourceSlotWidget<?>, Slot> slots) {
         Iterator<List<EntryStack>> inputItems = display.getItemInputs().iterator();
         Iterator<List<EntryStack>> inputFluids = display.getFluidInputs().iterator();
         Iterator<List<EntryStack>> outputItems = display.getItemOutputs().iterator();
