@@ -38,7 +38,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     /**
      * The recipes that were registered on this table
      */
-    //private final Collection<MTRecipe> recipeList = new ArrayList<>();
     private final Map<String, MTRecipe> recipeMap = new HashMap<>();
 
     public RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
@@ -50,9 +49,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         if(minInputs > maxInputs || minOutputs > maxOutputs || minFluidInputs > maxFluidInputs || minFluidOutputs > maxFluidOutputs) {
             throw new IllegalArgumentException("Max can't be smaller than Min in RecipeTable");
         }
-        /*if(minInputs == 0 && minFluidInputs == 0) {
-            throw new IllegalArgumentException("minInputs and minFluidInputs can not be both null");
-        }*/
         this.unlocalizedName = unlocalizedName;
 
         this.minInputs = minInputs;
@@ -89,49 +85,15 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }
 
     public MTRecipe findRecipe(List<ItemStack> inputs, List<FluidStack> fluidInputs) {
-        if(inputs == null || fluidInputs == null) {
-            return null;
-        }
-        for(MTRecipe recipe : getRecipeList()) {
+        Objects.requireNonNull(inputs);
+        Objects.requireNonNull(fluidInputs);
 
-        }
         return null;
     }
 
     public MTRecipe findRecipe(String name) {
         return recipeMap.get(name);
     }
-
-    /**
-     * Finds the first recipe that matches for processing
-     * This is different to the other find methods, because
-     * the other methods try to find the exact recipe, while this one
-     * checks if the machine has AT LEAST the required inputs
-     * // TODO: implement current machine tier*/
-    /*public MTRecipe findRecipeForProcessing(List<ItemStack> inputs, List<FluidVolume> fluidInputs) {
-        if(inputs == null || fluidInputs == null) {
-            System.out.println("one list is null");
-            return null;
-        }
-        //System.out.println("length: " + recipeList.size());
-        for(MTRecipe recipe : recipeList) {
-            boolean matches = false;
-            if(minInputs > 0) {
-                //System.out.println("testing items");
-                matches = Util.contains(recipe.getInputs(), inputs);
-            }
-            if(minFluidInputs > 0) {
-                //System.out.println("testing fluids");
-                //matches = Util.equalsFluidList(recipe.getFluidInputs(), fluidInputs);
-                matches = fluidInputs
-            }
-            if(matches) {
-                return recipe;
-            }
-        }
-        //System.out.println("returning null");
-        return null;
-    }*/
 
     public void addRecipe(MTRecipe recipe) {
         //recipeList.add(recipe);
@@ -243,7 +205,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         // AItemSlot.Type type = isOutputs ? AItemSlot.Type.EXPORT : AItemSlot.Type.IMPORT;
         if (!isFluid) {
             Slot<ItemKey> itemSlot = itemHandler.getSlots().get(slotIndex);
-            builder.itemSlot(itemSlot, new Point(x, y));
+            builder.itemSlot(itemSlot, isOutputs, new Point(x, y), slotIndex);
             //builder.slot(new Slot(itemHandler.getMCInventory(), slotIndex, x, y, isOutputs));
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, false, slotIndex == itemHandler.getSlots() - 1)));
         } else {
@@ -274,12 +236,5 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             itemSlotsToLeft = 2;
         }
         return new int[]{itemSlotsToLeft, itemSlotsToDown};
-    }
-
-    public static class Builder {
-
-        private Builder() {
-
-        }
     }
 }
