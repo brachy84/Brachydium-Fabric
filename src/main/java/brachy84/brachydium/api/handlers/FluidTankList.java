@@ -1,10 +1,12 @@
 package brachy84.brachydium.api.handlers;
 
+import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.fluid.FluidStack;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
+import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,26 +14,25 @@ import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.AbstractList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class FluidTankList implements ArrayParticipant<Fluid> {
+public class FluidTankList implements ArrayParticipant<Fluid>, InventoryListener {
 
-    private final List<Slot<Fluid>> tanks;
+    private final DiffKey.Array<FluidStack> fluids;
     private final boolean extractable, insertable;
     private final int capacity;
 
     public FluidTankList(int tanks, int capacity, boolean extractable, boolean insertable) {
-        this.tanks = DefaultedList.ofSize(tanks, new FluidTank(capacity, extractable, insertable));
+        this.fluids = new DiffKey.Array<>(DefaultedList.ofSize(tanks, FluidStack.EMPTY));
         this.capacity = capacity;
         this.extractable = extractable;
         this.insertable = insertable;
     }
 
     public FluidTankList(int capacity, boolean extractable, boolean insertable, FluidStack... stacks) {
-        this.tanks = Arrays.stream(stacks).map(stack -> new FluidTank(stack, capacity, extractable, insertable)).collect(Collectors.toList());
+        this.fluids = new DiffKey.Array<>(Arrays.asList(stacks));
         this.capacity = capacity;
         this.extractable = extractable;
         this.insertable = insertable;
@@ -66,8 +67,23 @@ public class FluidTankList implements ArrayParticipant<Fluid> {
     }
 
     @Override
+    public void addListener(Runnable runnable) {
+        fluids.onApply(runnable);
+    }
+
+    @Override
     public List<Slot<Fluid>> getSlots() {
-        return Collections.unmodifiableList(tanks);
+        return new AbstractList<Slot<Fluid>>() {
+            @Override
+            public Slot<Fluid> get(int index) {
+                return new FluidTank(fluids, index, capacity, extractable, insertable);
+            }
+
+            @Override
+            public int size() {
+                return fluids.get(null).size();
+            }
+        };
     }
 
     @Override
@@ -82,19 +98,16 @@ public class FluidTankList implements ArrayParticipant<Fluid> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<Fluid> insertable) {
-        if(!supportsExtraction()) return;
         ArrayParticipant.super.extract(transaction, insertable);
     }
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull Fluid type, int quantity) {
-        if(!supportsExtraction()) return 0;
         return ArrayParticipant.super.extract(transaction, type, quantity);
     }
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull Fluid type, int quantity) {
-        if(!supportsInsertion()) return 0;
         return ArrayParticipant.super.insert(transaction, type, quantity);
     }
 

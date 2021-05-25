@@ -1,10 +1,13 @@
 package brachy84.brachydium.api.handlers;
 
+import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.blockEntity.InventoryListener;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
+import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -12,24 +15,24 @@ import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.AbstractList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class ItemInventory implements ArrayParticipant<ItemKey> {
+public class ItemInventory implements ArrayParticipant<ItemKey>, InventoryListener {
 
-    private final List<Slot<ItemKey>> items;
+    private final DiffKey.Array<ItemStack> items;
+
     private final boolean extractable, insertable;
 
     public ItemInventory(int slots, boolean extractable, boolean insertable) {
-        this.items = DefaultedList.ofSize(slots, new ItemSlot(extractable, insertable));
+        this.items = new DiffKey.Array<>(DefaultedList.ofSize(slots, ItemStack.EMPTY));
         this.extractable = extractable;
         this.insertable = insertable;
     }
 
     public ItemInventory(boolean extractable, boolean insertable, ItemStack... stacks) {
-        this.items = Arrays.stream(stacks).map(stack -> new ItemSlot(stack, extractable, insertable)).collect(Collectors.toList());
+        this.items = new DiffKey.Array<>(Arrays.asList(stacks));
         this.extractable = extractable;
         this.insertable = insertable;
     }
@@ -39,7 +42,7 @@ public class ItemInventory implements ArrayParticipant<ItemKey> {
         ListTag list = (ListTag) tag.get("content");
         assert list != null;
         ItemStack[] stacks = new ItemStack[size];
-        for(int i = 0; i < size; i++) {
+        for (int i = 0; i < size; i++) {
             CompoundTag tag1 = (CompoundTag) list.get(i);
             stacks[i] = ItemStack.fromTag(tag1);
         }
@@ -54,9 +57,23 @@ public class ItemInventory implements ArrayParticipant<ItemKey> {
         return new ItemInventory(tanks, true, false);
     }
 
+    public void addListener(Runnable runnable) {
+        items.onApply(runnable);
+    }
+
     @Override
     public List<Slot<ItemKey>> getSlots() {
-        return Collections.unmodifiableList(items);
+        return new AbstractList<Slot<ItemKey>>() {
+            @Override
+            public Slot<ItemKey> get(int index) {
+                return new ItemSlot(items, index, extractable, insertable);
+            }
+
+            @Override
+            public int size() {
+                return items.get(null).size();
+            }
+        };
     }
 
     @Override
@@ -71,19 +88,26 @@ public class ItemInventory implements ArrayParticipant<ItemKey> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<ItemKey> insertable) {
-        if(!supportsExtraction()) return;
         ArrayParticipant.super.extract(transaction, insertable);
     }
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if(!supportsExtraction()) return 0;
-        return ArrayParticipant.super.extract(transaction, type, quantity);
+        Brachydium.LOGGER.info("Try extracting " + type.createItemStack(quantity));
+        int count = 0;
+        for (Slot<ItemKey> slot : this.getSlots()) {
+            int extracted = slot.extract(transaction, type, quantity);
+            count += extracted;
+            quantity -= extracted;
+            if(quantity == 0) {
+                break;
+            }
+        }
+        return count;
     }
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if(!supportsInsertion()) return 0;
         return ArrayParticipant.super.insert(transaction, type, quantity);
     }
 
@@ -93,7 +117,7 @@ public class ItemInventory implements ArrayParticipant<ItemKey> {
         tag.putBoolean("ins", insertable);
         tag.putBoolean("ext", extractable);
         ListTag list = new ListTag();
-        for(Slot<ItemKey> slot : getSlots()) {
+        for (Slot<ItemKey> slot : getSlots()) {
             ItemStack stack = slot.getKey(null).createItemStack(slot.getQuantity(null));
             list.add(stack.toTag(new CompoundTag()));
         }
