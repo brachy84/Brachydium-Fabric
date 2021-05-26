@@ -6,7 +6,7 @@ public class Point {
 
     public static final Point ZERO = new Point(0f, 0f);
 
-    private float x, y;
+    public float x, y;
 
     public Point(float x, float y) {
         this.x = x;

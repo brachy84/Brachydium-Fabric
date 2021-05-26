@@ -1,5 +1,6 @@
 package brachy84.brachydium.gui.wrapper;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.Networking;
 import brachy84.brachydium.gui.api.IUIHolder;
@@ -9,6 +10,7 @@ import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Shape;
 import brachy84.brachydium.gui.math.Size;
 import brachy84.brachydium.gui.api.Widget;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -19,6 +21,7 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
 import org.jetbrains.annotations.Nullable;
@@ -39,6 +42,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     private List<Interactable> interactables = new ArrayList<>();
     private GuiHelperImpl guiHelper;
     private Shape screenShape;
+    private float delta;
 
     public ModularGuiHandledScreen(ModularScreenHandler screenHandler, PlayerInventory inventory) {
         super(screenHandler, inventory, new LiteralText("H"));
@@ -72,25 +76,33 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         super.init(client, width, height);
         gui.resize(new Size(width, height));
         screenShape = Shape.rect(new Size(width, height));
+        backgroundHeight = (int) gui.getGuiSize().height;
+        backgroundWidth = (int) gui.getGuiSize().width;
+        init();
     }
 
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
-        //super.render(matrices, mouseX, mouseY, delta);
         guiHelper.setMatrixStack(matrices);
+        this.delta = delta;
         renderBackground(matrices);
-        //drawBackground(matrices, delta, mouseX, mouseY);
-        //gui.forEachWidget(widget -> widget.render(matrices, Point.cartesian(mouseX, mouseY), delta));
-        gui.render(matrices, new Point(mouseX, mouseY), delta);
-        guiHelper.setZ(Integer.MAX_VALUE);
-        Point point = new Point(mouseX - 9, mouseY - 9);
-        guiHelper.drawItem(player.inventory.getCursorStack(), point);
+        super.render(matrices, mouseX, mouseY, delta);
     }
 
     @Override
     protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        // draw dark background
-        //guiHelper.drawShape(Point.ZERO, screenShape, Color.of(0.2f, 0.2f, 0.2f, 0.4f));
+        gui.renderBackground();
+    }
+
+    @Override
+    protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        RenderSystem.translatef(-x, -y, 0);
+        gui.render(matrices, new Point(mouseX, mouseY), delta);
+    }
+
+    @Override
+    public void renderTooltip(MatrixStack matrices, ItemStack stack, int x, int y) {
+        super.renderTooltip(matrices, stack, x, y);
     }
 
     public void initializeInteractables() {
@@ -104,9 +116,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Override
     public void onClose() {
         super.onClose();
-        //gui.forEachWidget(Widget::onDestroy);
         gui.close();
-        //ModularGuiOld.clientGui = null;
     }
 
     @Nullable
@@ -149,6 +159,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         Point point = new Point(mouseX, mouseY);
         Interactable focused = getHoveredInteractable(point);
         if(focused != null) {
+            Brachydium.LOGGER.info("Click");
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(focused));
             buf.writeDouble(mouseX);
@@ -159,7 +170,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
             setFocused(focused);
             setDragging(true);
         }
-        return false;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override

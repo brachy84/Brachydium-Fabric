@@ -6,11 +6,16 @@ public class Size {
 
     public static final Size ZERO = new Size(0, 0);
 
-    public final float width, height;
+    public float width, height;
 
     public Size(float width, float height) {
         this.width = width;
         this.height = height;
+    }
+
+    public void resize(float w, float h) {
+        this.width = w;
+        this.height = h;
     }
 
     /**

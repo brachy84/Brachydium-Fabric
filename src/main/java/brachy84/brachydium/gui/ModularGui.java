@@ -5,10 +5,13 @@ import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
 import brachy84.brachydium.gui.widgets.RootWidget;
+import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,8 +72,12 @@ public class ModularGui implements ISizeProvider {
         return syncedWidgets.inverse().get(syncedWidget);
     }
 
+    public void renderBackground() {
+    }
+
     public void render(MatrixStack matrices, Point mousePos, float delta) {
         rootWidget.render(matrices, mousePos, delta);
+        rootWidget.drawForeground(matrices, mousePos, delta);
     }
 
     public void close() {
@@ -98,5 +105,12 @@ public class ModularGui implements ISizeProvider {
 
     public Point getOrigin() {
         return rootWidget.getPos();
+    }
+
+    @Nullable
+    public ModularGuiHandledScreen getScreen() {
+        if(MinecraftClient.getInstance().currentScreen instanceof ModularGuiHandledScreen)
+            return (ModularGuiHandledScreen) MinecraftClient.getInstance().currentScreen;
+        return null;
     }
 }

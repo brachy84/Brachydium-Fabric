@@ -48,8 +48,6 @@ public interface ISyncedWidget {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(this));
             writeData(buf);
-            //Networking.Package pack = new Networking.Package(getUniqueId(), data);
-            //pack.send(player, Networking.WIDGET_UPDATE_CHANNEL);
             ServerPlayNetworking.send(player, Networking.WIDGET_UPDATE, buf);
         }
     }

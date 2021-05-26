@@ -1,5 +1,6 @@
 package brachy84.brachydium.gui.api;
 
+import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Size;
 import net.minecraft.util.Identifier;
 
@@ -26,6 +27,9 @@ public class TextureArea {
         if(!path.getPath().endsWith(".png")) {
             path = new Identifier(path.getNamespace(), path.getPath() + ".png");
         }
+        if(!path.getPath().startsWith("textures/")) {
+            path = new Identifier(path.getNamespace(), "textures/" + path.getPath());
+        }
         this.path = path;
         this.imageSize = imageSize;
         this.u0 = u0;
@@ -48,6 +52,10 @@ public class TextureArea {
 
     public TextureArea getSubArea(float u, float v) {
         return TextureArea.of(path, imageSize, u0 + u0 * u, v0 + v0 * v);
+    }
+
+    public TextureArea getSubArea(AABB bounds) {
+        return getSubArea(bounds.x0, bounds.y0, bounds.x1, bounds.y1);
     }
 
     public TextureArea getSubArea(float u0, float v0, float u1, float v1) {

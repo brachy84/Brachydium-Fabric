@@ -49,8 +49,8 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     }
 
     @Override
-    public void setResource(FluidStack resource) {
-        fluidSlot.set(Transaction.GLOBAL, resource.getFluid(), resource.getAmount());
+    public boolean setResource(FluidStack resource) {
+        return fluidSlot.set(Transaction.GLOBAL, resource.getFluid(), resource.getAmount());
     }
 
     @Override

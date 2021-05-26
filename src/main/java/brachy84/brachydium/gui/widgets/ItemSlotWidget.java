@@ -5,15 +5,16 @@ import brachy84.brachydium.gui.GuiTextures;
 import brachy84.brachydium.gui.api.ResourceSlotWidget;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
-import brachy84.brachydium.gui.math.AABB;
-import brachy84.brachydium.gui.math.Point;
-import brachy84.brachydium.gui.math.Size;
+import brachy84.brachydium.gui.math.*;
+import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import me.shedaniel.rei.api.widgets.Widgets;
 import me.shedaniel.rei.gui.widget.Widget;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -24,10 +25,38 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     private static final Size SIZE = new Size(18, 18);
     private final Slot<ItemKey> itemSlot;
+    private final boolean isOutput;
 
     public ItemSlotWidget(Slot<ItemKey> itemSlot, Point point) {
+        this(itemSlot, point, false);
+    }
+
+    public ItemSlotWidget(Slot<ItemKey> itemSlot, Point point, boolean isOutput) {
         super(AABB.of(SIZE, point));
         this.itemSlot = itemSlot;
+        this.isOutput = isOutput;
+        shape = Shape.rect(new Size(16, 16));
+    }
+
+    @Override
+    public void draw(MatrixStack matrices, Point mousePos, float delta) {
+        //if(index >= 0) Brachydium.LOGGER.info("Rendering slot " + index);
+        super.draw(matrices, mousePos, delta);
+    }
+
+    @Override
+    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
+        super.drawForeground(matrices, mousePos, delta);
+        if(getBounds().isInBounds(mousePos.subtract(new Point(-8, -8))) && gui.getScreen() != null) {
+            RenderSystem.disableDepthTest();
+            RenderSystem.colorMask(true, true, true, false);
+            //guiHelper.drawShape(pos.add(new Point(1, 1)), shape, Color.of(230, 230, 230, 100));
+            int x = (int) pos.x + 1, y = (int) pos.y + 2;
+            guiHelper.fillGradient(matrices, x, y, x + 16, y + 16, -2130706433, -2130706433);
+            RenderSystem.colorMask(true, true, true, true);
+            RenderSystem.enableDepthTest();
+            gui.getScreen().renderTooltip(matrices, getResource(), (int) mousePos.getX() + 8, (int) mousePos.getY());
+        }
     }
 
     @Override
@@ -41,15 +70,25 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     }
 
     @Override
-    public void setResource(ItemStack resource) {
-        if (!itemSlot.set(Transaction.GLOBAL, ItemKey.of(resource), resource.getCount())) {
+    public boolean setResource(ItemStack resource) {
+        Transaction transaction = Transaction.create();
+        if (gui.player instanceof ClientPlayerEntity) transaction = null;
+        if (!itemSlot.set(transaction, ItemKey.of(resource), resource.getCount())) {
             Brachydium.LOGGER.error("Could not set " + resource + " in ItemSlot");
+            return false;
         }
+        if (transaction != null) transaction.commit();
+        return true;
     }
 
     @Override
     public boolean isEmpty() {
         return getResource().isEmpty();
+    }
+
+    @Override
+    public boolean canPut(ItemStack resource, PlayerEntity player) {
+        return !isOutput;
     }
 
     @Override
@@ -59,26 +98,39 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
 
     private void setCursorStack(ItemStack stack) {
-        gui.player.inventory.setCursorStack(stack);
+        CursorSlotWidget.get().ifPresent(cursorSlot -> {
+            cursorSlot.setResource(stack);
+        });
+    }
+
+    private ItemStack getCursorStack() {
+        if (CursorSlotWidget.get().isPresent()) {
+            return CursorSlotWidget.get().get().getResource();
+        }
+        throw new IllegalStateException("CursorSlotWidget can not be null!!!");
     }
 
     @Override
     public void receiveData(PacketByteBuf data) {
-        setResource(data.readItemStack());
-        setCursorStack(data.readItemStack());
+        setResource(data.readItemStack(), Action.SYNC);
+        //setCursorStack(data.readItemStack());
         //MinecraftClient.getInstance().player.inventory.setCursorStack(data.readItemStack());
     }
 
     @Override
     public void writeData(PacketByteBuf data) {
         data.writeItemStack(getResource());
-        data.writeItemStack(gui.player.inventory.getCursorStack());
+        //data.writeItemStack(gui.player.inventory.getCursorStack());
+    }
+
+    @Override
+    public void setLayer(int layer) {
+        super.setLayer(layer);
     }
 
     @Override
     public void onClick(Point point, int buttonId) {
-        Brachydium.LOGGER.info("Clicking slot");
-        ItemStack cursorStack = gui.player.inventory.getCursorStack();
+        ItemStack cursorStack = getCursorStack();
         ItemStack slotStack = getResource();
         // Left click
         if (buttonId == 0) {
@@ -87,19 +139,17 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
             }
             if (cursorStack.isEmpty()) {
                 if (slotStack.isEmpty()) return;
-                setCursorStack(slotStack.copy());
-                setResource(ItemStack.EMPTY);
+                if (setResource(ItemStack.EMPTY, Action.TAKE))
+                    setCursorStack(slotStack.copy());
             } else if (cursorStack.getItem() == slotStack.getItem()) {
                 int cursorAmount = cursorStack.getCount();
                 int slotAmount = slotStack.getCount();
                 int moved = Math.min(cursorAmount, slotStack.getItem().getMaxCount() - slotAmount);
-                //cursorStack.setCount(cursorAmount + moved);
-                setCursorStack(newStack(cursorStack, cursorAmount - moved));
-                setResource(newStack(slotStack, slotAmount + moved));
-                //slotStack.setCount(slotAmount - moved);
+                if (setResource(newStack(slotStack, slotAmount + moved), Action.PUT))
+                    setCursorStack(newStack(cursorStack, cursorAmount - moved));
             } else if (slotStack.isEmpty()) {
-                setResource(cursorStack.copy());
-                setCursorStack(ItemStack.EMPTY);
+                if (setResource(cursorStack.copy(), Action.PUT))
+                    setCursorStack(ItemStack.EMPTY);
             }
             // Right click
         } else if (buttonId == 1) {
@@ -110,15 +160,15 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
                 if (slotStack.isEmpty()) return;
                 int taken = slotStack.getCount() / 2;
                 //slotStack.setCount(slotStack.getCount() - taken);
-                setResource(newStack(slotStack, slotStack.getCount() - taken));
-                setCursorStack(newStack(slotStack, taken));
+                if (setResource(newStack(slotStack, slotStack.getCount() - taken), Action.TAKE))
+                    setCursorStack(newStack(slotStack, taken));
             } else if (slotStack.isEmpty()) {
-                setResource(new ItemStack(cursorStack.getItem()));
-                cursorStack.setCount(cursorStack.getCount() - 1);
+                if (setResource(new ItemStack(cursorStack.getItem()), Action.PUT))
+                    setCursorStack(newStack(cursorStack, cursorStack.getCount() - 1));
             } else if (slotStack.getItem() == cursorStack.getItem()) {
                 if (slotStack.getItem().getMaxCount() - slotStack.getCount() >= 1) {
-                    slotStack.setCount(slotStack.getCount() + 1);
-                    cursorStack.setCount(cursorStack.getCount() - 1);
+                    if (setResource(newStack(slotStack, slotStack.getCount() + 1), Action.PUT))
+                        setCursorStack(newStack(cursorStack, cursorStack.getCount() - 1));
                 }
             }
             // Scroll click

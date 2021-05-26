@@ -17,6 +17,7 @@ public class CursorSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     public CursorSlotWidget() {
         super(AABB.of(new Size(16, 16), Point.ZERO));
+        name = "Cursorslot";
     }
 
     public static Optional<CursorSlotWidget> get() {
@@ -58,8 +59,7 @@ public class CursorSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     @Override
     public void setLayer(int layer) {
-        //super.setLayer(layer);
-        this.layer = 200;
+        super.setLayer(layer);
         Brachydium.LOGGER.info("Set layer of Cursor to " + layer);
     }
 

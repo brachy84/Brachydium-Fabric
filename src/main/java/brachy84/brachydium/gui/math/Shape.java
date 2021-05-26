@@ -36,7 +36,7 @@ public class Shape {
     }
 
     public static Shape rect(Size size) {
-        return builder().beginnMode(GL11.GL_QUAD_STRIP)
+        return builder().beginnMode(GL11.GL_QUADS)
                 .vertex(Point.ZERO)
                 .vertexX(size.width)
                 .vertexY(size.height)

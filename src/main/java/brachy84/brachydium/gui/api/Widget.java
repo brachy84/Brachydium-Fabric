@@ -1,5 +1,6 @@
 package brachy84.brachydium.gui.api;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.AABB;
@@ -26,6 +27,8 @@ public abstract class Widget {
     private boolean enabled;
     private Transformation transformation;
 
+    public String name = "";
+
     // relative position to parent
     protected final Point relativPos;
     protected Point pos;
@@ -35,7 +38,7 @@ public abstract class Widget {
         this.relativPos = bounds.getTopLeft();
         this.pos = this.relativPos;
         this.size = bounds.getSize();
-        this.layer = -1;
+        this.layer = 0;
         this.enabled = true;
         this.parentPosition = Point.ZERO;
         this.guiHelper = new GuiHelperImpl(new MatrixStack());
@@ -46,34 +49,40 @@ public abstract class Widget {
     @ApiStatus.Internal
     @Environment(EnvType.CLIENT)
     public void render(MatrixStack matrices, Point mousePos, float delta) {
-        if(guiHelper instanceof GuiHelperImpl) {
+        if (guiHelper instanceof GuiHelperImpl) {
             ((GuiHelperImpl) guiHelper).setMatrixStack(matrices);
             ((GuiHelperImpl) guiHelper).setTransformation(transformation);
-            ((GuiHelperImpl) guiHelper).setZ(layer);
+            ((GuiHelperImpl) guiHelper).setZ(layer - 0);
+            //RenderSystem.translatef(0, 0, -layer / 2);
         }
         draw(matrices, mousePos, delta);
     }
 
     /**
      * called every frame
+     *
      * @param matrices current MatrixStack
      * @param mousePos client mouse position
-     * @param delta delta time
+     * @param delta    delta time
      */
     @Environment(EnvType.CLIENT)
     public abstract void draw(MatrixStack matrices, Point mousePos, float delta);
+
+    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {}
 
     /**
      * called when opening the screen
      */
     @ApiStatus.OverrideOnly
-    public void onInit() {}
+    public void onInit() {
+    }
 
     /**
      * called when closing the screen
      */
     @ApiStatus.OverrideOnly
-    public void onDestroy() {}
+    public void onDestroy() {
+    }
 
     /**
      * @param point position of mouse
@@ -102,16 +111,14 @@ public abstract class Widget {
     @ApiStatus.Internal
     public void setParentPosition(Point parentPosition) {
         this.parentPosition = parentPosition;
-        //this.bounds = AABB.of(bounds.getSize(), parentPosition.add(bounds.getTopLeft()));
         this.pos = relativPos.add(parentPosition);
         transformation.setRotationVector(getBounds().getCenter(), layer);
     }
 
     @ApiStatus.Internal
-    public final void setLayer(int layer) {
-        if(layer < 0) {
-            this.layer = layer;
-        }
+    public void setLayer(int layer) {
+        Brachydium.LOGGER.info("Set layer of " + name + " to " + layer);
+        this.layer = layer;
     }
 
     public <T extends Widget> T setTransformation(Transformation transformation) {
@@ -144,16 +151,23 @@ public abstract class Widget {
         return relativPos;
     }
 
+    public Widget name(String name) {
+        this.name = name;
+        return this;
+    }
+
     /**
      * this called when the gui will be created for REI
      * add rei widgets to the list that represents this widget
      */
     @ApiStatus.OverrideOnly
-    public void getReiWidgets(List<me.shedaniel.rei.gui.widget.Widget> widgets, Point origin) {}
+    public void getReiWidgets(List<me.shedaniel.rei.gui.widget.Widget> widgets, Point origin) {
+    }
 
     public static final Widget NULL = new Widget(AABB.ltwh(0, 0, 0, 0)) {
         @Override
-        public void draw(MatrixStack matrices, Point mousePos, float delta) {}
+        public void draw(MatrixStack matrices, Point mousePos, float delta) {
+        }
 
         @Override
         public boolean isEnabled() {

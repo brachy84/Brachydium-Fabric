@@ -48,8 +48,6 @@ public class ModularScreenHandler extends ScreenHandler {
         this.gui = uiHolder.createUi(player);
 
         gui.initWidgets();
-
-        addSlot(new Slot(player.inventory, 1, 20, 20));
     }
 
     @Override

@@ -26,13 +26,22 @@ public abstract class ParentWidget extends Widget {
 
     @Override
     public void render(MatrixStack matrices, Point mousePos, float delta) {
-        super.render(matrices, mousePos, delta);
-        forEachChild(widget -> widget.render(matrices, mousePos, delta));
+        forEachChild(widget -> {
+            widget.render(matrices, mousePos, delta);
+        });
         forEachChildParent(parentWidget -> parentWidget.render(matrices, mousePos, delta));
     }
 
     @Override
     public void draw(MatrixStack matrices, Point mousePos, float delta) {}
+
+    @Override
+    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
+        forEachChild(widget -> {
+            widget.drawForeground(matrices, mousePos, delta);
+        });
+        forEachChildParent(parentWidget -> parentWidget.drawForeground(matrices, mousePos, delta));
+    }
 
     /**
      * @return the children of this widget
@@ -71,7 +80,7 @@ public abstract class ParentWidget extends Widget {
         }
         if(nextLayer.size() > 0) {
             for(ParentWidget parent : nextLayer) {
-                parent.forEachChild(consumer);
+                parent.forAllChildren(consumer);
             }
         }
     }
@@ -94,21 +103,24 @@ public abstract class ParentWidget extends Widget {
     }
 
     public void initWidgets(ModularGui gui) {
-        AtomicInteger childrenLayer = new AtomicInteger(layer);
-        forEachChild(widget -> {
-            widget.setGui(gui);
-            //widget.setSizes(this);
-            widget.onInit();
-            if(widget instanceof ISyncedWidget) {
-                gui.addSyncedWidget((ISyncedWidget) widget);
-            }
-            widget.setLayer(childrenLayer.getAndIncrement());
-            if(widget instanceof ParentWidget)
-                parentsInChildren.add((ParentWidget) widget);
-        });
+        AtomicInteger nextLayer = new AtomicInteger(layer);
+        forEachChild(widget -> initWidget(widget, nextLayer.getAndIncrement()));
         forEachChildParent(widget -> {
-            widget.setLayer((int) (Math.ceil(layer / 100D) * 100));
+            //widget.setLayer(layer + 100);
             widget.initWidgets(gui);
         });
+        //background.setLayer(layer - 1);
+    }
+
+    public void initWidget(Widget widget, int layer) {
+        widget.setGui(gui);
+        widget.onInit();
+        if(widget instanceof ISyncedWidget) {
+            gui.addSyncedWidget((ISyncedWidget) widget);
+        }
+        //widget.setLayer(layer);
+        if(widget instanceof ParentWidget)
+            parentsInChildren.add((ParentWidget) widget);
+
     }
 }

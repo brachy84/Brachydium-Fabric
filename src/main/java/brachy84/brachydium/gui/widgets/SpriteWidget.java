@@ -10,7 +10,7 @@ import net.minecraft.client.util.math.MatrixStack;
 public class SpriteWidget extends Widget {
 
     private final TextureArea sprite;
-    private Size drawSize;
+    private final Size drawSize;
 
     public SpriteWidget(TextureArea sprite, Point point) {
         this(sprite, point, sprite.getImageSize());
