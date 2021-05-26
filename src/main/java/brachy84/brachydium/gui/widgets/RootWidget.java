@@ -1,7 +1,9 @@
 package brachy84.brachydium.gui.widgets;
 
+import brachy84.brachydium.api.handlers.PlayerInventoryParticipant;
 import brachy84.brachydium.gui.GuiTextures;
 import brachy84.brachydium.gui.ModularGui;
+import brachy84.brachydium.gui.api.SlotTags;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.api.Widget;
 import brachy84.brachydium.gui.math.AABB;
@@ -11,7 +13,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
-import io.github.astrarre.transfer.internal.compat.PlayerInventoryParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
@@ -119,16 +120,16 @@ public class RootWidget extends ParentWidget {
             return widget(new DynamicLabelWidget(x, y, text, color));
         }
     */
-        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, int index, TextureArea... overlays) {
-            return itemSlot(itemSlot, false, point, index, overlays);
+        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, String tag, TextureArea... overlays) {
+            return itemSlot(itemSlot, false, point, tag, overlays);
         }
 
-        public Builder itemSlot(Slot<ItemKey> itemSlot, boolean isOutput, Point point, int index, TextureArea... overlays) {
-            return widget(new ItemSlotWidget(itemSlot, point, isOutput).setBackgroundSprites(overlays).name("Itemslot " + index));
+        public Builder itemSlot(Slot<ItemKey> itemSlot, boolean isOutput, Point point, String tag, TextureArea... overlays) {
+            return widget(new ItemSlotWidget(itemSlot, point, isOutput).setTag(tag).setBackgroundSprites(overlays));
         }
 
-        public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, TextureArea... overlays) {
-            return widget(new FluidSlotWidget(fluidSlot, point).setBackgroundSprites(overlays).name("Fluidslot"));
+        public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, String tag, TextureArea... overlays) {
+            return widget(new FluidSlotWidget(fluidSlot, point).setTag(tag).setBackgroundSprites(overlays));
         }
 /*
         public MainWidget progressBar(DoubleSupplier progressSupplier, int x, int y, int width, int height, TextureArea texture, MoveType moveType) {
@@ -148,7 +149,10 @@ public class RootWidget extends ParentWidget {
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 9; col++) {
                     int index = col + (row + 1) * 9;
-                    itemSlot(inv.getSlots().get(index), point, index);
+                    //itemSlot(inv.getSlots().get(index), point);
+                    widget(new ItemSlotWidget(inv.getSlots().get(index), point)
+                            .setTag(SlotTags.PLAYER)
+                    );
                     point.translate(18, 0); // move point 18 pixels to the right
                     /*this.widget(new SlotWidget(new PlayerMainInvWrapper(inventoryPlayer), col + (row + 1) * 9, x + col * 18, y + row * 18)
                             .setBackgroundTexture(imageLocation)
@@ -162,7 +166,9 @@ public class RootWidget extends ParentWidget {
 
         public Builder bindPlayerHotbar(PlayerInventoryParticipant inv, Point point) {
             for (int slot = 0; slot < 9; slot++) {
-                itemSlot(inv.getSlots().get(slot), point, slot);
+                widget(new ItemSlotWidget(inv.getSlots().get(slot), point)
+                        .setTag(SlotTags.HOTBAR)
+                );
                 point.translate(18, 0); // move point 18 pixels to the right
                 /*this.widget(new SlotWidget(new PlayerMainInvWrapper(inventoryPlayer), slot, x + slot * 18, y)
                         .setBackgroundTexture(imageLocation)

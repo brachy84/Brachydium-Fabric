@@ -3,6 +3,7 @@ package brachy84.brachydium.api.recipe;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.gui.GuiTextures;
 import brachy84.brachydium.gui.api.MoveDirection;
+import brachy84.brachydium.gui.api.SlotTags;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
@@ -153,7 +154,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         if(builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
-        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Point(builder.getBounds().width / 2 - 9, 22)), MoveDirection.RIGHT));
+        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Point(builder.getBounds().width / 2 - 9, 22)), MoveDirection.RIGHT).name("Duration bar"));
         addInventorySlotGroup(builder, importItems, importFluids, false);
         addInventorySlotGroup(builder, exportItems, exportFluids, true);
 
@@ -205,12 +206,12 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         // AItemSlot.Type type = isOutputs ? AItemSlot.Type.EXPORT : AItemSlot.Type.IMPORT;
         if (!isFluid) {
             Slot<ItemKey> itemSlot = itemHandler.getSlots().get(slotIndex);
-            builder.itemSlot(itemSlot, isOutputs, new Point(x, y), slotIndex);
+            builder.itemSlot(itemSlot, isOutputs, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT);
             //builder.slot(new Slot(itemHandler.getMCInventory(), slotIndex, x, y, isOutputs));
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, false, slotIndex == itemHandler.getSlots() - 1)));
         } else {
             Slot<Fluid> fluidSlot = fluidHandler.getSlots().get(slotIndex);
-            builder.fluidSlot(fluidSlot, new Point(x, y));
+            builder.fluidSlot(fluidSlot, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT);
             //builder.slot(new FluidSlot(fluidHandler, slotIndex, x, y, isOutputs));
             //.setAlwaysShowFull(true)
             //.setBackgroundTexture(getOverlaysForSlot(isOutputs, true, slotIndex == fluidHandler.getTanks() - 1))
