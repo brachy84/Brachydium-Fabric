@@ -12,7 +12,6 @@ import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.Matrix4f;
 import org.jetbrains.annotations.ApiStatus;
 
 /**
@@ -34,21 +33,12 @@ public abstract class GuiHelper extends DrawableHelper {
 
     public abstract void drawFluid(FluidStack stack, Point point);
 
-    public abstract void drawSprite(ISprite sprite, Point point);
-
-    public abstract void drawSprite(ISprite sprite, Point point, float u, float v);
-
-    /**
-     * Basically {@link #drawTexturedQuad(Matrix4f, int, int, int, int, int, float, float, float, float)} but not broken
-     * @param sprite to draw
-     * @param point to draw on (top left corner)
-     * @param u texture offset in x
-     * @param v texture offset in y
-     * @param drawSize The size the drawn image should have
-     */
-    public abstract void drawSprite(ISprite sprite, Point point, float u, float v, Size drawSize);
-
     public abstract void drawTextureArea(TextureArea texture, Point point);
 
     public abstract void drawTextureArea(TextureArea texture, Point point, Size drawSize);
+
+    @Override
+    public void fillGradient(MatrixStack matrices, int xStart, int yStart, int xEnd, int yEnd, int colorStart, int colorEnd) {
+        super.fillGradient(matrices, xStart, yStart, xEnd, yEnd, colorStart, colorEnd);
+    }
 }

@@ -2,7 +2,6 @@ package brachy84.brachydium.gui.impl;
 
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.gui.api.GuiHelper;
-import brachy84.brachydium.gui.api.ISprite;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.math.*;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -76,49 +75,19 @@ public class GuiHelperImpl extends GuiHelper {
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
 
-        //RenderSystem.enableDepthTest();
+        RenderSystem.enableDepthTest();
     }
 
     @Override
     public void drawItem(ItemStack stack, Point point) {
         itemRenderer.zOffset = z;
-        itemRenderer.renderGuiItemIcon(stack, (int) point.getX() + 1, (int) point.getY() + 1);
+        itemRenderer.renderInGuiWithOverrides(stack, (int) point.getX() + 1, (int) point.getY() + 1);
         itemRenderer.renderGuiItemOverlay(textRenderer, stack, (int) point.getX() + 1, (int) point.getY() + 1);
     }
 
     @Override
     public void drawFluid(FluidStack stack, Point point) {
 
-    }
-
-    @Override
-    public void drawSprite(ISprite sprite, Point point) {
-        drawSprite(sprite, point, 0, 0);
-    }
-
-    @Override
-    public void drawSprite(ISprite sprite, Point point, float u, float v) {
-        drawSprite(sprite, point, u, v, sprite.getSize());
-    }
-
-    @Override
-    public void drawSprite(ISprite sprite, Point point, float u, float v, Size drawSize) {
-        client.getTextureManager().bindTexture(sprite.getPath());
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
-        //drawTexture(matrices, (int) point.getX(), (int) point.getY(), z, u, v, (int) sprite.getSize().width, (int) sprite.getSize().height, (int) drawSize.width, (int) drawSize.height);
-        Matrix4f matrix4f = matrices.peek().getModel();
-
-        float x0 = point.getX(), x1 = x0 + sprite.getSize().width, y0 = point.getY(), y1 = y0 + sprite.getSize().height;
-        float u0 = u / sprite.getSize().width, u1 = (u + drawSize.width) / sprite.getSize().width, v0 = v / sprite.getSize().height, v1 = (v + drawSize.height / sprite.getSize().height);
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(7, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, x0, y1, (float)z).texture(u0, v1).next();
-        bufferBuilder.vertex(matrix4f, x1, y1, (float)z).texture(u1, v1).next();
-        bufferBuilder.vertex(matrix4f, x1, y0, (float)z).texture(u1, v0).next();
-        bufferBuilder.vertex(matrix4f, x0, y0, (float)z).texture(u0, v0).next();
-        bufferBuilder.end();
-        RenderSystem.enableAlphaTest();
-        BufferRenderer.draw(bufferBuilder);
     }
 
     @Override
@@ -138,7 +107,7 @@ public class GuiHelperImpl extends GuiHelper {
         //float x0 = point.getX(), x1 = x0 + sprite.getSize().width, y0 = point.getY(), y1 = y0 + sprite.getSize().height;
         //float u0 = u / sprite.getSize().width, u1 = (u + drawSize.width) / sprite.getSize().width, v0 = v / sprite.getSize().height, v1 = (v + drawSize.height / sprite.getSize().height);
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(7, VertexFormats.POSITION_TEXTURE);
+        bufferBuilder.begin(GL11.GL_QUADS, VertexFormats.POSITION_TEXTURE);
         bufferBuilder.vertex(matrix4f, bounds.x0, bounds.y1, (float)z).texture(texture.u0, texture.v1).next();
         bufferBuilder.vertex(matrix4f, bounds.x1, bounds.y1, (float)z).texture(texture.u1, texture.v1).next();
         bufferBuilder.vertex(matrix4f, bounds.x1, bounds.y0, (float)z).texture(texture.u1, texture.v0).next();
@@ -161,7 +130,7 @@ public class GuiHelperImpl extends GuiHelper {
     }
 
     /**
-     * use {@link GuiHelper#drawSprite(ISprite, Point)} (or any other drawSprite method)
+     * use {@link #drawTextureArea(TextureArea, Point)} (or any other drawSprite method)
      * the drawTexture methods have a fuchsie whoopsie
      */
     @Deprecated
