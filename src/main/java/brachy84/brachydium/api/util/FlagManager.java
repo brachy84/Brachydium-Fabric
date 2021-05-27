@@ -12,8 +12,10 @@ public class FlagManager {
         store = 0L;
     }
 
-    public void createFlag(String name) {
-        flagMap.put(name.toLowerCase(), (long) Math.pow(flagMap.size(), 2));
+    public long createFlag(String name) {
+        long val = (long) Math.pow(2, flagMap.size());
+        flagMap.put(name.toLowerCase(), val);
+        return val;
     }
 
     public boolean hasFlag(long flag) {
@@ -25,7 +27,7 @@ public class FlagManager {
     }
 
     public void flag(long flag) {
-        store = store & flag;
+        store = store | flag;
     }
 
     public void flag(String flag) {
