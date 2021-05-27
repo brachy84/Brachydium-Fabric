@@ -3,6 +3,11 @@ package brachy84.brachydium.api.render;
 public class Textures {
 
     public static final Texture[] MACHINECASING;
+    public static final Texture OUTPUT_OVERLAY = new Texture("block/overlays/output");
+    public static final Texture INPUT_OVERLAY = new Texture("block/overlays/input");
+
+    public static final MachineOverlayTexture MIXER = new MachineOverlayTexture("mixer");
+    public static final MachineOverlayTexture ALLOY_SMELTER = new MachineOverlayTexture("alloy_smelter");
 
     static {
         MACHINECASING = new Texture[]{

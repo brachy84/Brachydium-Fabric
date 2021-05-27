@@ -5,6 +5,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.math.Direction;
 
@@ -29,6 +30,7 @@ public abstract class Renderer {
             Brachydium.LOGGER.fatal("Error rendering Side. Sprite is null");
             return;
         }
+        if(sprite instanceof MissingSprite) return;
         emitter.square(direction, 0f, 0f, 1f, 1f, 0f);
         emitter.spriteBake(0, sprite, MutableQuadView.BAKE_LOCK_UV);
         emitter.spriteColor(0, -1, -1, -1, -1);

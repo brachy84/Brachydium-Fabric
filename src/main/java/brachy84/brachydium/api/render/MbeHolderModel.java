@@ -50,6 +50,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         BlockEntity blockEntity = blockRenderView.getBlockEntity(blockPos);
         if(blockEntity instanceof MetaBlockEntityHolder) {
             MetaBlockEntityHolder holder = (MetaBlockEntityHolder) blockEntity;
+            if(holder.getMetaBlockEntity() == null) return;
             holder.getMetaBlockEntity().render(emitter);
         }
     }

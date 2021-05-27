@@ -13,7 +13,13 @@ import java.util.function.Function;
 
 public class Texture {
 
+    private static boolean inittialised = false;
+
     private static final List<Texture> textures = new ArrayList<>();
+
+    public static boolean areInitialized() {
+        return inittialised;
+    }
 
     private SpriteIdentifier spriteId;
     private Sprite sprite;
@@ -29,6 +35,7 @@ public class Texture {
 
     public void makeSprite(Function<SpriteIdentifier, Sprite> textureGetter) {
         sprite = textureGetter.apply(spriteId);
+        inittialised = true;
     }
 
     private static void add(Texture texture) {
