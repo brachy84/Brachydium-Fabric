@@ -21,6 +21,11 @@ public class TieredMetaBlockEntity extends MetaBlockEntity implements ITiered {
     }
 
     @Override
+    public MetaBlockEntity recreate() {
+        return new TieredMetaBlockEntity(id, tier);
+    }
+
+    @Override
     public Renderer getRenderer() {
         return new OrientedCubeRender(Textures.MACHINECASING[getTier()]);
     }
@@ -28,6 +33,10 @@ public class TieredMetaBlockEntity extends MetaBlockEntity implements ITiered {
     @Override
     public int getTier() {
         return tier.tier / 10;
+    }
+
+    public Voltages.Voltage getVoltage() {
+        return tier;
     }
 
     @Override

@@ -19,17 +19,14 @@ public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIH
 
     private IOverlayRenderer overlayRenderer;
 
-    public MetaBlockEntityHolder(BlockEntityType<?> type) {
-        super(type);
-    }
-
     public MetaBlockEntityHolder(MetaBlockEntity mbe) {
         super(mbe.getEntityType());
-        this.metaTileEntity = mbe;
+        this.metaTileEntity = mbe.recreate();
+        this.metaTileEntity.holder = this;
     }
 
     public MetaBlockEntity setMetaBlockEntity(MetaBlockEntity mbe) {
-        return this.metaTileEntity = mbe;
+        return this.metaTileEntity = mbe.recreate();
     }
 
     public MetaBlockEntity getMetaBlockEntity() {

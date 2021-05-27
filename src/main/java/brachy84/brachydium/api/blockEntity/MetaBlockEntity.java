@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 
 public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
-    private final Identifier id;
+    protected final Identifier id;
     private Block block;
     private BlockItem item;
     private BlockEntityType<MetaBlockEntityHolder> entityType;
@@ -52,28 +52,18 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     protected ArrayParticipant<Fluid> importFluids;
     protected ArrayParticipant<Fluid> exportFluids;
 
+    private final List<Runnable> initialiseListeners = new ArrayList<>();
+
     public MetaBlockEntity(Identifier id) {
         this.id = id;
+        reinitializeInventories();
     }
 
     public static MetaBlockEntity getFromId(Identifier id) {
         return BrachydiumApi.META_BLOCK_ENTITY_REGISTRY.tryGetEntry(id);
     }
 
-    /**
-     * Gets called during Registry
-     */
-    /*public void init() {
-        // register block apis
-        for(MBETrait trait : traits) {
-            for(BlockApiHolder<?, ?> apiHolder : trait.getApis()) {
-                apiHolder.register(entityType);
-            }
-        }
-        for(BlockApiHolder<?, ?> apiHolder : getApis()) {
-            apiHolder.register(entityType);
-        }
-    }*/
+    public abstract MetaBlockEntity recreate();
 
     public void reinitializeInventories() {
         Brachydium.LOGGER.info("Reinitializing Inventories");
@@ -81,18 +71,20 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         exportItems = createExportItemHandler();
         importFluids = createImportFluidHandler();
         exportFluids = createExportFluidHandler();
+        initialiseListeners.forEach(Runnable::run);
     }
 
-    //public BlockApiHolder<?, ?>[] getApis() {
-    //    return new BlockApiHolder[] {};
-    //}
+    public final void appendInitialiseListener(Runnable runnable) {
+        initialiseListeners.add(runnable);
+    }
+
 
     public void addApis() {
         for(MBETrait trait : traits) {
             trait.addApis(getEntityType());
         }
-        FabricParticipants.ITEM_WORLD.forBlockEntity(getEntityType(), ((direction, state, world, pos, entity) -> getItemInventory()));
-        FabricParticipants.FLUID_WORLD.forBlockEntity(getEntityType(), (((direction, state, world, pos, entity) -> getFluidInventory())));
+        FabricParticipants.ITEM_WORLD.forBlockEntity(getEntityType(), (direction, state, world, pos, entity) -> getItemInventory());
+        FabricParticipants.FLUID_WORLD.forBlockEntity(getEntityType(), (direction, state, world, pos, entity) -> getFluidInventory());
     }
 
     public void render(QuadEmitter emitter) {
@@ -114,6 +106,15 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         }
     }
 
+    public MBETrait findTrait(String name) {
+        for(MBETrait trait : traits) {
+            if(trait.getName().equals(name)) {
+                return trait;
+            }
+        }
+        return null;
+    }
+
     public String getRawLangKey() {
         return id.getNamespace() + ".metablockentity." + id.getPath().substring(4) + ".";
     }
@@ -129,21 +130,10 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     @Override
     public void tick() {
-        List<Integer> nulls = new ArrayList<>();
-        for(int i = 0; i < traits.size(); i++) {
-            MBETrait trait = traits.get(i);
-            if(trait == null) {
-                Brachydium.LOGGER.error("trait is null");
-                nulls.add(i);
-                continue;
-            }
+        for(MBETrait trait : traits) {
             if(shouldUpdate(trait)) {
                 trait.update();
             }
-        }
-        for(int i = nulls.size() - 1; i >= 0; i--) {
-            int j = nulls.get(i);
-            traits.remove(j);
         }
     }
 
@@ -178,7 +168,13 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     }
 
     public void deserializeTag(CompoundTag tag) {
-
+        CompoundTag traitTag = tag.getCompound("MBETraits");
+        for(String key : traitTag.getKeys()) {
+            MBETrait trait = findTrait(key);
+            if(trait != null) {
+                trait.deserializeTag(traitTag.getCompound(key));
+            }
+        }
     }
 
     @Nullable
@@ -238,10 +234,6 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     public BlockEntityType<MetaBlockEntityHolder> getEntityType() {
         return entityType;
     }
-
-    /*public ScreenHandlerType<ModularScreenHandler> getScreenHandlerType() {
-        return screenHandlerType;
-    }*/
 
     public MetaBlockEntityHolder getHolder() {
         return holder;

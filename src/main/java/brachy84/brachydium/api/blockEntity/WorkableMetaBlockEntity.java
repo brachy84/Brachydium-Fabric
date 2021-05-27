@@ -22,7 +22,23 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
         super(id, tier);
         Objects.requireNonNull(recipeTable);
         this.recipeTable = recipeTable;
-        this.recipeLogic = new RecipeEnergyLogic(this, recipeTable, () -> energyContainer);
+        this.recipeLogic = createWorkable(recipeTable);
+        reinitializeInventories();
+    }
+
+    @Override
+    public MetaBlockEntity recreate() {
+        return new WorkableMetaBlockEntity(id, getVoltage(), recipeTable);
+    }
+
+    public AbstractRecipeLogic createWorkable(RecipeTable<?> recipeTable) {
+        return new RecipeEnergyLogic(this, recipeTable, () -> energyContainer);
+    }
+
+    @Override
+    public void reinitializeInventories() {
+        if(recipeLogic == null) return;
+        super.reinitializeInventories();
     }
 
     @Override
