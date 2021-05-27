@@ -93,7 +93,6 @@ public class ItemInventory implements ArrayParticipant<ItemKey>, InventoryListen
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        Brachydium.LOGGER.info("Try extracting " + type.createItemStack(quantity));
         int count = 0;
         for (Slot<ItemKey> slot : this.getSlots()) {
             int extracted = slot.extract(transaction, type, quantity);

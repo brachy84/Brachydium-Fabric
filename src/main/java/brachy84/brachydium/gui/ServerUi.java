@@ -4,8 +4,6 @@ import brachy84.brachydium.gui.api.ISyncedWidget;
 import brachy84.brachydium.gui.api.Interactable;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.wrapper.ModularScreenHandler;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
