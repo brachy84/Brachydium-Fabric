@@ -4,43 +4,45 @@ import brachy84.brachydium.api.fluid.FluidStack;
 import io.github.astrarre.transfer.v0.api.Droplet;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
+import io.github.astrarre.transfer.v0.api.transaction.Key;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
+import io.github.astrarre.transfer.v0.api.transaction.keys.ObjectKeyImpl;
 import net.minecraft.fluid.Fluid;
+import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
- * A fluid tank in a tank array don't use it for single fluid tanks
- * see also: {@link SingleFluidTank}
+ * This for Single fluid tanks, don't use it for machines with multiple fluid slots
+ * see also: {@link FluidTank}
  */
-public class FluidTank implements Slot<Fluid> {
+public class SingleFluidTank implements Slot<Fluid> {
 
-    private final DiffKey.Array<FluidStack> inventory;
-    private final int index;
+    private final Key.Object<FluidStack> type;
     private final boolean extractable, insertable;
     private final int capacity;
 
-    public FluidTank(DiffKey.Array<FluidStack> inventory, int index) {
-        this(inventory, index, 64 * 81000);
+
+    public SingleFluidTank(boolean extractable, boolean insertable) {
+        this(64 * 81000, extractable, insertable);
     }
 
-    public FluidTank(DiffKey.Array<FluidStack> inventory, int index, boolean extractable, boolean insertable) {
-        this(inventory, index, 64 * 81000, extractable, insertable);
+    public SingleFluidTank(int capacity) {
+        this(capacity, true, true);
     }
 
-    public FluidTank(DiffKey.Array<FluidStack> inventory, int index, int capacity) {
-        this(inventory, index, capacity, true, true);
-    }
-
-    public FluidTank(DiffKey.Array<FluidStack> inventory, int index, int capacity, boolean extractable, boolean insertable) {
-        this.inventory = inventory;
-        this.index = index;
+    public SingleFluidTank(int capacity, boolean extractable, boolean insertable) {
         this.extractable = extractable;
         this.insertable = insertable;
         this.capacity = capacity;
+        this.type = new ObjectKeyImpl<>(FluidStack.EMPTY);
+    }
+
+    public static SingleFluidTank fromTag(CompoundTag tag) {
+        FluidStack stack = FluidStack.fromTag(tag.getCompound("content"));
+        SingleFluidTank tank = new SingleFluidTank(tag.getInt("capacity"), tag.getBoolean("ext"), tag.getBoolean("ins"));
+        tank.set(null, stack.getFluid(), stack.getAmount());
+        return tank;
     }
 
     @Override
@@ -54,7 +56,7 @@ public class FluidTank implements Slot<Fluid> {
     }
 
     public FluidStack getStack(@Nullable Transaction transaction) {
-        return inventory.get(transaction).get(index);
+        return type.get(transaction);
     }
 
     @Override
@@ -70,9 +72,7 @@ public class FluidTank implements Slot<Fluid> {
     @Override
     public boolean set(@Nullable Transaction transaction, Fluid key, int quantity) {
         if(quantity > capacity || quantity <= 0) return false;
-        List<FluidStack> stacks = inventory.get(transaction);
-        stacks.set(index, new FluidStack(key, quantity));
-        inventory.set(transaction, stacks);
+        type.set(transaction, new FluidStack(key, quantity));
         return true;
     }
 
@@ -124,5 +124,14 @@ public class FluidTank implements Slot<Fluid> {
             return result - oldQuantity;
         }
         return 0;
+    }
+
+    public CompoundTag toTag() {
+        CompoundTag tag = new CompoundTag();
+        tag.putBoolean("ins", insertable);
+        tag.putBoolean("ext", extractable);
+        tag.putInt("capacity", capacity);
+        tag.put("content", getStack(null).toTag(new CompoundTag()));
+        return tag;
     }
 }
