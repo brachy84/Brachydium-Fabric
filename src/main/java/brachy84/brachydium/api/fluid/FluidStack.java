@@ -82,6 +82,11 @@ public class FluidStack {
         return id;
     }
 
+    @Override
+    public String toString() {
+        return getId().getPath() + " " + amount;
+    }
+
     public List<EntryStack> toEntryStack() {
         return Lists.newArrayList(EntryStack.create(fluid, amount));
     }
