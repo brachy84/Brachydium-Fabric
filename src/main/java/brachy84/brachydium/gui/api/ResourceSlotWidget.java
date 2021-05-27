@@ -22,6 +22,7 @@ public abstract class ResourceSlotWidget<T> extends Widget implements Interactab
 
     private final List<TextureArea> textures = new ArrayList<>();
     protected Shape shape;
+    private String tag = "";
     public ResourceSlotWidget(AABB bounds) {
         super(bounds);
         shape = Shape.rect(bounds.getSize());
@@ -93,6 +94,15 @@ public abstract class ResourceSlotWidget<T> extends Widget implements Interactab
 
     public ResourceSlotWidget<T> setBackgroundSprites(TextureArea... sprite) {
         textures.addAll(Arrays.asList(sprite));
+        return this;
+    }
+
+    public String getTag() {
+        return tag;
+    }
+
+    public ResourceSlotWidget<T> setTag(String tag) {
+        this.tag = tag.toLowerCase();
         return this;
     }
 
