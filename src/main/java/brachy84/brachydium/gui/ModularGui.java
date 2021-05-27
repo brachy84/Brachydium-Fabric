@@ -14,7 +14,10 @@ import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ModularGui implements ISizeProvider {
 
@@ -25,6 +28,7 @@ public class ModularGui implements ISizeProvider {
     //private final ImmutableList<Runnable> uiCloseCallback;
     private final BiMap<Integer, ISyncedWidget> syncedWidgets = HashBiMap.create(1);
     private int nextSyncedId = 0;
+    private List<Interactable> interactables = new ArrayList<>();
 
     /**
      * UIHolder of this modular UI
@@ -48,6 +52,11 @@ public class ModularGui implements ISizeProvider {
 
     public void initWidgets() {
         rootWidget.initWidgets(this);
+        rootWidget.forAllChildren(widget -> {
+            if(widget instanceof Interactable) {
+                interactables.add((Interactable) widget);
+            }
+        });
     }
 
     public void addSyncedWidget(ISyncedWidget widget) {
@@ -55,13 +64,24 @@ public class ModularGui implements ISizeProvider {
     }
 
     public List<Interactable> getInteractables() {
-        List<Interactable> interactables = new ArrayList<>();
-        rootWidget.forAllChildren(widget -> {
-            if(widget instanceof Interactable) {
-                interactables.add((Interactable) widget);
+        return Collections.unmodifiableList(interactables);
+    }
+
+    public List<ResourceSlotWidget<?>> getSlots(Predicate<ResourceSlotWidget<?>> predicate) {
+        return interactables.stream().filter(interactable -> {
+            if(interactable instanceof ResourceSlotWidget) {
+                return predicate.test((ResourceSlotWidget<?>) interactable);
             }
-        });
-        return interactables;
+            return false;
+        }).map(interactable -> (ResourceSlotWidget<?>) interactable).collect(Collectors.toList());
+    }
+
+    public List<ResourceSlotWidget<?>> getSlotsWithTag(String tag) {
+        return getSlots(slot -> tag.toLowerCase().equals(slot.getTag()));
+    }
+
+    public List<ResourceSlotWidget<?>> getSlotsWithoutTag(String tag) {
+        return getSlots(slot -> !tag.toLowerCase().equals(slot.getTag()));
     }
 
     public ISyncedWidget findSyncedWidget(int id) {
