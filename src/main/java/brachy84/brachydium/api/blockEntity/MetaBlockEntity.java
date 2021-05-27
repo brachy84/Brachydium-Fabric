@@ -146,10 +146,6 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         return builder;
     }
 
-    /*public ModularGuiOld createUiOld(PlayerEntity player) {
-        return createUITemplate(player, ModularGuiOld.defaultBuilder()).build(getHolder(), player);
-    };*/
-
     public RootWidget createUi(PlayerEntity player) {
         return createUITemplate(player, RootWidget.builder()).build();
     }
@@ -163,7 +159,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         }
 
         tag.put("MBETraits", traitTag);
-
+        serializeInventories(tag);
         return tag;
     }
 
@@ -175,6 +171,29 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
                 trait.deserializeTag(traitTag.getCompound(key));
             }
         }
+        deserializeInventories(tag);
+    }
+
+    public void serializeInventories(CompoundTag tag) {
+        if(importItems instanceof ItemInventory) {
+            tag.put("importItems", ((ItemInventory) importItems).toTag());
+        }
+        if(exportItems instanceof ItemInventory) {
+            tag.put("exportItems", ((ItemInventory) exportItems).toTag());
+        }
+        if(importFluids instanceof FluidTankList) {
+            tag.put("importFluids", ((FluidTankList) importFluids).toTag());
+        }
+        if(exportFluids instanceof FluidTankList) {
+            tag.put("exportFluids", ((FluidTankList) exportFluids).toTag());
+        }
+    }
+
+    public void deserializeInventories(CompoundTag tag) {
+        importItems = ItemInventory.fromTag(tag.getCompound("importItems"));
+        exportItems = ItemInventory.fromTag(tag.getCompound("exportItems"));
+        importFluids = FluidTankList.fromTag(tag.getCompound("importFluids"));
+        exportFluids = FluidTankList.fromTag(tag.getCompound("exportFluids"));
     }
 
     @Nullable
