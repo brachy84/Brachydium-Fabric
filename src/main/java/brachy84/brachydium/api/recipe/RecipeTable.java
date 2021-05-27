@@ -45,10 +45,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     private TextureArea itemSlotOverlay;
     private TextureArea fluidSlotOverlay;
 
-    public static <R extends RecipeBuilder<R>> Builder<R> builder() {
-        return new Builder<>();
-    }
-
     public RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
                        int maxOutputs, int minFluidInputs, int maxFluidInputs, int minFluidOutputs, int maxFluidOutputs,
                        R defaultRecipe) {
@@ -263,58 +259,5 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             return new TextureArea[]{base, overlay};
         }
         return new TextureArea[]{base};
-    }
-
-    public static class Builder<R extends RecipeBuilder<R>> {
-        public String unlocalizedName;
-
-        private R recipeBuilderSample;
-
-        private int minInputs, maxInputs, minOutputs, maxOutputs;
-        private int minFluidInputs, maxFluidInputs, minFluidOutputs, maxFluidOutputs;
-
-        private Builder() {
-
-        }
-
-        public Builder<R> name(String unlocalizedName) {
-            this.unlocalizedName = unlocalizedName;
-            return this;
-        }
-
-        public Builder<R> defaultRecipe(R defaultRecipe) {
-            this.recipeBuilderSample = defaultRecipe;
-            return this;
-        }
-
-        public Builder<R> setInputs(int min, int max) {
-            this.minInputs = min;
-            this.maxInputs = max;
-            return this;
-        }
-
-        public Builder<R> setOutputs(int min, int max) {
-            this.minOutputs = min;
-            this.maxOutputs = max;
-            return this;
-        }
-
-        public Builder<R> setFluidInputs(int min, int max) {
-            this.minFluidInputs = min;
-            this.maxFluidInputs = max;
-            return this;
-        }
-
-        public Builder<R> setFluidOutputs(int min, int max) {
-            this.minFluidOutputs = min;
-            this.maxFluidOutputs = max;
-            return this;
-        }
-
-        public RecipeTable<R> build() {
-            Objects.requireNonNull(unlocalizedName);
-            Objects.requireNonNull(recipeBuilderSample);
-            return new RecipeTable<>(unlocalizedName, minInputs, maxInputs, minOutputs, maxOutputs, minFluidInputs, maxFluidInputs, minFluidOutputs, maxFluidOutputs, recipeBuilderSample);
-        }
     }
 }
