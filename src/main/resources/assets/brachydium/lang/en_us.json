@@ -14,16 +14,16 @@
   "component.dust": "%s Dust",
   "component.dust_small": "Small %s Dust",
 
-  "mechtech.rei_category.alloy_smelter" : "Alloy Smelting",
+  "brachydium.category.alloy_smelter_recipes" : "Alloy Smelting",
 
-  "mechtech.text.eu_t" : "EU per tick: %d EU/t",
-  "mechtech.text.duration_sec" : "Duration: %d sec",
-  "mechtech.text.total_eu" : "Total EU: %d EU",
+  "brachydium.text.eu_t" : "EU per tick: %d EU/t",
+  "brachydium.text.duration_sec" : "Duration: %d sec",
+  "brachydium.text.total_eu" : "Total EU: %d EU",
 
-  "mechtech.tool.wrench" : "%s Wrench",
-  "mechtech.tool.hammer" : "%s Hammer",
-  "mechtech.tool.screw_driver" : "%s Screw Driver",
-  "mechtech.tool.file" : "%s File",
-  "mechtech.tool.saw" : "%s Saw"
+  "brachydium.tool.wrench" : "%s Wrench",
+  "brachydium.tool.hammer" : "%s Hammer",
+  "brachydium.tool.screw_driver" : "%s Screw Driver",
+  "brachydium.tool.file" : "%s File",
+  "brachydium.tool.saw" : "%s Saw"
 }
 
