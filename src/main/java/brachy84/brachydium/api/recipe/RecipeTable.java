@@ -102,8 +102,16 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         System.out.println("---Recipe added to " + unlocalizedName);
     }
 
+    public boolean hasRecipeKey(String key) {
+        return recipeMap.containsKey(key);
+    }
+
     public R recipeBuilder(String name) {
         return recipeBuilderSample.copyWithName(name);
+    }
+
+    public R recipeBuilder() {
+        return recipeBuilderSample.copy();
     }
 
     public void addTileItem(BlockItem item) {
@@ -112,10 +120,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
 
     public List<BlockItem> getTileItems() {
         return Collections.unmodifiableList(tileItems);
-    }
-
-    public R recipeBuilder() {
-        return recipeBuilder("");
     }
 
     public int getMinInputs() {
