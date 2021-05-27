@@ -124,6 +124,11 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
+    public R name(String name) {
+        this.name = name;
+        return (R) this;
+    }
+
     public R hidden() {
         this.hidden = true;
         return (R) this;
