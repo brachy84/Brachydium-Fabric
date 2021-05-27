@@ -7,7 +7,7 @@ import net.minecraft.util.math.Direction;
 import java.util.HashMap;
 import java.util.Map;
 
-public class OrientedCubeRender extends Renderer{
+public class OrientedCubeRender extends Renderer {
 
     private Map<Face, Texture> textures = new HashMap<>();
 
@@ -48,7 +48,7 @@ public class OrientedCubeRender extends Renderer{
         return textures.get(Face.getFace(dir, front)).getSprite();
     }
 
-    public static enum Face {
+    public enum Face {
         FRONT, BACK, TOP, BOTTOM, SIDE;
 
         public static Face getFace(Direction direction, Direction front) {

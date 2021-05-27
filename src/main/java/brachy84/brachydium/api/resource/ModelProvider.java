@@ -14,7 +14,7 @@ public class ModelProvider implements ModelResourceProvider {
     public static final MbeHolderModel META_BLOCK_ENTITY_MODEL = new MbeHolderModel();
 
     @Override
-    public @Nullable UnbakedModel loadModelResource(Identifier identifier, ModelProviderContext modelProviderContext) throws ModelProviderException {
+    public @Nullable UnbakedModel loadModelResource(Identifier identifier, ModelProviderContext modelProviderContext) {
         if(identifier.getNamespace().equals(Brachydium.MOD_ID)) {
             if(identifier.getPath().equals("block/generic_mbe") || identifier.getPath().startsWith("item/mbe/")) {
                 return META_BLOCK_ENTITY_MODEL;

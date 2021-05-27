@@ -60,6 +60,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         if(itemStack.getItem() instanceof BlockMachineItem) {
             QuadEmitter emitter = renderContext.getEmitter();
             MetaBlockEntity mbe = MetaBlockEntity.getFromId(((BlockMachineItem) itemStack.getItem()).getId());
+            mbe.setFrontFacing(Direction.NORTH);
             mbe.render(emitter);
         }
     }
@@ -71,7 +72,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
 
     @Override
     public boolean useAmbientOcclusion() {
-        return false;
+        return true;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
 
     @Override
     public boolean isSideLit() {
-        return true;
+        return false;
     }
 
     @Override
@@ -120,8 +121,10 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         System.out.println("baking model");
         JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(DEFAULT_BLOCK_MODEL);
         transformation = defaultBlockModel.getTransformations();
-        for(Texture texture : Texture.getAll()) {
-            texture.makeSprite(textureGetter);
+        if(!Texture.areInitialized()) {
+            for(Texture texture : Texture.getAll()) {
+                texture.makeSprite(textureGetter);
+            }
         }
         if(RendererAccess.INSTANCE.hasRenderer()) {
             net.fabricmc.fabric.api.renderer.v1.Renderer renderer = RendererAccess.INSTANCE.getRenderer();
