@@ -42,4 +42,8 @@ public class FlagManager {
     public long getRawFlag(String flag) {
         return flagMap.get(flag);
     }
+
+    public boolean exists(String flag) {
+        return flagMap.containsKey(flag);
+    }
 }
