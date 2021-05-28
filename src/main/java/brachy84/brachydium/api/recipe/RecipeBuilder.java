@@ -4,15 +4,18 @@ import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.tag.TagDictionary;
 import brachy84.brachydium.api.util.RandomString;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.tag.Tag;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
@@ -66,9 +69,21 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
+    public R input(Tag<Item> tag, int amount) {
+        this.inputs.add(new CountableIngredient(Ingredient.fromTag(tag), amount));
+        return (R) this;
+    }
+
     public R input(String component, Material material, int amount) {
         if(!component.endsWith("s")) Brachydium.LOGGER.warn(component + " doesn't end with 's'. All oreDict tags should end with s (f.e. ingots)");
         this.inputs.add(CountableIngredient.of("c:" + material.getName() + "_" + component, amount));
+        return (R) this;
+    }
+
+    public R input(TagDictionary.Entry tag, Material material, int amount) {
+        Objects.requireNonNull(tag);
+        Objects.requireNonNull(material);
+        this.inputs.add(CountableIngredient.of(tag.getStringTag(material), amount));
         return (R) this;
     }
 
@@ -146,8 +161,6 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     public MTRecipe buildAndRegister() {
         if(validate()) {
-            MTRecipe recipe = new MTRecipe(null, name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
-            recipeTable.addRecipe(recipe);
             if(name == null || name.trim().equals("")) {
                 String output = "";
                 if(outputs.size() > 0) {
@@ -161,7 +174,12 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
                 } while (recipeTable.hasRecipeKey(key));
                 name = key;
             }
+            MTRecipe recipe = new MTRecipe(null, name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
+            recipeTable.addRecipe(recipe);
+            Brachydium.LOGGER.info(String.format("Registering recipe (%s) for %s", recipe.getName(), recipeTable.unlocalizedName));
             return recipe;
+        } else {
+            Brachydium.LOGGER.error(String.format("Recipe for %s is invalid!", recipeTable.unlocalizedName));
         }
         return null;
     }
@@ -181,13 +199,25 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     protected boolean validate() {
         boolean matchesII, matchesIO, matchesFI, matchesFO;
         matchesII = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
-        if(!matchesII) return false;
+        if(!matchesII) {
+            Brachydium.LOGGER.info("ItemInput doesn't match");
+            return false;
+        }
         matchesIO = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
-        if(!matchesIO) return false;
+        if(!matchesIO) {
+            Brachydium.LOGGER.info("ItemOutput doesn't match");
+            return false;
+        }
         matchesFI = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
-        if(!matchesFI) return false;
-        matchesFO = fluidOutputs.size() >= recipeTable.getMaxFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
-        if(!matchesFO) return false;
+        if(!matchesFI) {
+            Brachydium.LOGGER.info("FluidInput doesn't match");
+            return false;
+        }
+        matchesFO = fluidOutputs.size() >= recipeTable.getMinFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
+        if(!matchesFO) {
+            Brachydium.LOGGER.info("FluidOutput doesn't match. Should be {} - {}, but is {}", recipeTable.getMinFluidOutputs(), recipeTable.getMaxFluidOutputs(), fluidOutputs.size());
+            return false;
+        }
 
         return EUt != 0 && duration > 0;
     }
