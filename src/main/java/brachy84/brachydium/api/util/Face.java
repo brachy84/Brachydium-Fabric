@@ -4,7 +4,7 @@ import net.minecraft.util.math.Direction;
 
 public enum Face {
 
-    FRONT, BACK, TOP, BOTTOM, LEFT, RIGHT;
+    FRONT, BACK, TOP, BOTTOM, LEFT, RIGHT, SIDE;
 
     public static final Face[] HORIZONTAL = {
             FRONT, RIGHT, BACK, LEFT
