@@ -3,8 +3,8 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.api.energy.Voltages;
 import brachy84.brachydium.api.handlers.*;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import brachy84.brachydium.api.render.MachineOverlayRenderer;
 import brachy84.brachydium.api.render.OrientedOverlayRenderer;
+import brachy84.brachydium.api.render.WorkableOverlayRenderer;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
@@ -43,8 +43,8 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
     @Override
     public void render(QuadEmitter emitter) {
         super.render(emitter);
-        if(overlayRenderer instanceof MachineOverlayRenderer) {
-            ((MachineOverlayRenderer) overlayRenderer).render(emitter, getFrontFacing(), recipeLogic.isActive());
+        if(overlayRenderer instanceof WorkableOverlayRenderer) {
+            ((WorkableOverlayRenderer) overlayRenderer).render(emitter, getFrontFacing(), recipeLogic.isActive());
         } else {
             overlayRenderer.render(emitter, getFrontFacing());
         }

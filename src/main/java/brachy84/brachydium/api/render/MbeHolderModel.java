@@ -48,9 +48,9 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         renderContext.meshConsumer().accept(mesh);
         QuadEmitter emitter = renderContext.getEmitter();
         BlockEntity blockEntity = blockRenderView.getBlockEntity(blockPos);
-        if(blockEntity instanceof MetaBlockEntityHolder) {
+        if (blockEntity instanceof MetaBlockEntityHolder) {
             MetaBlockEntityHolder holder = (MetaBlockEntityHolder) blockEntity;
-            if(holder.getMetaBlockEntity() == null) return;
+            if (holder.getMetaBlockEntity() == null) return;
             holder.getMetaBlockEntity().render(emitter);
         }
     }
@@ -58,10 +58,9 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
     @Override
     public void emitItemQuads(ItemStack itemStack, Supplier<Random> supplier, RenderContext renderContext) {
         renderContext.meshConsumer().accept(mesh);
-        if(itemStack.getItem() instanceof BlockMachineItem) {
+        if (itemStack.getItem() instanceof BlockMachineItem) {
             QuadEmitter emitter = renderContext.getEmitter();
             MetaBlockEntity mbe = MetaBlockEntity.getFromId(((BlockMachineItem) itemStack.getItem()).getId());
-            mbe.setFrontFacing(Direction.NORTH);
             mbe.render(emitter);
         }
     }
@@ -122,12 +121,12 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         System.out.println("baking model");
         JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(DEFAULT_BLOCK_MODEL);
         transformation = defaultBlockModel.getTransformations();
-        if(!Texture.areInitialized()) {
-            for(Texture texture : Texture.getAll()) {
+        if (!Texture.areInitialized()) {
+            for (Texture texture : Texture.getAll()) {
                 texture.makeSprite(textureGetter);
             }
         }
-        if(RendererAccess.INSTANCE.hasRenderer()) {
+        if (RendererAccess.INSTANCE.hasRenderer()) {
             net.fabricmc.fabric.api.renderer.v1.Renderer renderer = RendererAccess.INSTANCE.getRenderer();
             MeshBuilder builder = renderer.meshBuilder();
             QuadEmitter emitter = builder.getEmitter();

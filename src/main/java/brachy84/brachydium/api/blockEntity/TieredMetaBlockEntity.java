@@ -3,7 +3,7 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
 import brachy84.brachydium.api.energy.Voltages;
 import brachy84.brachydium.api.handlers.EnergyContainer2Handler;
-import brachy84.brachydium.api.render.OrientedCubeRender;
+import brachy84.brachydium.api.render.CubeRenderer;
 import brachy84.brachydium.api.render.Renderer;
 import brachy84.brachydium.api.render.Textures;
 import net.minecraft.util.Identifier;
@@ -27,7 +27,7 @@ public class TieredMetaBlockEntity extends MetaBlockEntity implements ITiered {
 
     @Override
     public Renderer getRenderer() {
-        return new OrientedCubeRender(Textures.MACHINECASING[getTier()]);
+        return new CubeRenderer(Textures.MACHINECASING[getTier()]);
     }
 
     @Override

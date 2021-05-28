@@ -2,22 +2,35 @@ package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.api.util.Face;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class OrientedOverlayRenderer extends Renderer {
 
-    private Texture texture;
-    private Face[] faces;
+    protected final Map<Face, Texture> textureMap = new HashMap<>();
 
-    public OrientedOverlayRenderer(Texture texture, Face... faces) {
-        this.texture = texture;
-        this.faces = faces;
+    protected OrientedOverlayRenderer(Identifier path, Face... faces) {
+        createTextures(path, faces);
+    }
+
+    protected void createTextures(Identifier path, Face... faces) {
+        for (Face face : faces) {
+            textureMap.put(face, new Texture(makePath(path, face)));
+        }
+    }
+
+    protected Identifier makePath(Identifier path, Face face) {
+        return new Identifier(path.getNamespace(), path.getPath() + "/" + face.toString().toLowerCase());
     }
 
     @Override
     public void render(QuadEmitter emitter, Direction frontFacing) {
-        for(Face face : faces) {
-            renderSide(emitter, face.getDirection(frontFacing), texture);
+        for(Map.Entry<Face, Texture> entry : textureMap.entrySet()) {
+            renderSide(emitter, entry.getKey(), frontFacing, entry.getValue().getSprite());
         }
     }
 }

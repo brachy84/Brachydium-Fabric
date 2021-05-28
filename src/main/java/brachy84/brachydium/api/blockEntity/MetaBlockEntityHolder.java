@@ -1,32 +1,36 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.api.render.IOverlayRenderer;
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.api.IUIHolder;
-import brachy84.brachydium.gui.widgets.RootWidget;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.NotNull;
 
 public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIHolder {
 
     protected MetaBlockEntity metaTileEntity;
 
-    private IOverlayRenderer overlayRenderer;
-
     public MetaBlockEntityHolder(MetaBlockEntity mbe) {
-        super(mbe.getEntityType());
-        this.metaTileEntity = mbe.recreate();
-        this.metaTileEntity.holder = this;
+        this(mbe, mbe.getFrontFacing());
     }
 
-    public MetaBlockEntity setMetaBlockEntity(MetaBlockEntity mbe) {
-        return this.metaTileEntity = mbe.recreate();
+    public MetaBlockEntityHolder(MetaBlockEntity mbe, Direction facing) {
+        super(mbe.getEntityType());
+        setMetaBlockEntity(mbe, facing);
+    }
+
+    public void setMetaBlockEntity(MetaBlockEntity mbe, Direction facing) {
+        this.metaTileEntity = mbe.recreate();
+        this.metaTileEntity.holder = this;
+        this.metaTileEntity.setFrontFacing(facing);
+        this.metaTileEntity.setBlockEntityType(mbe.getEntityType());
+        this.metaTileEntity.setBlock(mbe.getBlock());
+        this.metaTileEntity.setBlockItem(mbe.getItem());
     }
 
     public MetaBlockEntity getMetaBlockEntity() {
@@ -52,7 +56,9 @@ public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIH
 
     @Override
     public void tick() {
-        metaTileEntity.tick();
+        if(metaTileEntity != null) {
+            metaTileEntity.tick();
+        }
     }
 
     @Override

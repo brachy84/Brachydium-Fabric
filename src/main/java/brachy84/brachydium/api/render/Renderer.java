@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.util.Face;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
@@ -13,6 +14,15 @@ import net.minecraft.util.math.Direction;
 public abstract class Renderer {
 
     public abstract void render(QuadEmitter emitter, Direction frontFacing);
+
+    public static void renderSide(QuadEmitter emitter, Face face, Direction frontFacing, Sprite sprite) {
+        if(face == Face.SIDE) {
+            renderSide(emitter, Face.LEFT.getDirection(frontFacing), sprite);
+            renderSide(emitter, Face.RIGHT.getDirection(frontFacing), sprite);
+        } else {
+            renderSide(emitter, face.getDirection(frontFacing), sprite);
+        }
+    }
 
     /**
      * Renders a texture on a full side

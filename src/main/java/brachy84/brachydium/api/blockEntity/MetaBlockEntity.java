@@ -8,6 +8,8 @@ import brachy84.brachydium.api.render.OverlayRenderer;
 import brachy84.brachydium.api.render.Renderer;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.RecipeTable;
+import brachy84.brachydium.api.render.Textures;
+import brachy84.brachydium.api.util.Face;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Participant;
@@ -29,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -42,7 +45,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     private final List<MBETrait> traits = new ArrayList<>();
     private final List<MBETrait> nullTraits = new ArrayList<>();
-    private final List<OverlayRenderer> overlays = new ArrayList<>();
+    protected final List<OverlayRenderer> overlays = new ArrayList<>();
     private Direction frontFacing;
 
     protected MetaBlockEntityHolder holder;
@@ -53,9 +56,20 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     protected ArrayParticipant<Fluid> exportFluids;
 
     private final List<Runnable> initialiseListeners = new ArrayList<>();
+    private final Map<Face, FaceType> faces = new HashMap<>();
+
+    public enum FaceType {
+        NONE, BLOCKED, INPUT, OUTPUT
+    }
 
     public MetaBlockEntity(Identifier id) {
         this.id = id;
+        faces.put(Face.FRONT, FaceType.NONE);
+        faces.put(Face.BACK, FaceType.OUTPUT);
+        faces.put(Face.TOP, FaceType.NONE);
+        faces.put(Face.BOTTOM, FaceType.NONE);
+        faces.put(Face.LEFT, FaceType.NONE);
+        faces.put(Face.RIGHT, FaceType.NONE);
         reinitializeInventories();
     }
 
@@ -95,6 +109,13 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         for(Map.Entry<Direction, Cover> cover : getCovers().entrySet()) {
             cover.getValue().render(emitter, cover.getKey());
         }
+        for(Map.Entry<Face, FaceType> entry : faces.entrySet()) {
+            if(entry.getValue() == FaceType.INPUT) {
+                Renderer.renderSide(emitter, entry.getKey().getDirection(getFrontFacing()), Textures.INPUT_OVERLAY);
+            } else if(entry.getValue() == FaceType.OUTPUT) {
+                Renderer.renderSide(emitter, entry.getKey().getDirection(getFrontFacing()), Textures.OUTPUT_OVERLAY);
+            }
+        }
     }
 
     public void addTrait(MBETrait trait) {
@@ -113,6 +134,10 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
             }
         }
         return null;
+    }
+
+    public FaceType getFaceType(Face face) {
+        return faces.get(face);
     }
 
     public String getRawLangKey() {
@@ -152,6 +177,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     public CompoundTag serializeTag() {
         CompoundTag tag = new CompoundTag();
+        tag.putInt("front", getFrontFacing().getId());
         CompoundTag traitTag = new CompoundTag();
 
         for(MBETrait trait : traits) {
@@ -164,6 +190,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     }
 
     public void deserializeTag(CompoundTag tag) {
+        setFrontFacing(Direction.values()[tag.getInt("front")]);
         CompoundTag traitTag = tag.getCompound("MBETraits");
         for(String key : traitTag.getKeys()) {
             MBETrait trait = findTrait(key);
@@ -285,10 +312,14 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     }
 
     public Direction getFrontFacing() {
-        return frontFacing == null ? Direction.NORTH : frontFacing;
+        if(frontFacing == null) setFrontFacing(Direction.NORTH);//Brachydium.LOGGER.info("Front is null");
+        return frontFacing;
     }
 
     public void setFrontFacing(Direction frontFacing) {
+        if(frontFacing == Direction.DOWN || frontFacing == Direction.UP)
+            throw new NullPointerException("Front can't be UP or DOWN");
+        Brachydium.LOGGER.info("Set front to " + frontFacing);
         this.frontFacing = frontFacing;
     }
 

@@ -1,13 +1,17 @@
 package brachy84.brachydium.api.render;
 
+import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.util.Face;
+import net.minecraft.util.Identifier;
+
 public class Textures {
 
     public static final Texture[] MACHINECASING;
     public static final Texture OUTPUT_OVERLAY = new Texture("block/overlays/output");
     public static final Texture INPUT_OVERLAY = new Texture("block/overlays/input");
 
-    public static final MachineOverlayTexture MIXER = new MachineOverlayTexture("mixer");
-    public static final MachineOverlayTexture ALLOY_SMELTER = new MachineOverlayTexture("alloy_smelter");
+    public static final WorkableOverlayRenderer MIXER = new WorkableOverlayRenderer(id("block/machines/mixer"), Face.FRONT, Face.TOP, Face.SIDE);
+    public static final WorkableOverlayRenderer ALLOY_SMELTER = new WorkableOverlayRenderer(id("block/machines/alloy_smelter"), Face.FRONT);
 
     static {
         MACHINECASING = new Texture[]{
@@ -31,4 +35,8 @@ public class Textures {
     }
 
     public static void init() {}
+
+    private static Identifier id(String path) {
+        return Brachydium.id(path);
+    }
 }
