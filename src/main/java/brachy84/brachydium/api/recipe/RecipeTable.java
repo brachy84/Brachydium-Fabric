@@ -101,9 +101,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }
 
     public void addRecipe(MTRecipe recipe) {
-        //recipeList.add(recipe);
         recipeMap.put(recipe.getName(), recipe);
-        System.out.println("---Recipe added to " + unlocalizedName);
     }
 
     public boolean hasRecipeKey(String key) {

@@ -117,7 +117,6 @@ public abstract class Widget {
 
     @ApiStatus.Internal
     public void setLayer(int layer) {
-        Brachydium.LOGGER.info("Set layer of " + name + " to " + layer);
         this.layer = layer;
     }
 
