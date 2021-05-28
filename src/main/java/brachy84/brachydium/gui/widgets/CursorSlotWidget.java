@@ -35,7 +35,10 @@ public class CursorSlotWidget extends ResourceSlotWidget<ItemStack> {
     }
 
     @Override
-    public void draw(MatrixStack matrices, Point mousePos, float delta) {
+    public void draw(MatrixStack matrices, Point mousePos, float delta) {}
+
+    @Override
+    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
         mousePos.translate(-8, -8);
         guiHelper.drawItem(getResource(), mousePos);
     }
