@@ -1,0 +1,6 @@
+{
+  "parent": "brachydium:item/bucket_template",
+  "textures": {
+    "texture": "brachydium:item/bucket_fluid"
+  }
+}

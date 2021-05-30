@@ -74,8 +74,8 @@ public class Color {
         return a;
     }
 
-    public int toInt() {
-        return (r << 24) + (g << 16) + (b << 8) + (a);
+    public int asInt() {
+        return ((a & 0xFF) << 24) | ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | ((b & 0xFF));
     }
 
     @Override
