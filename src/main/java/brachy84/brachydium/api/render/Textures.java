@@ -2,8 +2,11 @@ package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.util.Face;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class Textures {
 
     public static final Texture[] MACHINECASING;

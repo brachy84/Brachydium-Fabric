@@ -1,6 +1,8 @@
 package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.Brachydium;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
@@ -11,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+@Environment(EnvType.CLIENT)
 public class Texture {
 
     private static boolean inittialised = false;

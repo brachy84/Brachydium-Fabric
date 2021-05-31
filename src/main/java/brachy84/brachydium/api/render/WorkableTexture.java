@@ -1,12 +1,15 @@
 package brachy84.brachydium.api.render;
 
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
+@Environment(EnvType.CLIENT)
 public class WorkableTexture extends Texture {
 
-    private Texture activeTexture;
+    private final Texture activeTexture;
 
     public WorkableTexture(Identifier path) {
         super(path);

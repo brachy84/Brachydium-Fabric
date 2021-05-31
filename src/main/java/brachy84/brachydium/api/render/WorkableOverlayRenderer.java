@@ -1,6 +1,8 @@
 package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.api.util.Face;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
@@ -8,6 +10,7 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Map;
 
+@Environment(EnvType.CLIENT)
 public class WorkableOverlayRenderer extends OrientedOverlayRenderer {
 
     protected WorkableOverlayRenderer(Identifier path, Face... faces) {
@@ -38,6 +41,6 @@ public class WorkableOverlayRenderer extends OrientedOverlayRenderer {
     @Deprecated
     @Override
     public void render(QuadEmitter emitter, Direction frontFacing) {
-        render(emitter, frontFacing, false);
+        render(emitter, frontFacing, true);
     }
 }
