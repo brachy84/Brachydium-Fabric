@@ -41,7 +41,7 @@ public class PlayerInventoryParticipant implements ArrayParticipant<ItemKey>, Pl
 
     @Override
     public ReplacingParticipant<ItemKey> getCursorItemReplacingParticipant() {
-        return ReplacingParticipant.of(new ItemSlotParticipant(new io.github.astrarre.transfer.internal.compat.PlayerInventoryParticipant.CursorKey(this.inventory)) {}, this);
+        return ReplacingParticipant.of(new SingleItemSlot(new io.github.astrarre.transfer.internal.compat.PlayerInventoryParticipant.CursorKey(this.inventory)), this);
     }
 
     @Override
