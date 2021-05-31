@@ -1,6 +1,5 @@
 package brachy84.brachydium.compat;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.handlers.FluidTankList;
 import brachy84.brachydium.api.handlers.ItemInventory;
 import brachy84.brachydium.api.recipe.RecipeTable;
@@ -26,7 +25,9 @@ import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
@@ -68,14 +69,16 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
         ).build();
         List<Widget> widgets = new ArrayList<>();
         AtomicReference<Float> lowestY = new AtomicReference<>(0f);
-        Map<ResourceSlotWidget<?>, Slot> slots = new HashMap<>();
+        List<ResourceSlotWidget<?>> brachydiumSlots = new ArrayList<>();
+        List<Slot> reiSlots = new ArrayList<>();
         widgets.add(Widgets.createRecipeBase(rect));
         rootWidget.forAllChildren(child -> {
             List<Widget> innerWidgets = new ArrayList<>();
             child.getReiWidgets(innerWidgets, origin);
             for(Widget widget : innerWidgets) {
                 if(widget instanceof Slot && child instanceof ResourceSlotWidget) {
-                    slots.put((ResourceSlotWidget<?>) child, (Slot) widget);
+                    brachydiumSlots.add((ResourceSlotWidget<?>) child);
+                    reiSlots.add((Slot) widget);
                 }
                 widgets.add(widget);
             }
@@ -83,7 +86,7 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
                 lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
             }
         });
-        setEntries(recipeDisplay, slots);
+        setEntries(recipeDisplay, brachydiumSlots, reiSlots);
         Point point = origin.add(new Point(4, lowestY.get() + 6));
         widgets.add(simpleLabel(point, new TranslatableText("brachydium.text.eu_t", recipeDisplay.getEUt())));
         point.translate(0, 10);
@@ -99,27 +102,29 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
         return label;
     }
 
-    private void setEntries(RecipeTableDisplay display, Map<ResourceSlotWidget<?>, Slot> slots) {
+    private void setEntries(RecipeTableDisplay display, List<ResourceSlotWidget<?>> slots, List<Slot> reiSlots) {
         Iterator<List<EntryStack>> inputItems = display.getItemInputs().iterator();
         Iterator<List<EntryStack>> inputFluids = display.getFluidInputs().iterator();
         Iterator<List<EntryStack>> outputItems = display.getItemOutputs().iterator();
         Iterator<List<EntryStack>> outputFluids = display.getFluidOutputs().iterator();
-        for(Map.Entry<ResourceSlotWidget<?>, Slot> slotEntry : slots.entrySet()) {
-            if(slotEntry.getKey() instanceof ItemSlotWidget) {
-                if(slotEntry.getValue().getNoticeMark() == 1) {
+        for(int i = 0; i < reiSlots.size(); i++) {
+            ResourceSlotWidget<?> slot = slots.get(i);
+            Slot reiSlot = reiSlots.get(i);
+            if(slot instanceof ItemSlotWidget) {
+                if(reiSlot.getNoticeMark() == 1) {
                     if(!inputItems.hasNext()) continue;
-                    slotEntry.getValue().entries(inputItems.next());
-                } else if(slotEntry.getValue().getNoticeMark() == 2) {
+                    reiSlot.entries(inputItems.next());
+                } else if(reiSlot.getNoticeMark() == 2) {
                     if(!outputItems.hasNext()) continue;
-                    slotEntry.getValue().entries(outputItems.next());
+                    reiSlot.entries(outputItems.next());
                 }
-            } else if(slotEntry.getKey() instanceof FluidSlotWidget) {
-                if(slotEntry.getValue().getNoticeMark() == 1) {
+            } else if(slot instanceof FluidSlotWidget) {
+                if(reiSlot.getNoticeMark() == 1) {
                     if(!inputFluids.hasNext()) continue;
-                    slotEntry.getValue().entries(inputFluids.next());
-                } else if(slotEntry.getValue().getNoticeMark() == 2) {
+                    reiSlot.entries(inputFluids.next());
+                } else if(reiSlot.getNoticeMark() == 2) {
                     if(!outputFluids.hasNext()) continue;
-                    slotEntry.getValue().entries(outputFluids.next());
+                    reiSlot.entries(outputFluids.next());
                 }
             }
         }
