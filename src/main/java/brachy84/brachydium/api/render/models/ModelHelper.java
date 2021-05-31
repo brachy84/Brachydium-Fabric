@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package brachy84.brachydium.api.render;
+package brachy84.brachydium.api.render.models;
 
 import brachy84.brachydium.Brachydium;
 import com.google.common.base.Charsets;

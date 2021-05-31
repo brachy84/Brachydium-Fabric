@@ -1,8 +1,10 @@
-package brachy84.brachydium.api.render;
+package brachy84.brachydium.api.render.models;
 
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
+import brachy84.brachydium.api.render.Texture;
+import brachy84.brachydium.api.render.Textures;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
