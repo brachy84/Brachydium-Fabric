@@ -1,6 +1,5 @@
 package brachy84.brachydium.gui.widgets;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.api.ResourceSlotWidget;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.math.AABB;
@@ -58,12 +57,6 @@ public class CursorSlotWidget extends ResourceSlotWidget<ItemStack> {
             sendToClient((ServerPlayerEntity) gui.player);
         }
         return true;
-    }
-
-    @Override
-    public void setLayer(int layer) {
-        super.setLayer(layer);
-        Brachydium.LOGGER.info("Set layer of Cursor to " + layer);
     }
 
     @Override
