@@ -15,6 +15,8 @@ import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Participant;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.fabric.participants.FabricParticipants;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
@@ -25,6 +27,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -61,6 +64,8 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     public enum FaceType {
         NONE, BLOCKED, INPUT, OUTPUT
     }
+
+    private static final Direction[] DIRECTIONS = Direction.values();
 
     public MetaBlockEntity(Identifier id) {
         this.id = id;
@@ -101,6 +106,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         FabricParticipants.FLUID_WORLD.forBlockEntity(getEntityType(), (direction, state, world, pos, entity) -> getFluidInventory());
     }
 
+    @Environment(EnvType.CLIENT)
     public void render(QuadEmitter emitter) {
         getRenderer().render(emitter, getFrontFacing());
         for(OverlayRenderer overlay : overlays) {
@@ -127,9 +133,20 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         }
     }
 
+    @Nullable
     public MBETrait findTrait(String name) {
         for(MBETrait trait : traits) {
             if(trait.getName().equals(name)) {
+                return trait;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    public MBETrait getTrait(Class<?> clazz) {
+        for(MBETrait trait : traits) {
+            if(clazz.isAssignableFrom(trait.getClass())) {
                 return trait;
             }
         }
@@ -177,20 +194,25 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     public CompoundTag serializeTag() {
         CompoundTag tag = new CompoundTag();
+        Brachydium.LOGGER.info("Saving facing: " + getFrontFacing().getId());
         tag.putInt("front", getFrontFacing().getId());
-        CompoundTag traitTag = new CompoundTag();
 
+        CompoundTag traitTag = new CompoundTag();
         for(MBETrait trait : traits) {
             traitTag.put(trait.getName(), trait.serializeTag());
         }
-
         tag.put("MBETraits", traitTag);
+
         serializeInventories(tag);
         return tag;
     }
 
     public void deserializeTag(CompoundTag tag) {
-        setFrontFacing(Direction.values()[tag.getInt("front")]);
+        Direction facing = DIRECTIONS[tag.getInt("front")];
+        if(facing == null)
+            Brachydium.LOGGER.info("Facing from NBT is null");
+        else
+            setFrontFacing(facing);
         CompoundTag traitTag = tag.getCompound("MBETraits");
         for(String key : traitTag.getKeys()) {
             MBETrait trait = findTrait(key);
@@ -261,6 +283,10 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
             return getWorld().isClient();
     }
 
+    public BlockPos getPos() {
+        return holder.getPos();
+    }
+
     public Block getBlock() {
         return block;
     }
@@ -285,6 +311,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         return holder;
     }
 
+    @Environment(EnvType.CLIENT)
     abstract public Renderer getRenderer();
 
     public ArrayParticipant<ItemKey> getImportItems() {
