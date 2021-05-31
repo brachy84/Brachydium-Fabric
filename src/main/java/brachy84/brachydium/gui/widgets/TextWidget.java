@@ -27,6 +27,6 @@ public class TextWidget extends Widget {
 
     @Override
     public void draw(MatrixStack matrices, Point mousePos, float delta) {
-        guiHelper.getTextRenderer().draw(matrices, text, pos.getX(), pos.getY(), color.toInt());
+        guiHelper.getTextRenderer().draw(matrices, text, pos.getX(), pos.getY(), color.asInt());
     }
 }
