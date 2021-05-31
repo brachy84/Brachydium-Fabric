@@ -1,19 +1,33 @@
 package brachy84.brachydium.api.fluid;
 
+import brachy84.brachydium.api.item.FluidCell;
 import brachy84.brachydium.api.util.MatchingType;
+import brachy84.brachydium.client.BrachydiumClient;
 import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.EntryStack;
+import me.shedaniel.rei.api.fractions.Fraction;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
+import net.minecraft.item.BucketItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FluidStack {
 
     public static final FluidStack EMPTY = new FluidStack(Fluids.EMPTY, 0);
+
+    public static final int DENOMINATOR = 81;
 
     private int amount;
     private final Fluid fluid;
@@ -71,8 +85,20 @@ public class FluidStack {
         return new FluidStack(fluid, amount);
     }
 
-    public void renderInGui() {
+    public List<Text> getTooltipLines() {
+        List<Text> lines = new ArrayList<>();
+        boolean showAdvanced = MinecraftClient.getInstance().options.advancedItemTooltips;
+        lines.add(fluid.getDefaultState().getBlockState().getBlock().getName());
+        lines.add(getTextAmount());
+        if(showAdvanced) {
+            lines.add((new LiteralText(Registry.FLUID.getId(this.getFluid()).toString())).formatted(Formatting.DARK_GRAY));
+        }
+        lines.add(BrachydiumClient.getModIdForTooltip(Registry.FLUID.getId(getFluid()).getNamespace()));
+        return lines;
+    }
 
+    public Text getTextAmount() {
+        return new LiteralText(getAmount() / DENOMINATOR + "mb");
     }
 
     public Identifier getId() {
@@ -82,13 +108,33 @@ public class FluidStack {
         return id;
     }
 
+    public void writeData(PacketByteBuf buf) {
+        if (isEmpty()) {
+            buf.writeBoolean(false);
+        } else {
+            buf.writeBoolean(true);
+            buf.writeInt(Registry.FLUID.getRawId(fluid));
+            buf.writeInt(getAmount());
+        }
+    }
+
+    public static FluidStack readData(PacketByteBuf buf) {
+        if (!buf.readBoolean()) {
+            return FluidStack.EMPTY;
+        } else {
+            int id = buf.readInt();
+            int count = buf.readInt();
+            return new FluidStack(Registry.FLUID.get(id), count);
+        }
+    }
+
     @Override
     public String toString() {
         return getId().getPath() + " " + amount;
     }
 
     public List<EntryStack> toEntryStack() {
-        return Lists.newArrayList(EntryStack.create(fluid, amount));
+        return Lists.newArrayList(EntryStack.create(fluid, Fraction.ofWhole(1000)));
     }
 
     public CompoundTag toTag(CompoundTag tag) {
