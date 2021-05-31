@@ -44,33 +44,35 @@ import java.util.Map;
 public class SimpleFluidRenderer {
     private static final Map<Fluid, FluidRenderingData> FLUID_DATA = new HashMap<>();
 
-    private SimpleFluidRenderer() {}
+    private SimpleFluidRenderer() {
+    }
 
     @Nullable
     public static FluidRenderingData fromFluid(Fluid fluid) {
         return FLUID_DATA.computeIfAbsent(fluid, FluidRenderingDataImpl::from);
     }
 
-    public void render(MatrixStack matrices, Fluid fluid, AABB bounds, float z) {
-            SimpleFluidRenderer.FluidRenderingData renderingData = SimpleFluidRenderer.fromFluid(fluid);
-            if (renderingData != null) {
-                Sprite sprite = renderingData.getSprite();
-                int color = renderingData.getColor();
-                int a = 255;
-                int r = (color >> 16 & 255);
-                int g = (color >> 8 & 255);
-                int b = (color & 255);
-                MinecraftClient.getInstance().getTextureManager().bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
-                Tessellator tess = Tessellator.getInstance();
-                BufferBuilder bb = tess.getBuffer();
-                Matrix4f matrix = matrices.peek().getModel();
-                bb.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
-                bb.vertex(matrix, bounds.x1, bounds.y0, z).texture(sprite.getMaxU(), sprite.getMinV()).color(r, g, b, a).next();
-                bb.vertex(matrix, bounds.x0, bounds.y0, z).texture(sprite.getMinU(), sprite.getMinV()).color(r, g, b, a).next();
-                bb.vertex(matrix, bounds.x0, bounds.y1, z).texture(sprite.getMinU(), sprite.getMaxV()).color(r, g, b, a).next();
-                bb.vertex(matrix, bounds.x1, bounds.y1, z).texture(sprite.getMaxU(), sprite.getMaxV()).color(r, g, b, a).next();
-                tess.draw();
-            }
+    // This method is from REI FluidEntryStack class
+    public static void renderInGui(MatrixStack matrices, Fluid fluid, AABB bounds, float z) {
+        SimpleFluidRenderer.FluidRenderingData renderingData = SimpleFluidRenderer.fromFluid(fluid);
+        if (renderingData != null) {
+            Sprite sprite = renderingData.getSprite();
+            int color = renderingData.getColor();
+            int a = 255;
+            int r = (color >> 16 & 255);
+            int g = (color >> 8 & 255);
+            int b = (color & 255);
+            MinecraftClient.getInstance().getTextureManager().bindTexture(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE);
+            Tessellator tess = Tessellator.getInstance();
+            BufferBuilder bb = tess.getBuffer();
+            Matrix4f matrix = matrices.peek().getModel();
+            bb.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
+            bb.vertex(matrix, bounds.x1, bounds.y0, z).texture(sprite.getMaxU(), sprite.getMinV()).color(r, g, b, a).next();
+            bb.vertex(matrix, bounds.x0, bounds.y0, z).texture(sprite.getMinU(), sprite.getMinV()).color(r, g, b, a).next();
+            bb.vertex(matrix, bounds.x0, bounds.y1, z).texture(sprite.getMinU(), sprite.getMaxV()).color(r, g, b, a).next();
+            bb.vertex(matrix, bounds.x1, bounds.y1, z).texture(sprite.getMaxU(), sprite.getMaxV()).color(r, g, b, a).next();
+            tess.draw();
+        }
     }
 
     public interface FluidRenderingData {
