@@ -5,7 +5,7 @@ import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.tag.TagDictionary;
-import brachy84.brachydium.api.util.RandomString;
+import brachy84.brachydium.api.util.CrypticNumber;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
-    private static final RandomString nameGenerator = new RandomString(4);
+    private static final CrypticNumber nameGenerator = new CrypticNumber(4);
 
     private RecipeTable<R> recipeTable;
 
