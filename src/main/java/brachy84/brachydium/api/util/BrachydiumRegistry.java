@@ -1,18 +1,12 @@
 package brachy84.brachydium.api.util;
 
 import brachy84.brachydium.Brachydium;
-import com.google.common.base.Preconditions;
-import com.mojang.serialization.Lifecycle;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.util.registry.RegistryKey;
-import net.minecraft.util.registry.SimpleRegistry;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class BrachydiumRegistry<K, V>  {
 
@@ -20,6 +14,10 @@ public class BrachydiumRegistry<K, V>  {
     private final Map<V, K> keyMap = new HashMap<>();
 
     public BrachydiumRegistry() {}
+
+    public boolean hasKey(K k) {
+        return registries.containsKey(k);
+    }
 
     public V register(K k, V v) {
         Objects.requireNonNull(k);
@@ -65,4 +63,9 @@ public class BrachydiumRegistry<K, V>  {
         }
     }
 
+    public void foreach(Consumer<V> consumer) {
+        for(V v : registries.values()) {
+            consumer.accept(v);
+        }
+    }
 }
