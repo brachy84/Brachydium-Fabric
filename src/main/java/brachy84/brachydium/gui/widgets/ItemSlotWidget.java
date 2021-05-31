@@ -8,12 +8,16 @@ import brachy84.brachydium.gui.api.SlotTags;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.*;
+import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import me.shedaniel.rei.api.widgets.Widgets;
 import me.shedaniel.rei.gui.widget.Widget;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
@@ -43,15 +47,14 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     @Override
     public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
-        super.drawForeground(matrices, mousePos, delta);
-        if(getBounds().isInBounds(mousePos.subtract(new Point(-8, -8))) && gui.getScreen() != null) {
+        if(getBounds().isInBounds(mousePos) && gui.getScreen() != null) {
             RenderSystem.disableDepthTest();
             RenderSystem.colorMask(true, true, true, false);
             int x = (int) pos.x + 1, y = (int) pos.y + 2;
             guiHelper.fillGradient(matrices, x, y, x + 16, y + 16, -2130706433, -2130706433);
             RenderSystem.colorMask(true, true, true, true);
             RenderSystem.enableDepthTest();
-            gui.getScreen().renderTooltip(matrices, getResource(), (int) mousePos.getX() + 8, (int) mousePos.getY());
+            if(!isEmpty()) gui.getScreen().renderTooltip(matrices, getResource(), (int) mousePos.getX() + 8, (int) mousePos.getY());
         }
     }
 
@@ -193,17 +196,19 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
         ItemStack slotStack = getResource();
         List<ISyncedWidget> syncQueue = new ArrayList<>();
         int toInsert = slotStack.getCount();
+        Transaction transaction = Transaction.create();
         for(String target : order) {
             for(ResourceSlotWidget<?> rslot : slots) {
                 if(!rslot.getTag().equals(target)) continue;
                 ItemSlotWidget slot = (ItemSlotWidget) rslot;
-                int inserted = slot.itemSlot.insert(null, ItemKey.of(slotStack), toInsert);
+                int inserted = slot.itemSlot.insert(transaction, ItemKey.of(slotStack), toInsert);
                 toInsert -= inserted;
                 if(inserted > 0) {
                     syncQueue.add(slot);
                 }
             }
         }
+        transaction.commit();
         setResource(newStack(slotStack, toInsert));
         for (ISyncedWidget syncedWidget: syncQueue) {
             syncedWidget.sendToClient((ServerPlayerEntity) gui.player);
