@@ -12,12 +12,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.tag.Tag;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
+
+    private static final RandomString nameGenerator = new RandomString(4);
 
     private RecipeTable<R> recipeTable;
 
@@ -47,6 +47,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         this.hidden = recipe.isHidden();
     }
 
+    @SuppressWarnings("all")
     protected RecipeBuilder(RecipeBuilder<R> recipeBuilder) {
         this.recipeTable = recipeBuilder.recipeTable;
         this.inputs.addAll(recipeBuilder.inputs);
@@ -59,32 +60,34 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         this.hidden = recipeBuilder.hidden;
     }
 
-    public R inputs(CountableIngredient... inputs) {
-        Collections.addAll(this.inputs, inputs);
+    @SuppressWarnings("unchecked")
+    public R inputs(Collection<CountableIngredient> inputs) {
+        for (CountableIngredient ci : inputs) {
+            if (ci != null) {
+                this.inputs.add(ci);
+            } else {
+                Brachydium.LOGGER.fatal("Can't add null ingredient");
+            }
+        }
         return (R) this;
+    }
+
+    public R inputs(CountableIngredient... inputs) {
+        return inputs(Arrays.asList(inputs));
     }
 
     public R input(String tag, int amount) {
-        this.inputs.add(CountableIngredient.of(tag, amount));
-        return (R) this;
+        return inputs(CountableIngredient.of(tag, amount));
     }
 
     public R input(Tag<Item> tag, int amount) {
-        this.inputs.add(new CountableIngredient(Ingredient.fromTag(tag), amount));
-        return (R) this;
-    }
-
-    public R input(String component, Material material, int amount) {
-        if(!component.endsWith("s")) Brachydium.LOGGER.warn(component + " doesn't end with 's'. All oreDict tags should end with s (f.e. ingots)");
-        this.inputs.add(CountableIngredient.of("c:" + material.getName() + "_" + component, amount));
-        return (R) this;
+        return inputs(new CountableIngredient(Ingredient.fromTag(tag), amount));
     }
 
     public R input(TagDictionary.Entry tag, Material material, int amount) {
         Objects.requireNonNull(tag);
         Objects.requireNonNull(material);
-        this.inputs.add(CountableIngredient.of(tag.getStringTag(material), amount));
-        return (R) this;
+        return inputs(CountableIngredient.of(tag.getStringTag(material), amount));
     }
 
     public R input(Item item, int amount) {
@@ -92,27 +95,24 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public R input(ItemStack... inputs) {
-        for(ItemStack stack : inputs) {
-            this.inputs.add(new CountableIngredient(stack));
-        }
-        return (R) this;
+        return inputs(Arrays.stream(inputs).map(CountableIngredient::new).collect(Collectors.toList()));
     }
 
     public R input(Ingredient input, int amount) {
-        this.inputs.add(new CountableIngredient(input, amount));
-        return (R) this;
+        return inputs(new CountableIngredient(input, amount));
     }
 
     public R output(Item item, int amount) {
-        this.outputs.add(new ItemStack(item, amount));
-        return (R) this;
+        return outputs(new ItemStack(item, amount));
     }
 
+    @SuppressWarnings("unchecked")
     public R outputs(ItemStack... outputs) {
         Collections.addAll(this.outputs, outputs);
         return (R) this;
     }
 
+    @SuppressWarnings("unchecked")
     public R fluidInputs(FluidStack... fluidInputs) {
         Collections.addAll(this.fluidInputs, fluidInputs);
         return (R) this;
@@ -122,41 +122,42 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return fluidInputs(new FluidStack(fluid, amount));
     }
 
+    @SuppressWarnings("unchecked")
     public R fluidOutputs(FluidStack... fluidOutputs) {
-        for(FluidStack fluidStack : fluidInputs) {
-            this.fluidInputs.add(fluidStack);
-        }
+        this.fluidOutputs.addAll(fluidInputs);
         return (R) this;
     }
 
+    @SuppressWarnings("unchecked")
     public R duration(int duration) {
         this.duration = duration;
         return (R) this;
     }
 
+    @SuppressWarnings("unchecked")
     public R EUt(int EUt) {
         this.EUt = EUt;
         return (R) this;
     }
 
+    @SuppressWarnings("unchecked")
     public R name(String name) {
         this.name = name;
         return (R) this;
     }
 
+    @SuppressWarnings("unchecked")
     public R hidden() {
         this.hidden = true;
         return (R) this;
     }
 
     public R property(String key, String value) {
-
-        return (R) this;
+        throw new UnsupportedOperationException("Properties are not yet implemented");
     }
 
     public R property(String key, int value) {
-
-        return (R) this;
+        throw new UnsupportedOperationException("Properties are not yet implemented");
     }
 
     public MTRecipe buildAndRegister() {
@@ -168,18 +169,12 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
                 } else if(fluidOutputs.size() > 0){
                     output = fluidOutputs.get(0).toString().split(" ")[0];
                 }
-                String key;
-                do {
-                    key = output + "_" + RandomString.create(4);
-                } while (recipeTable.hasRecipeKey(key));
-                name = key;
+                name = String.format("%s_%s_%s", recipeTable.unlocalizedName, output, nameGenerator.next());
             }
             MTRecipe recipe = new MTRecipe(null, name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
             recipeTable.addRecipe(recipe);
-            Brachydium.LOGGER.info(String.format("Registering recipe (%s) for %s", recipe.getName(), recipeTable.unlocalizedName));
+            Brachydium.LOGGER.info("Registering recipe ({}) for {}", recipe.getName(), recipeTable.unlocalizedName);
             return recipe;
-        } else {
-            Brachydium.LOGGER.error(String.format("Recipe for %s is invalid!", recipeTable.unlocalizedName));
         }
         return null;
     }
@@ -199,25 +194,13 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     protected boolean validate() {
         boolean matchesII, matchesIO, matchesFI, matchesFO;
         matchesII = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
-        if(!matchesII) {
-            Brachydium.LOGGER.info("ItemInput doesn't match");
-            return false;
-        }
+        if(!matchesII) return false;
         matchesIO = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
-        if(!matchesIO) {
-            Brachydium.LOGGER.info("ItemOutput doesn't match");
-            return false;
-        }
+        if(!matchesIO) return false;
         matchesFI = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
-        if(!matchesFI) {
-            Brachydium.LOGGER.info("FluidInput doesn't match");
-            return false;
-        }
+        if(!matchesFI) return false;
         matchesFO = fluidOutputs.size() >= recipeTable.getMinFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
-        if(!matchesFO) {
-            Brachydium.LOGGER.info("FluidOutput doesn't match. Should be {} - {}, but is {}", recipeTable.getMinFluidOutputs(), recipeTable.getMaxFluidOutputs(), fluidOutputs.size());
-            return false;
-        }
+        if(!matchesFO) return false;
 
         return EUt != 0 && duration > 0;
     }
