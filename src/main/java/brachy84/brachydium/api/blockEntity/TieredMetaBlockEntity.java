@@ -6,6 +6,8 @@ import brachy84.brachydium.api.handlers.EnergyContainer2Handler;
 import brachy84.brachydium.api.render.CubeRenderer;
 import brachy84.brachydium.api.render.Renderer;
 import brachy84.brachydium.api.render.Textures;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.util.Identifier;
 
 public class TieredMetaBlockEntity extends MetaBlockEntity implements ITiered {
@@ -25,6 +27,7 @@ public class TieredMetaBlockEntity extends MetaBlockEntity implements ITiered {
         return new TieredMetaBlockEntity(id, tier);
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
     public Renderer getRenderer() {
         return new CubeRenderer(Textures.MACHINECASING[getTier()]);

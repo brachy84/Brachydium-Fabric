@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.energy.Voltages;
 import brachy84.brachydium.api.handlers.*;
 import brachy84.brachydium.api.recipe.RecipeTable;
@@ -8,6 +9,8 @@ import brachy84.brachydium.api.render.WorkableOverlayRenderer;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
@@ -40,9 +43,12 @@ public class WorkableMetaBlockEntity extends TieredMetaBlockEntity {
         return new RecipeEnergyLogic(this, recipeTable, () -> energyContainer);
     }
 
+    @Environment(EnvType.CLIENT)
     @Override
     public void render(QuadEmitter emitter) {
         super.render(emitter);
+        if(recipeLogic.isActive()) Brachydium.LOGGER.info("Rendering active state");
+        //Brachydium.LOGGER.info("Rendering");
         if(overlayRenderer instanceof WorkableOverlayRenderer) {
             ((WorkableOverlayRenderer) overlayRenderer).render(emitter, getFrontFacing(), recipeLogic.isActive());
         } else {
