@@ -1,12 +1,15 @@
 package brachy84.brachydium.api.render;
 
 import brachy84.brachydium.Brachydium;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
 
+@Environment(EnvType.CLIENT)
 public class BucketModel extends DynamicFluidItemModel {
 
     @Override
@@ -30,10 +33,4 @@ public class BucketModel extends DynamicFluidItemModel {
                 .getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE)
                 .apply(new Identifier("item/bucket"));
     }
-
-    /*@Nullable
-    @Override
-    public BakedModel bake(ModelLoader loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer, Identifier modelId) {
-        return new BucketModel();
-    }*/
 }
