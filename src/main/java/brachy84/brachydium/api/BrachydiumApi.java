@@ -5,12 +5,19 @@ import brachy84.brachydium.api.block.BlockMachine;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
+import brachy84.brachydium.api.fluid.MaterialFluid;
+import brachy84.brachydium.api.fluid.MaterialFluidBlock;
+import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.Level;
@@ -30,8 +37,7 @@ public class BrachydiumApi {
         entity.setBlockItem(registerItem(newId, new BlockMachineItem(entity.getBlock(), newId)));
         entity.setBlockEntityType(Registry.register(Registry.BLOCK_ENTITY_TYPE, newId, BlockEntityType.Builder.create(() -> new MetaBlockEntityHolder(entity), entity.getBlock()).build(null)));
         entity.addApis();
-
-        //entity.init();
+        BlockRenderLayerMap.INSTANCE.putBlock(entity.getBlock(), RenderLayer.getTranslucent());
         RecipeTable<?> recipeTable = entity.getRecipeTable();
         if(recipeTable != null) recipeTable.addTileItem(entity.getItem());
         RRPHelper.addGenericMbeBlockState(newId);
@@ -44,5 +50,18 @@ public class BrachydiumApi {
 
     private static <T extends Item> T registerItem(Identifier id, T item) {
         return Registry.register(Registry.ITEM, id, item);
+    }
+
+    public static MaterialFluid.Still registerFluid(String mod, Material material) {
+        String fluidName = "molten_" + material.getName();
+        MaterialFluid.Still still = Registry.register(Registry.FLUID, new Identifier(mod, fluidName), new MaterialFluid.Still(material));
+        MaterialFluid.Flowing flowing = Registry.register(Registry.FLUID, new Identifier(mod, fluidName + "_flowing"), new MaterialFluid.Flowing(material));
+        BucketItem item = registerItem(new Identifier(mod, fluidName + "_bucket"), new BucketItem(still, new Item.Settings().recipeRemainder(Items.BUCKET)));
+        still.setData(still, flowing, item);
+        flowing.setData(still, flowing, item);
+        Block block = Registry.register(Registry.BLOCK, new Identifier(mod, fluidName), new MaterialFluidBlock(still, material));
+        still.setBlock(block);
+        flowing.setBlock(block);
+        return still;
     }
 }

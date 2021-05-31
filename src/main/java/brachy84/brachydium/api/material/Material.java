@@ -1,8 +1,14 @@
 package brachy84.brachydium.api.material;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.BrachydiumApi;
+import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.fluid.MaterialFluid;
+import brachy84.brachydium.api.fluid.MaterialFluidRenderer;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.item.MaterialItem;
+import brachy84.brachydium.api.util.BrachydiumRegistry;
+import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
 import net.minecraft.item.ItemStack;
@@ -10,19 +16,20 @@ import net.minecraft.item.ToolMaterial;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Material {
 
     public static final Logger LOGGER = LogManager.getLogger(Brachydium.MOD_ID + ":material_system");
 
-    private static List<Material> materials = new ArrayList<>();
+    //private static List<Material> materials = new ArrayList<>();
+
+    public static final BrachydiumRegistry<String, Material> REGISTRY = new BrachydiumRegistry<>();
 
     private String name;
     private int color;
@@ -30,18 +37,14 @@ public class Material {
     private List<MaterialFlag> flags = new ArrayList<>();
     private Map<String, MaterialItem> components = new HashMap<>();
     private MiningToolMaterial toolProperties;
+    private MaterialFluid.Still fluid;
 
     public Material(String name, int color, MaterialFlag[] flags) {
         this.name = name;
         this.color = color;
         addFlags(flags);
-        addMaterial(this);
+        //addMaterial(this);
         register();
-    }
-
-    private static void addMaterial(Material material) {
-        System.out.println("Adding material");
-        materials.add(material);
     }
 
     boolean hasFlag(MaterialFlag flag) {
@@ -50,9 +53,9 @@ public class Material {
 
     public void addFlags(MaterialFlag... flags) {
         for(MaterialFlag flag : flags) {
-            requiresFlags(flag.getRequiredFlags());
             if(!this.flags.contains(flag)) {
                 this.flags.add(flag);
+                addFlags(flag.getRequiredFlags());
             }
         }
     }
@@ -61,7 +64,7 @@ public class Material {
         System.out.println("Registering materials");
         for(Material material : materials) {
             System.out.println("Registering " + material.getName());
-            addMaterial(material);
+            //addMaterial(material);
             material.register();
         }
     }
@@ -70,6 +73,21 @@ public class Material {
         for (MaterialFlag flag : flags) {
             System.out.println("Registering " + flag.getName());
             flag.register(this);
+        }
+        registerFluid();
+        if(REGISTRY.hasKey(name)) {
+            Brachydium.LOGGER.info("Material {} is already registered. Adding missing flags", name);
+            Material dupe = REGISTRY.tryGetEntry(name);
+            assert dupe != null;
+            dupe.addFlags(flags.toArray(new MaterialFlag[0]));
+        } else {
+            REGISTRY.register(name, this);
+        }
+    }
+
+    public void registerClient() {
+        if(fluid != null) {
+            MaterialFluidRenderer.setup(fluid, new Identifier("lava"), color);
         }
     }
 
@@ -135,6 +153,20 @@ public class Material {
 
     public class CableProperties {
         private int voltage;
+    }
+
+    public void registerFluid() {
+        this.fluid = BrachydiumApi.registerFluid(Brachydium.MOD_ID, this);
+    }
+
+    @Nullable
+    public MaterialFluid.Still getFluid() {
+        return fluid;
+    }
+
+    public FluidStack getFluid(int amount) {
+        if(fluid == null) return FluidStack.EMPTY;
+        return new FluidStack(fluid, amount);
     }
 
     // Flags
