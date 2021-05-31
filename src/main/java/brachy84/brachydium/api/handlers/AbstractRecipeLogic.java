@@ -7,14 +7,23 @@ import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
+import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.recipe.MTRecipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Participant;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.block.Block;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 
 import java.util.*;
 
@@ -49,7 +58,7 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     protected boolean workingEnabled = true;
 
-    protected State state;
+    private State state;
 
     public AbstractRecipeLogic(MetaBlockEntity mbe, RecipeTable<?> recipeTable) {
         super(mbe);
@@ -61,39 +70,36 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     @Override
     public void update() {
-        super.update();
-        if (isActive()) {
-            onRecipeTick();
+        if (!metaBlockEntity.isClient()) {
+            if (isActive()) {
+                onRecipeTick();
+            }
         }
     }
 
     private void addListeners() {
 
         if (metaBlockEntity.getImportFluids() instanceof InventoryListener) {
-            Brachydium.LOGGER.info("--- Adding listener to import fluids");
             ((InventoryListener) metaBlockEntity.getImportFluids()).addListener(this::onInventoryUpdate);
         }
         if (metaBlockEntity.getImportItems() instanceof InventoryListener) {
-            Brachydium.LOGGER.info("--- Adding listener to import items");
             ((InventoryListener) metaBlockEntity.getImportItems()).addListener(this::onInventoryUpdate);
         }
         if (metaBlockEntity.getExportItems() instanceof InventoryListener) {
-            Brachydium.LOGGER.info("--- Adding listener to export items");
             ((InventoryListener) metaBlockEntity.getExportItems()).addListener(this::onOutputChanged);
         }
         if (metaBlockEntity.getExportFluids() instanceof InventoryListener) {
-            Brachydium.LOGGER.info("--- Adding listener to export fluids");
             ((InventoryListener) metaBlockEntity.getExportFluids()).addListener(this::onOutputChanged);
         }
     }
 
     protected void onRecipeTick() {
         if (!drawEnergy(recipeEUt)) {
-            state = State.NOT_ENOUGH_POWER;
+            setState(State.NOT_ENOUGH_POWER);
             return;
         }
         if (state == State.NOT_ENOUGH_POWER) {
-            state = State.RUNNING;
+            setState(State.RUNNING);
         }
         if (++progress > duration) {
             recipeCompleted();
@@ -112,7 +118,7 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         duration = 0;
         progress = 0;
         recipeEUt = 0;
-        state = State.IDLING;
+        setState(State.IDLING);
         trySearchNewRecipe();
     }
 
@@ -147,6 +153,24 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     protected abstract boolean drawEnergy(long amount);
 
+    public void setState(State state) {
+        this.state = state;
+        if (!metaBlockEntity.isClient()) {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeBlockPos(metaBlockEntity.getPos());
+            buf.writeString(state.toString());
+            for (PlayerEntity player : metaBlockEntity.getWorld().getPlayers()) {
+                if (player instanceof ServerPlayerEntity) {
+                    ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.UPDATE_WORKING_STATE, buf);
+                }
+            }
+        }
+    }
+
+    public State getState() {
+        return state;
+    }
+
     /**
      * @return a double between 0 and 1
      */
@@ -170,8 +194,8 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     protected void setupRecipe(MTRecipe recipe) {
         Brachydium.LOGGER.info("Setting up recipe " + recipe.getName());
         currentRecipe = recipe;
-        state = State.RUNNING;
-        try(Transaction transaction = Transaction.create()) {
+        setState(State.RUNNING);
+        try (Transaction transaction = Transaction.create()) {
             if (!canConsume(transaction, recipe, metaBlockEntity.getImportItems(), metaBlockEntity.getImportFluids())) {
                 Brachydium.LOGGER.error("Could not consume ingredients! Something is really wrong");
                 currentRecipe = null;
@@ -196,23 +220,25 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         Brachydium.LOGGER.info("Output updated");
         if (state == State.OUTPUT_BLOCKED) {
             Brachydium.LOGGER.info("Trying recipe after output unblocked");
-            state = State.IDLING;
+            setState(State.IDLING);
             tryRecipe(storedRecipe);
         }
     }
 
     /**
      * tries to start the recipe
+     *
      * @param recipe to try
      * @return true if the ingredients are found, otherwise false
      */
     public boolean tryRecipe(MTRecipe recipe) {
+        //FIXME: when output is full and then emptied, the recipe output will be inserted immediately
         Brachydium.LOGGER.info("Trying recipe " + recipe.getName());
         if (InventoryHelper.hasIngredientsAndFluids(metaBlockEntity.getImportItems(), metaBlockEntity.getImportFluids(), recipe.getInputs(), recipe.getFluidInputs())) {
-            try(Transaction transaction = Transaction.create()) {
+            try (Transaction transaction = Transaction.create()) {
                 if (!tryInsertOutput(transaction, recipe)) {
                     Brachydium.LOGGER.info("output blocked");
-                    state = State.OUTPUT_BLOCKED;
+                    setState(State.OUTPUT_BLOCKED);
                     storedRecipe = recipe;
                     transaction.abort();
                     return true;
