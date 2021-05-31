@@ -69,7 +69,7 @@ public class FluidTank implements Slot<Fluid> {
 
     @Override
     public boolean set(@Nullable Transaction transaction, Fluid key, int quantity) {
-        if(quantity > capacity || quantity <= 0) return false;
+        if(quantity > capacity || quantity < 0) return false;
         List<FluidStack> stacks = inventory.get(transaction);
         stacks.set(index, new FluidStack(key, quantity));
         inventory.set(transaction, stacks);
@@ -83,7 +83,6 @@ public class FluidTank implements Slot<Fluid> {
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull Fluid type, int quantity) {
-        if(!supportsExtraction()) return 0;
         if (type.equals(this.getKey(transaction))) {
             return this.extract(transaction, quantity);
         }
@@ -92,7 +91,6 @@ public class FluidTank implements Slot<Fluid> {
 
     @Override
     public int extract(@Nullable Transaction transaction, int quantity) {
-        if(!supportsExtraction()) return 0;
         if(quantity == 0) return 0;
         int toTake = Math.min(quantity, this.getQuantity(transaction));
         if(this.set(transaction, this.getKey(transaction), this.getQuantity(transaction) - toTake)) {
@@ -104,11 +102,10 @@ public class FluidTank implements Slot<Fluid> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<Fluid> insertable) {
-        if(!supportsExtraction()) return;
         if(insertable.isFull(transaction)) return;
         try(Transaction transaction1 = Transaction.create()) {
-            int capacity = insertable.insert(transaction1, this.getKey(transaction), this.getQuantity(transaction));
-            if(this.extract(transaction, capacity) != capacity) {
+            int inserted = insertable.insert(transaction1, this.getKey(transaction), this.getQuantity(transaction));
+            if(this.extract(transaction, inserted) != inserted) {
                 transaction1.abort();
             }
         }
@@ -116,7 +113,6 @@ public class FluidTank implements Slot<Fluid> {
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull Fluid key, int quantity) {
-        if(!supportsInsertion()) return 0;
         if(quantity == 0) return 0;
         int result = Droplet.minSum(this.getQuantity(transaction), quantity);
         int oldQuantity = this.getQuantity(transaction);
@@ -124,5 +120,10 @@ public class FluidTank implements Slot<Fluid> {
             return result - oldQuantity;
         }
         return 0;
+    }
+
+    @Override
+    public boolean isEmpty(@Nullable Transaction transaction) {
+        return getStack(transaction).isEmpty();
     }
 }

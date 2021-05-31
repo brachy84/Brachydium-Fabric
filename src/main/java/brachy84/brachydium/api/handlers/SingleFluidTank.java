@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.handlers;
 
+import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.fluid.FluidStack;
 import io.github.astrarre.transfer.v0.api.Droplet;
 import io.github.astrarre.transfer.v0.api.Insertable;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * This for Single fluid tanks, don't use it for machines with multiple fluid slots
  * see also: {@link FluidTank}
  */
-public class SingleFluidTank implements Slot<Fluid> {
+public class SingleFluidTank implements Slot<Fluid>, InventoryListener {
 
     private final Key.Object<FluidStack> type;
     private final boolean extractable, insertable;
@@ -45,6 +46,8 @@ public class SingleFluidTank implements Slot<Fluid> {
         return tank;
     }
 
+
+
     @Override
     public boolean supportsInsertion() {
         return insertable;
@@ -71,7 +74,7 @@ public class SingleFluidTank implements Slot<Fluid> {
 
     @Override
     public boolean set(@Nullable Transaction transaction, Fluid key, int quantity) {
-        if(quantity > capacity || quantity <= 0) return false;
+        if(quantity > capacity || quantity < 0) return false;
         type.set(transaction, new FluidStack(key, quantity));
         return true;
     }
@@ -92,7 +95,6 @@ public class SingleFluidTank implements Slot<Fluid> {
 
     @Override
     public int extract(@Nullable Transaction transaction, int quantity) {
-        if(!supportsExtraction()) return 0;
         if(quantity == 0) return 0;
         int toTake = Math.min(quantity, this.getQuantity(transaction));
         if(this.set(transaction, this.getKey(transaction), this.getQuantity(transaction) - toTake)) {
@@ -104,7 +106,6 @@ public class SingleFluidTank implements Slot<Fluid> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<Fluid> insertable) {
-        if(!supportsExtraction()) return;
         if(insertable.isFull(transaction)) return;
         try(Transaction transaction1 = Transaction.create()) {
             int capacity = insertable.insert(transaction1, this.getKey(transaction), this.getQuantity(transaction));
@@ -116,10 +117,9 @@ public class SingleFluidTank implements Slot<Fluid> {
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull Fluid key, int quantity) {
-        if(!supportsInsertion()) return 0;
         if(quantity == 0) return 0;
-        int result = Droplet.minSum(this.getQuantity(transaction), quantity);
         int oldQuantity = this.getQuantity(transaction);
+        int result = Math.min(capacity, Droplet.minSum(oldQuantity, quantity));
         if(this.set(transaction, key, result)) {
             return result - oldQuantity;
         }
@@ -133,5 +133,10 @@ public class SingleFluidTank implements Slot<Fluid> {
         tag.putInt("capacity", capacity);
         tag.put("content", getStack(null).toTag(new CompoundTag()));
         return tag;
+    }
+
+    @Override
+    public void addListener(Runnable runnable) {
+        type.onApply(runnable);
     }
 }
