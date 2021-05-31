@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.fluid;
 
-import brachy84.brachydium.api.item.FluidCell;
 import brachy84.brachydium.api.util.MatchingType;
 import brachy84.brachydium.client.BrachydiumClient;
 import com.google.common.collect.Lists;
@@ -9,9 +8,6 @@ import me.shedaniel.rei.api.fractions.Fraction;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.item.BucketItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
