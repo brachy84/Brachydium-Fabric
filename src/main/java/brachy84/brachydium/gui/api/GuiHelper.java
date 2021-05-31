@@ -11,8 +11,11 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.ApiStatus;
+
+import java.util.List;
 
 /**
  * You don't need to implement this
@@ -31,7 +34,7 @@ public abstract class GuiHelper extends DrawableHelper {
 
     public abstract void drawItem(ItemStack stack, Point point);
 
-    public abstract void drawFluid(FluidStack stack, Point point);
+    public abstract void drawFluid(FluidStack stack, Point point, Size size);
 
     public abstract void drawTextureArea(TextureArea texture, Point point);
 
@@ -41,4 +44,8 @@ public abstract class GuiHelper extends DrawableHelper {
     public void fillGradient(MatrixStack matrices, int xStart, int yStart, int xEnd, int yEnd, int colorStart, int colorEnd) {
         super.fillGradient(matrices, xStart, yStart, xEnd, yEnd, colorStart, colorEnd);
     }
+
+    public abstract void renderFluidTooltip(FluidStack stack, Point pos);
+
+    public abstract void renderTooltip(List<? extends OrderedText> lines, Point pos);
 }

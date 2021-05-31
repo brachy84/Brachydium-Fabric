@@ -1,24 +1,27 @@
 package brachy84.brachydium.gui.impl;
 
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.fluid.SimpleFluidRenderer;
 import brachy84.brachydium.gui.api.GuiHelper;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.math.*;
+import com.google.common.collect.Lists;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.render.BufferBuilder;
-import net.minecraft.client.render.BufferRenderer;
-import net.minecraft.client.render.Tessellator;
-import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.render.*;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Matrix4f;
 import org.lwjgl.opengl.GL11;
+
+import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class GuiHelperImpl extends GuiHelper {
@@ -50,8 +53,7 @@ public class GuiHelperImpl extends GuiHelper {
 
     @Override
     public void drawText(MatrixStack matrices, Text text, Point point, Color color) {
-        textRenderer.draw(matrices, text, point.getX(), point.getY(), color.toInt());
-
+        textRenderer.draw(matrices, text, point.getX(), point.getY(), color.asInt());
     }
 
     @Override
@@ -86,8 +88,21 @@ public class GuiHelperImpl extends GuiHelper {
     }
 
     @Override
-    public void drawFluid(FluidStack stack, Point point) {
-
+    public void drawFluid(FluidStack stack, Point point, Size size) {
+        if(stack.isEmpty()) return;
+        z += 50;
+        SimpleFluidRenderer.renderInGui(matrices, stack.getFluid(), AABB.of(size, point), z);
+        int amount = stack.getAmount() / 81000;
+        //z += 150;
+        if (amount >= 1000) {
+            String string = String.valueOf((int) Math.floor(stack.getAmount() / 1000D));
+            matrices.translate(0, 0, this.z + 5);
+            VertexConsumerProvider.Immediate immediate = VertexConsumerProvider.immediate(Tessellator.getInstance().getBuffer());
+            textRenderer.draw(string, point.x + 19 - 2 - textRenderer.getWidth(string), point.y + 6 + 3, 16777215, true, matrices.peek().getModel(), immediate, false, 0, 15728880);
+            immediate.draw();
+            //matrices.translate(0, 0, z);
+        }
+        z -= 50;
     }
 
     @Override
@@ -141,5 +156,16 @@ public class GuiHelperImpl extends GuiHelper {
 
     public void setZ(int z) {
         this.z = z;
+    }
+
+    public void renderFluidTooltip(FluidStack stack, Point pos) {
+        renderTooltip(Lists.transform(stack.getTooltipLines(), Text::asOrderedText), pos);
+    }
+
+    public void renderTooltip(List<? extends OrderedText> lines, Point pos) {
+        Screen screen = MinecraftClient.getInstance().currentScreen;
+        if(screen != null) {
+            screen.renderOrderedTooltip(matrices, lines, (int) pos.x, (int) pos.y);
+        }
     }
 }
