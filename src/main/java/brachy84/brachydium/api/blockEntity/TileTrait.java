@@ -3,11 +3,11 @@ package brachy84.brachydium.api.blockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
 
-public abstract class MBETrait {
+public abstract class TileTrait {
 
     protected MetaBlockEntity metaBlockEntity;
 
-    public MBETrait(MetaBlockEntity mbe) {
+    public TileTrait(MetaBlockEntity mbe) {
         this.metaBlockEntity = mbe;
         metaBlockEntity.addTrait(this);
     }
