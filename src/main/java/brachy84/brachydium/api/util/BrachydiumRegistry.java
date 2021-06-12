@@ -13,13 +13,20 @@ public class BrachydiumRegistry<K, V>  {
     private final Map<K, V> registries = new HashMap<>();
     private final Map<V, K> keyMap = new HashMap<>();
 
-    public BrachydiumRegistry() {}
+    private boolean frozen;
+
+    public BrachydiumRegistry() {
+        this.frozen = false;
+    }
 
     public boolean hasKey(K k) {
         return registries.containsKey(k);
     }
 
     public V register(K k, V v) {
+        if(isFrozen()) {
+            throw new IllegalStateException("Can't register when registry is frozen");
+        }
         Objects.requireNonNull(k);
         Objects.requireNonNull(v);
         registries.put(k, v);
@@ -67,5 +74,13 @@ public class BrachydiumRegistry<K, V>  {
         for(V v : registries.values()) {
             consumer.accept(v);
         }
+    }
+
+    public void freeze() {
+        this.frozen = true;
+    }
+
+    public boolean isFrozen() {
+        return frozen;
     }
 }
