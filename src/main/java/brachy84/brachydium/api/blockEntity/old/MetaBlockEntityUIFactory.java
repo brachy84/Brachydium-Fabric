@@ -1,4 +1,4 @@
-package brachy84.brachydium.api.blockEntity;
+package brachy84.brachydium.api.blockEntity.old;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.wrapper.UIFactory;

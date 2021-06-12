@@ -1,10 +1,13 @@
 package brachy84.brachydium.api;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.block.BlockEntityHolderBlock;
 import brachy84.brachydium.api.block.BlockMachine;
 import brachy84.brachydium.api.block.BlockMachineItem;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.BlockEntityGroup;
+import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntity;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityHolder;
 import brachy84.brachydium.api.fluid.MaterialFluid;
 import brachy84.brachydium.api.fluid.MaterialFluidBlock;
 import brachy84.brachydium.api.material.Material;
@@ -15,6 +18,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
@@ -25,8 +29,9 @@ import org.apache.logging.log4j.Level;
 public class BrachydiumApi {
 
     public static final BrachydiumRegistry<Identifier, MetaBlockEntity> META_BLOCK_ENTITY_REGISTRY = new BrachydiumRegistry<>();
+    public static final BrachydiumRegistry<Identifier, BlockEntityGroup<?>> BLOCK_ENTITY_GROUP_REGISTRY = new BrachydiumRegistry<>();
 
-    public static <T extends MetaBlockEntity> T registerTileEntity(T entity) {
+    public static <T extends MetaBlockEntity> T registerTileEntityOld(T entity) {
         if(entity == null || entity.getId() == null) {
             throw new NullPointerException("Can't register null BlockEntity or BlockEntity with null Identifier");
         }
@@ -44,6 +49,21 @@ public class BrachydiumApi {
         return entity;
     }
 
+    public static <T extends BlockEntityGroup<?>> T registerBlockEntityGroup(T group) {
+        if(group == null || group.id == null) {
+            throw new NullPointerException("Can't register null BlockEntity or BlockEntity with null Identifier");
+        }
+        Identifier id = group.id;
+        Block block = registerBlock(id, new BlockEntityHolderBlock(group));
+        BlockItem item = registerItem(id, new BlockMachineItem(block, id));
+        group.setBlock(block);
+        group.setItem(item);
+        group.setType(Registry.register(Registry.BLOCK_ENTITY_TYPE, id, BlockEntityType.Builder.create(() -> new BlockEntityHolder(group), block).build(null)));
+        BLOCK_ENTITY_GROUP_REGISTRY.register(id, group);
+        BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getTranslucent());
+        return group;
+    }
+
     private static <T extends Block> T registerBlock(Identifier id, T block) {
         return Registry.register(Registry.BLOCK, id, block);
     }
@@ -52,8 +72,8 @@ public class BrachydiumApi {
         return Registry.register(Registry.ITEM, id, item);
     }
 
-    public static MaterialFluid.Still registerFluid(String mod, Material material) {
-        String fluidName = "molten_" + material.getName();
+    public static MaterialFluid.Still registerFluid(String mod, String fluidPrefix, Material material) {
+        String fluidName = String.format("%s_%s", fluidPrefix, material.getRegistryName());
         MaterialFluid.Still still = Registry.register(Registry.FLUID, new Identifier(mod, fluidName), new MaterialFluid.Still(material));
         MaterialFluid.Flowing flowing = Registry.register(Registry.FLUID, new Identifier(mod, fluidName + "_flowing"), new MaterialFluid.Flowing(material));
         BucketItem item = registerItem(new Identifier(mod, fluidName + "_bucket"), new BucketItem(still, new Item.Settings().recipeRemainder(Items.BUCKET)));

@@ -1,5 +1,7 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntity;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityHolder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.CompoundTag;
 
@@ -17,7 +19,7 @@ public abstract class TileTrait {
      */
     public abstract String getName();
 
-    /**
+    /*
      * @return the block apis to register
      */
     //@Deprecated
@@ -28,7 +30,7 @@ public abstract class TileTrait {
     /**
      * Gets called every tick
      */
-    public void update() {}
+    public void tick() {}
 
     /**
      * Gets called on MetaBlockEntity nbt serialization

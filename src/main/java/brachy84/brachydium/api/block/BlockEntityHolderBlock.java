@@ -2,17 +2,19 @@ package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.BrachydiumApi;
-import brachy84.brachydium.api.blockEntity.*;
+import brachy84.brachydium.api.blockEntity.BlockEntityGroup;
+import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.TileEntity;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEntityProvider;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -22,12 +24,12 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockEntityHolderBlock extends Block implements BlockEntityProvider {
+public class BlockEntityHolderBlock extends Block implements BlockEntityProvider {
 
-    private BlockEntityGroup<?> group;
+    private final BlockEntityGroup<?> group;
 
-    public BlockEntityHolderBlock(BlockEntityGroup<?> group, Settings settings) {
-        super(settings);
+    public BlockEntityHolderBlock(BlockEntityGroup<?> group) {
+        super(FabricBlockSettings.of(Material.METAL).strength(3, 3));
         this.group = group;
     }
 
@@ -69,10 +71,10 @@ public abstract class BlockEntityHolderBlock extends Block implements BlockEntit
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (!world.isClient()) {
             BlockEntity blockEntity = world.getBlockEntity(pos);
-            if (blockEntity instanceof MetaBlockEntityHolder) {
-                MetaBlockEntityUIFactory.INSTANCE.openUI((MetaBlockEntityHolder) blockEntity, (ServerPlayerEntity) player);
+            if(blockEntity instanceof BlockEntityHolder) {
+                return ((BlockEntityHolder) blockEntity).getActiveTileEntity().onUse(state, world, pos, player, hand, hit);
             }
         }
-        return ActionResult.SUCCESS;
+        return ActionResult.PASS;
     }
 }

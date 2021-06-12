@@ -1,4 +1,4 @@
-package brachy84.brachydium.api.blockEntity;
+package brachy84.brachydium.api.blockEntity.old;
 
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.api.IUIHolder;
@@ -31,6 +31,7 @@ public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIH
         this.metaTileEntity.setBlockEntityType(mbe.getEntityType());
         this.metaTileEntity.setBlock(mbe.getBlock());
         this.metaTileEntity.setBlockItem(mbe.getItem());
+        this.metaTileEntity.onAttach();
     }
 
     public MetaBlockEntity getMetaBlockEntity() {
@@ -56,7 +57,7 @@ public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIH
 
     @Override
     public void tick() {
-        if(metaTileEntity != null) {
+        if (metaTileEntity != null) {
             metaTileEntity.tick();
         }
     }
@@ -68,7 +69,7 @@ public class MetaBlockEntityHolder extends BlockEntity implements Tickable, IUIH
 
     @Override
     public @NotNull ModularGui createUi(PlayerEntity player) {
-        if(hasUI()) {
+        if (hasUI()) {
             return new ModularGui(metaTileEntity.createUi(player), this, player);
         }
         return null;

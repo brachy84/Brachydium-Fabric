@@ -1,5 +1,6 @@
-package brachy84.brachydium.api.blockEntity;
+package brachy84.brachydium.api.blockEntity.old;
 
+import brachy84.brachydium.api.blockEntity.ITiered;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
 import brachy84.brachydium.api.energy.Voltages;
 import brachy84.brachydium.api.handlers.EnergyContainer2Handler;

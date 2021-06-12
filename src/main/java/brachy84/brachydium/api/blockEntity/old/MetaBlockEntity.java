@@ -1,6 +1,7 @@
-package brachy84.brachydium.api.blockEntity;
+package brachy84.brachydium.api.blockEntity.old;
 
 import brachy84.brachydium.api.BrachydiumApi;
+import brachy84.brachydium.api.blockEntity.TileTrait;
 import brachy84.brachydium.api.cover.Cover;
 import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.handlers.*;
@@ -46,8 +47,8 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     private BlockItem item;
     private BlockEntityType<MetaBlockEntityHolder> entityType;
 
-    private final List<MBETrait> traits = new ArrayList<>();
-    private final List<MBETrait> nullTraits = new ArrayList<>();
+    private final List<TileTrait> traits = new ArrayList<>();
+    private final List<TileTrait> nullTraits = new ArrayList<>();
     protected final List<OverlayRenderer> overlays = new ArrayList<>();
     private Direction frontFacing;
 
@@ -99,7 +100,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
 
     public void addApis() {
-        for(MBETrait trait : traits) {
+        for(TileTrait trait : traits) {
             trait.addApis(getEntityType());
         }
         FabricParticipants.ITEM_WORLD.forBlockEntity(getEntityType(), (direction, state, world, pos, entity) -> getItemInventory());
@@ -124,7 +125,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         }
     }
 
-    public void addTrait(MBETrait trait) {
+    public void addTrait(TileTrait trait) {
         if(trait != null) {
             Brachydium.LOGGER.info("Adding trait " + trait.getName());
             traits.add(trait);
@@ -134,8 +135,8 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     }
 
     @Nullable
-    public MBETrait findTrait(String name) {
-        for(MBETrait trait : traits) {
+    public TileTrait findTrait(String name) {
+        for(TileTrait trait : traits) {
             if(trait.getName().equals(name)) {
                 return trait;
             }
@@ -144,8 +145,8 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
     }
 
     @Nullable
-    public MBETrait getTrait(Class<?> clazz) {
-        for(MBETrait trait : traits) {
+    public TileTrait getTrait(Class<?> clazz) {
+        for(TileTrait trait : traits) {
             if(clazz.isAssignableFrom(trait.getClass())) {
                 return trait;
             }
@@ -166,15 +167,17 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         return true;
     }
 
-    public boolean shouldUpdate(MBETrait trait) {
+    public void onAttach() {}
+
+    public boolean shouldUpdate(TileTrait trait) {
         return true;
     }
 
     @Override
     public void tick() {
-        for(MBETrait trait : traits) {
+        for(TileTrait trait : traits) {
             if(shouldUpdate(trait)) {
-                trait.update();
+                trait.tick();
             }
         }
     }
@@ -198,7 +201,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
         tag.putInt("front", getFrontFacing().getId());
 
         CompoundTag traitTag = new CompoundTag();
-        for(MBETrait trait : traits) {
+        for(TileTrait trait : traits) {
             traitTag.put(trait.getName(), trait.serializeTag());
         }
         tag.put("MBETraits", traitTag);
@@ -215,7 +218,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
             setFrontFacing(facing);
         CompoundTag traitTag = tag.getCompound("MBETraits");
         for(String key : traitTag.getKeys()) {
-            MBETrait trait = findTrait(key);
+            TileTrait trait = findTrait(key);
             if(trait != null) {
                 trait.deserializeTag(traitTag.getCompound(key));
             }
@@ -247,7 +250,7 @@ public abstract class MetaBlockEntity implements ICoverable, Tickable {
 
     @Nullable
     public RecipeTable<?> getRecipeTable() {
-        for(MBETrait trait : traits) {
+        for(TileTrait trait : traits) {
             if(trait instanceof AbstractRecipeLogic) {
                 return ((AbstractRecipeLogic) trait).recipeTable;
             }
