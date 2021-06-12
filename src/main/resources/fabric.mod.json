@@ -19,7 +19,8 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "brachy84.brachydium.Brachydium"
+      "brachy84.brachydium.Brachydium",
+      "brachy84.testmod.Testmod"
     ],
     "client": [
       "brachy84.brachydium.client.BrachydiumClient"
@@ -31,7 +32,7 @@
       "brachy84.brachydium.compat.ReiCompat"
     ],
     "brachydium": [
-      "brachy84.brachydium.common.TestPlugin"
+      "brachy84.testmod.BrachydiumPlugin"
     ]
   },
   "mixins": [

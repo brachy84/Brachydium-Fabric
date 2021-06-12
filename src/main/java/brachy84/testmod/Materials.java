@@ -1,4 +1,4 @@
-package brachy84.brachydium.common;
+package brachy84.testmod;
 
 import brachy84.brachydium.api.material.*;
 

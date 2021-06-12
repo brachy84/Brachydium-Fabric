@@ -1,17 +1,9 @@
-package brachy84.brachydium.common.recipes;
-
-import brachy84.brachydium.api.recipe.RecipeTables;
-import brachy84.brachydium.api.tag.Tags;
-import brachy84.brachydium.common.Materials;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Items;
-
-import static brachy84.brachydium.api.tag.TagDictionary.*;
+package brachy84.testmod.recipes;
 
 public class TestRecipes {
 
     public static void init() {
-        RecipeTables.ALLOYER_RECIPES.recipeBuilder("special_iron")
+        /*RecipeTables.ALLOYER_RECIPES.recipeBuilder("special_iron")
                 .input(Ingot, Materials.Aluminium, 1)
                 .input(Dust, Materials.Copper, 1)
                 .output(Items.IRON_INGOT, 2)
@@ -33,6 +25,6 @@ public class TestRecipes {
                 .output(Items.REDSTONE, 2)
                 .duration(40)
                 .EUt(28)
-                .buildAndRegister();
+                .buildAndRegister();*/
     }
 }
