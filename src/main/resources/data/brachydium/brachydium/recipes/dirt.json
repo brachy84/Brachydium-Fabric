@@ -1,0 +1,31 @@
+{
+  "table": "mixer",
+  "inputs": [
+    "item;minecraft:iron_ingot;1",
+    {
+      "item": "material.ingot_copper",
+      "count": 1,
+      "chance": 0.1
+    },
+    {
+      "tag": "c:copper_ingots;2"
+    },
+    {
+      "fluid": "minecraft:water;1296"
+    }
+  ],
+  "outputs": [
+    {
+      "_comment": "outputs accept the same as inputs, BUT tags, so only item and fluids with same syntax"
+    },
+    "item;minecraft:dirt;6"
+  ],
+  "eut": 512,
+  "duration": 100,
+  "properties": {
+    "_comment": "Properties are currently not implemented",
+    "temperature": 8100,
+    "explosives": 32,
+    "energy_to_start": 32000
+  }
+}
