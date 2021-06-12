@@ -1,18 +1,22 @@
 package brachy84.brachydium.common;
 
-import brachy84.brachydium.api.material.Material;
-import brachy84.brachydium.api.material.MaterialFlag;
+import brachy84.brachydium.api.material.*;
 
-import static brachy84.brachydium.api.material.Flags.*;
+//import static brachy84.brachydium.api.material.Flags.*;
+import static brachy84.brachydium.api.tag.TagDictionary.*;
 
 public class Materials {
 
-    private static final MaterialFlag[] METALL = {DUST, INGOT, PLATE, STICK, GEAR, CRAFTING_TOOLS, BOLT_SCREW};
+    //public static final Material Aluminium = new Material("aluminium", 0x5197C2, METALL);
+    //public static final Material Copper = new Material("copper", 0xDB9430, METALL)
+    //        .setBlockSettings(5f, 6f, 1);
 
-    public static final Material Aluminium = new Material("aluminium", 0x5197C2, METALL);
-    public static final Material Copper = new Material("copper", 0xDB9430, METALL)
-            .setBlockSettings(5f, 6f, 1);
-
+    public static final Material Aluminium2 = Material.builder().registryName("aluminium")
+            .color(66, 135, 245)
+            .type(MaterialType.METAL)
+            .addFlags(Plate)
+            .element(Element.Al)
+            .build();
 
     public static void init() {
 

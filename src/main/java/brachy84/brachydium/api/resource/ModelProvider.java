@@ -14,6 +14,7 @@ public class ModelProvider implements ExtraModelProvider {
     public void provideExtraModels(ResourceManager manager, Consumer<Identifier> out) {
         out.accept(new ModelIdentifier(Brachydium.id("bucket_base"), "inventory"));
         out.accept(new ModelIdentifier(Brachydium.id("bucket_fluid"), "inventory"));
-        out.accept(new ModelIdentifier(Brachydium.id("bucket_background"), "inventory"));
+        out.accept(new ModelIdentifier(Brachydium.id("materials/ingot"), "inventory"));
+        //out.accept(new ModelIdentifier(Brachydium.id("bucket_background"), "inventory"));
     }
 }

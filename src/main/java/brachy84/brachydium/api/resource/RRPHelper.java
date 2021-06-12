@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.tag.TagDictionary;
 import net.devtech.arrp.json.blockstate.JBlockModel;
 import net.devtech.arrp.json.blockstate.JState;
 import net.devtech.arrp.json.blockstate.JWhen;
@@ -50,7 +51,7 @@ public class RRPHelper {
     }
     public static void addBasicMaterialBlockState(String material, String component) {
         //blockStates.put("material/" + material + "." + component, state(JState.variant(JState.model("mechtech:block/component/" + component))));
-        RESOURCE_PACK.addBlockState(state(JState.variant(JState.model("brachydium:block/component/" + component))), mtId("material/" + material + "." + component));
+        RESOURCE_PACK.addBlockState(state(JState.variant(JState.model("brachydium:item/material." + component + "_" + material))), mtId("material." + material + "_" + component));
     }
 
     public static void addBasicMaterialBlockItemModel(String material, String component) {
@@ -61,6 +62,11 @@ public class RRPHelper {
     public static void addSimpleMaterialItemTag(String material, String component) {
         //itemTags.put("c:items/" + material + "_" + component + "s", tag().add(new MTIdentifier("material/" + material + "." + component)));
         RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + component + "s"), tag().add(mtId("material/" + material + "." + component)));
+    }
+
+    public static void addSimpleMaterialItemTag(String material, TagDictionary.Entry tag) {
+        //itemTags.put("c:items/" + material + "_" + component + "s", tag().add(new MTIdentifier("material/" + material + "." + component)));
+        RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + tag.getTagName()), tag().add(mtId("material." + tag.getName() + "." + material)));
     }
 
     public static void addSimpleLootTable(String block) {

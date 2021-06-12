@@ -1,72 +1,63 @@
 package brachy84.brachydium.api.item;
 
 import brachy84.brachydium.ItemGroups;
-import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
-import net.minecraft.entity.Entity;
+import brachy84.brachydium.api.material.Material;
+import brachy84.brachydium.api.tag.TagDictionary;
+import net.minecraft.client.item.TooltipContext;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class MaterialItem extends Item {
 
-    private String componentName;
+    private TagDictionary.Entry component;
     private Material material;
     private String translationKey;
-    private Identifier id;
 
     private MaterialItem(Settings settings) {
         super(settings);
     }
 
-    public MaterialItem(String componentName, Material material) {
+    public MaterialItem(TagDictionary.Entry component, Material material) {
         super(new Settings().group(ItemGroups.MATERIALS));
-        this.componentName = componentName;
+        this.component = component;
         this.material = material;
-        this.id = new Identifier(Brachydium.MOD_ID, "material/" + material.getName() + "." + componentName );
     }
 
-    public void register() {
-        // register item
-        ColorProviderRegistry.ITEM.register(((stack, tintIndex) -> {
-            return material.getColor();
-        }), this);
-        Registry.register(Registry.ITEM, id, this);
-    }
-
-    private void registerRecipes() {
-
-    }
-
-    @Override
-    public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
-        super.inventoryTick(stack, world, entity, slot, selected);
+    public Identifier makeId() {
+        return Brachydium.id(String.format("material.%s_%s", component.getName(), material.getRegistryName()));
     }
 
     @Override
     public Text getName(ItemStack stack) {
-        return new TranslatableText(getTranslationKey(), material.translatedText().getString());
+        return new TranslatableText(getTranslationKey(), material.getLocalizedName());
     }
 
     @Override
     public String getTranslationKey() {
-        return "component." + componentName;
+        return "component." + component.getName();
     }
 
-    public String getComponentName() {
-        return componentName;
+    public TagDictionary.Entry getComponent() {
+        return component;
     }
 
     public Material getMaterial() {
         return material;
     }
 
-    public Identifier getId() {
-        return id;
+    @Override
+    public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+        super.appendTooltip(stack, world, tooltip, context);
+        tooltip.add(new LiteralText(material.chemicalFormula).formatted(Formatting.DARK_GRAY));
     }
 }

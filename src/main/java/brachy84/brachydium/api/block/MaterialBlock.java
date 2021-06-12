@@ -1,18 +1,13 @@
 package brachy84.brachydium.api.block;
 
-import brachy84.brachydium.ItemGroups;
-import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.Brachydium;
-import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import brachy84.brachydium.api.material.Material;
+import brachy84.brachydium.api.tag.TagDictionary;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.text.MutableText;
-import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.registry.Registry;
 
 /**
  *  A block from a material
@@ -20,43 +15,38 @@ import net.minecraft.util.registry.Registry;
  */
 public class MaterialBlock extends Block {
 
-    // TODO: autogen Blockstate.json
-
     private Material material;
-    private String blockComponent;
+    private TagDictionary.Entry tag;
 
     private MaterialBlock(Settings settings) {
         super(settings);
     }
 
-    public MaterialBlock(String blockComponent, Material material) {
-        super(material.getBlockSettings());
-        this.blockComponent = blockComponent;
+    public MaterialBlock(Material material, TagDictionary.Entry tag) {
+        super(FabricBlockSettings.of(net.minecraft.block.Material.METAL));
         this.material = material;
+        this.tag = tag;
     }
 
-    public void register() {
+    public Identifier makeId() {
+        return Brachydium.id(String.format("material.%s_%s", tag.getName(), material.getRegistryName()));
+    }
 
-
-
-        BlockItem blockItem = new BlockItem(this, new Item.Settings().group(ItemGroups.MATERIALS)) {
-            @Override
-            public Text getName(ItemStack itemStack) {
-                return new TranslatableText("component." + blockComponent, material.translatedText().getString());
-            }
-        };
-
-        ColorProviderRegistry.BLOCK.register((state, view, pos, tintIndex) -> material.getColor(), this);
-        ColorProviderRegistry.ITEM.register((stack, tintIndex) -> material.getColor(), blockItem);
-
-        Identifier blockId = new Identifier(Brachydium.MOD_ID, "material/" + material.getName() + "." + blockComponent);
-
-        Registry.register(Registry.BLOCK, blockId, this);
-        Registry.register(Registry.ITEM, blockId, blockItem);
+    @Override
+    public String getTranslationKey() {
+        return "component." + tag.getName();
     }
 
     @Override
     public MutableText getName() {
-        return new TranslatableText("component." + blockComponent, material.translatedText().getString());
+        return new TranslatableText(getTranslationKey(), material.getLocalizedName());
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public TagDictionary.Entry getTag() {
+        return tag;
     }
 }
