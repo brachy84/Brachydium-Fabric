@@ -24,6 +24,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.*;
 
@@ -130,6 +131,10 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     @Override
     public void setWorkingEnabled(boolean workingEnabled) {
         this.workingEnabled = workingEnabled;
+        if(workingEnabled)
+            setState(State.IDLING); // FIXME: this might cause issues
+        else
+            setState(State.DISABLED);
     }
 
     @Override
@@ -160,7 +165,8 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
             buf.writeBlockPos(metaBlockEntity.getPos());
             buf.writeString(state.toString());
             for (PlayerEntity player : metaBlockEntity.getWorld().getPlayers()) {
-                if (player instanceof ServerPlayerEntity) {
+                BlockPos pos = metaBlockEntity.getPos();
+                if (player instanceof ServerPlayerEntity && metaBlockEntity.getWorld().isPlayerInRange(pos.getX(), pos.getY(), pos.getZ(), 64)) {
                     ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.UPDATE_WORKING_STATE, buf);
                 }
             }
@@ -211,14 +217,14 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     private void onInventoryUpdate() {
         Brachydium.LOGGER.info("Inventory updated");
-        if (state != State.RUNNING && state != State.OUTPUT_BLOCKED) {
+        if (isNotState(State.DISABLED, State.RUNNING, State.OUTPUT_BLOCKED)) {
             trySearchNewRecipe();
         }
     }
 
     private void onOutputChanged() {
         Brachydium.LOGGER.info("Output updated");
-        if (state == State.OUTPUT_BLOCKED) {
+        if (isState(State.OUTPUT_BLOCKED)) {
             Brachydium.LOGGER.info("Trying recipe after output unblocked");
             setState(State.IDLING);
             tryRecipe(storedRecipe);
@@ -312,10 +318,32 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         }
     }
 
+    /**
+     * @param states to chek
+     * @return if any of the given states is the current state
+     */
+    public boolean isState(State... states) {
+        for (State state : states) {
+            if (this.state == state) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param states to check
+     * @return if all of the given states are NOT the current state
+     */
+    public boolean isNotState(State... states) {
+        return !isState(states);
+    }
+
     public enum State {
         OUTPUT_BLOCKED,
         NOT_ENOUGH_POWER,
         RUNNING,
+        DISABLED,
         IDLING;
     }
 }
