@@ -1,9 +1,9 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
@@ -15,22 +15,52 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class TileEntity {
 
     private final Identifier id;
-    private final List<MBETrait> traits = new ArrayList<>();
+    private final List<TileTrait> traits = new ArrayList<>();
     private Direction frontFacing;
 
     protected TileEntity(@NotNull Identifier id) {
         this.id = id;
     }
 
-    public void onAttach() {}
+    public void addTrait(TileTrait trait) {
+        Objects.requireNonNull(trait);
+        traits.add(trait);
+    }
 
-    public void onDetach() {}
+    @Nullable
+    public TileTrait findTrait(String name) {
+        for (TileTrait trait : traits) {
+            if (trait.getName().equals(name)) {
+                return trait;
+            }
+        }
+        return null;
+    }
 
-    public void onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {}
+    @Nullable
+    public TileTrait getTrait(Class<?> clazz) {
+        for (TileTrait trait : traits) {
+            if (clazz.isAssignableFrom(trait.getClass())) {
+                return trait;
+            }
+        }
+        return null;
+    }
+
+    public void onAttach() {
+    }
+
+    public void onDetach() {
+    }
+
+    public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        return ActionResult.PASS;
+    }
 
     public abstract CompoundTag serializeTag();
 
@@ -45,14 +75,14 @@ public abstract class TileEntity {
     }
 
     public boolean isClient() {
-        if(getWorld() == null)
+        if (getWorld() == null)
             return true;
         else
             return getWorld().isClient();
     }
 
     public Direction getFrontFacing() {
-        if(frontFacing == null) setFrontFacing(Direction.NORTH);
+        if (frontFacing == null) setFrontFacing(Direction.NORTH);
         return frontFacing;
     }
 
