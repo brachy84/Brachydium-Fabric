@@ -8,8 +8,8 @@ import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,14 +38,14 @@ public class FluidTankList implements ArrayParticipant<Fluid>, InventoryListener
         this.insertable = insertable;
     }
 
-    public static FluidTankList fromTag(CompoundTag tag) {
+    public static FluidTankList fromTag(NbtCompound tag) {
         int size = tag.getInt("slots");
-        ListTag list = (ListTag) tag.get("content");
+        NbtList list = (NbtList) tag.get("content");
         assert list != null;
         FluidStack[] stacks = new FluidStack[size];
         for(int i = 0; i < size; i++) {
-            CompoundTag tag1 = (CompoundTag) list.get(i);
-            stacks[i] = FluidStack.fromTag(tag1);
+            NbtCompound tag1 = (NbtCompound) list.get(i);
+            stacks[i] = FluidStack.fromNbt(tag1);
         }
         return new FluidTankList(tag.getInt("capacity"), tag.getBoolean("ext"), tag.getBoolean("ins"), stacks);
     }
@@ -111,16 +111,16 @@ public class FluidTankList implements ArrayParticipant<Fluid>, InventoryListener
         return ArrayParticipant.super.insert(transaction, type, quantity);
     }
 
-    public CompoundTag toTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound toTag() {
+        NbtCompound tag = new NbtCompound();
         tag.putInt("slots", getSlots().size());
         tag.putBoolean("ins", insertable);
         tag.putBoolean("ext", extractable);
         tag.putInt("capacity", capacity);
-        ListTag list = new ListTag();
+        NbtList list = new NbtList();
         for(Slot<Fluid> slot : getSlots()) {
             FluidStack stack = new FluidStack(slot.getKey(null), slot.getQuantity(null));
-            list.add(stack.toTag(new CompoundTag()));
+            list.add(stack.writeNbt(new NbtCompound()));
         }
         tag.put("content", list);
         return tag;

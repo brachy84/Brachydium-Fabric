@@ -3,7 +3,7 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.api.blockEntity.old.MetaBlockEntity;
 import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityHolder;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 
 public abstract class TileTrait {
 
@@ -36,11 +36,11 @@ public abstract class TileTrait {
      * Gets called on MetaBlockEntity nbt serialization
      * @return a serialized Tag
      */
-    abstract public CompoundTag serializeTag();
+    abstract public NbtCompound serializeTag();
 
     /**
      * Gets called on MetaBlockEntity nbt deserialization
      * @param tag to deserialize
      */
-    abstract public void deserializeTag(CompoundTag tag);
+    abstract public void deserializeTag(NbtCompound tag);
 }

@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.handlers;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.InventoryListener;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Insertable;
@@ -9,8 +8,8 @@ import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,14 +36,14 @@ public class ItemInventory implements ArrayParticipant<ItemKey>, InventoryListen
         this.insertable = insertable;
     }
 
-    public static ItemInventory fromTag(CompoundTag tag) {
+    public static ItemInventory fromTag(NbtCompound tag) {
         int size = tag.getInt("slots");
-        ListTag list = (ListTag) tag.get("content");
+        NbtList list = (NbtList) tag.get("content");
         assert list != null;
         ItemStack[] stacks = new ItemStack[size];
         for (int i = 0; i < size; i++) {
-            CompoundTag tag1 = (CompoundTag) list.get(i);
-            stacks[i] = ItemStack.fromTag(tag1);
+            NbtCompound tag1 = (NbtCompound) list.get(i);
+            stacks[i] = ItemStack.fromNbt(tag1);
         }
         return new ItemInventory(tag.getBoolean("ext"), tag.getBoolean("ins"), stacks);
     }
@@ -110,15 +109,15 @@ public class ItemInventory implements ArrayParticipant<ItemKey>, InventoryListen
         return ArrayParticipant.super.insert(transaction, type, quantity);
     }
 
-    public CompoundTag toTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound toTag() {
+        NbtCompound tag = new NbtCompound();
         tag.putInt("slots", getSlots().size());
         tag.putBoolean("ins", insertable);
         tag.putBoolean("ext", extractable);
-        ListTag list = new ListTag();
+        NbtList list = new NbtList();
         for (Slot<ItemKey> slot : getSlots()) {
             ItemStack stack = slot.getKey(null).createItemStack(slot.getQuantity(null));
-            list.add(stack.toTag(new CompoundTag()));
+            list.add(stack.writeNbt(new NbtCompound()));
         }
         tag.put("content", list);
         return tag;

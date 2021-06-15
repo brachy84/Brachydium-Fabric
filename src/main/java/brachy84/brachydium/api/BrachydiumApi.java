@@ -15,14 +15,15 @@ import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BucketItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.Level;
 
@@ -40,7 +41,7 @@ public class BrachydiumApi {
         META_BLOCK_ENTITY_REGISTRY.register(newId, entity);
         entity.setBlock(registerBlock(newId, new BlockMachine(newId)));
         entity.setBlockItem(registerItem(newId, new BlockMachineItem(entity.getBlock(), newId)));
-        entity.setBlockEntityType(Registry.register(Registry.BLOCK_ENTITY_TYPE, newId, BlockEntityType.Builder.create(() -> new MetaBlockEntityHolder(entity), entity.getBlock()).build(null)));
+        entity.setBlockEntityType(Registry.register(Registry.BLOCK_ENTITY_TYPE, newId, FabricBlockEntityTypeBuilder.create((pos, state) -> new MetaBlockEntityHolder(entity, Direction.NORTH, pos, state), entity.getBlock()).build(null)));
         entity.addApis();
         BlockRenderLayerMap.INSTANCE.putBlock(entity.getBlock(), RenderLayer.getTranslucent());
         RecipeTable<?> recipeTable = entity.getRecipeTable();
@@ -58,7 +59,7 @@ public class BrachydiumApi {
         BlockItem item = registerItem(id, new BlockMachineItem(block, id));
         group.setBlock(block);
         group.setItem(item);
-        group.setType(Registry.register(Registry.BLOCK_ENTITY_TYPE, id, BlockEntityType.Builder.create(() -> new BlockEntityHolder(group), block).build(null)));
+        group.setType(Registry.register(Registry.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.create((pos, state) -> new BlockEntityHolder(group, pos, state), block).build(null)));
         BLOCK_ENTITY_GROUP_REGISTRY.register(id, group);
         BlockRenderLayerMap.INSTANCE.putBlock(block, RenderLayer.getTranslucent());
         return group;

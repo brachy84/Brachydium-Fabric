@@ -63,16 +63,16 @@ public class GuiHelperImpl extends GuiHelper {
         RenderSystem.enableBlend();
         RenderSystem.disableTexture();
         RenderSystem.defaultBlendFunc();
-        RenderSystem.pushMatrix();
+        matrices.push();
         //transformation.applyRotation();
         //transformation.applyTranslation();
         //transformation.applyScale();
-        builder.begin(GL11.GL_QUADS, VertexFormats.POSITION_COLOR);
+        builder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_COLOR);
         shape.forEachVertex((x, y) -> {
             builder.vertex(matrix, point.getX() + x, point.getY() + y, z).color(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha()).next();
         });
         builder.end();
-        RenderSystem.popMatrix();
+        matrices.pop();
         BufferRenderer.draw(builder);
         RenderSystem.enableTexture();
         RenderSystem.disableBlend();
@@ -113,22 +113,19 @@ public class GuiHelperImpl extends GuiHelper {
     @Override
     public void drawTextureArea(TextureArea texture, Point point, Size drawSize) {
         client.getTextureManager().bindTexture(texture.getPath());
-        RenderSystem.color4f(1f, 1f, 1f, 1f);
-        //drawTexture(matrices, (int) point.getX(), (int) point.getY(), z, u, v, (int) sprite.getSize().width, (int) sprite.getSize().height, (int) drawSize.width, (int) drawSize.height);
+        //matrices.color4f(1f, 1f, 1f, 1f);
         Matrix4f matrix4f = matrices.peek().getModel();
 
         AABB bounds = AABB.of(drawSize, point);
 
-        //float x0 = point.getX(), x1 = x0 + sprite.getSize().width, y0 = point.getY(), y1 = y0 + sprite.getSize().height;
-        //float u0 = u / sprite.getSize().width, u1 = (u + drawSize.width) / sprite.getSize().width, v0 = v / sprite.getSize().height, v1 = (v + drawSize.height / sprite.getSize().height);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(GL11.GL_QUADS, VertexFormats.POSITION_TEXTURE);
+        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
         bufferBuilder.vertex(matrix4f, bounds.x0, bounds.y1, (float)z).texture(texture.u0, texture.v1).next();
         bufferBuilder.vertex(matrix4f, bounds.x1, bounds.y1, (float)z).texture(texture.u1, texture.v1).next();
         bufferBuilder.vertex(matrix4f, bounds.x1, bounds.y0, (float)z).texture(texture.u1, texture.v0).next();
         bufferBuilder.vertex(matrix4f, bounds.x0, bounds.y0, (float)z).texture(texture.u0, texture.v0).next();
         bufferBuilder.end();
-        RenderSystem.enableAlphaTest();
         BufferRenderer.draw(bufferBuilder);
     }
 

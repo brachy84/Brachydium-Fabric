@@ -1,7 +1,7 @@
 package brachy84.brachydium.api.item.tool;
 
 import brachy84.brachydium.ItemGroups;
-import brachy84.brachydium.api.material.Material;
+import brachy84.brachydium.api.material.MaterialOld;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.RecipeItem;
@@ -11,7 +11,7 @@ import net.minecraft.client.resource.language.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
@@ -31,7 +31,7 @@ public class CraftingTool extends Item {
         this.id = Brachydium.id("tool." + name);
 
         ColorProviderRegistry.ITEM.register(((stack1, tintIndex) -> {
-            CompoundTag tag = stack1.getTag();
+            NbtCompound tag = stack1.getTag();
             if(tag != null) {
                 int color = tag.getInt("Color");
                 if(color > 0) {
@@ -64,9 +64,9 @@ public class CraftingTool extends Item {
         return new TranslatableText(Brachydium.MOD_ID+ ".tool." + name);
     }
 
-    public void createRecipe(Material material, RecipeItem[] items, String... pattern) {
-        float dmgMod = MAX_DURABILITY / (float) material.getToolProperties().getDurability();
-        RRPHelper.addNbtRecipe(id.getPath() + "_" + material.getName(), builder -> builder
+    public void createRecipe(MaterialOld materialOld, RecipeItem[] items, String... pattern) {
+        float dmgMod = MAX_DURABILITY / (float) materialOld.getToolProperties().getDurability();
+        RRPHelper.addNbtRecipe(id.getPath() + "_" + materialOld.getName(), builder -> builder
                 .type("shaped")
                 //.group("test_group")
                 .pattern(pattern)
@@ -75,8 +75,8 @@ public class CraftingTool extends Item {
                 )
                 .result(id.toString(), nbtItemBuilder -> nbtItemBuilder
                         .data(group -> group
-                                .entry("Material", material.getName())
-                                .entry("Color", material.getColor())
+                                .entry("Material", materialOld.getName())
+                                .entry("Color", materialOld.getColor())
                                 .entry("DmgMod", dmgMod)
                         )
                 )

@@ -48,7 +48,7 @@ public abstract class MaterialFluid extends AbstractMaterialFluid {
 
     @Override
     protected BlockState toBlockState(FluidState state) {
-        return block.getDefaultState().with(Properties.LEVEL_15, method_15741(state));
+        return block.getDefaultState().with(Properties.LEVEL_15, getBlockStateLevel(state));
     }
 
     public static class Flowing extends MaterialFluid {

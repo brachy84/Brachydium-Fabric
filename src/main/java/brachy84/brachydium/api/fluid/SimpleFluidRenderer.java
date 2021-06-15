@@ -29,6 +29,7 @@ import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.BufferBuilder;
 import net.minecraft.client.render.Tessellator;
+import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
@@ -66,7 +67,7 @@ public class SimpleFluidRenderer {
             Tessellator tess = Tessellator.getInstance();
             BufferBuilder bb = tess.getBuffer();
             Matrix4f matrix = matrices.peek().getModel();
-            bb.begin(7, VertexFormats.POSITION_TEXTURE_COLOR);
+            bb.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
             bb.vertex(matrix, bounds.x1, bounds.y0, z).texture(sprite.getMaxU(), sprite.getMinV()).color(r, g, b, a).next();
             bb.vertex(matrix, bounds.x0, bounds.y0, z).texture(sprite.getMinU(), sprite.getMinV()).color(r, g, b, a).next();
             bb.vertex(matrix, bounds.x0, bounds.y1, z).texture(sprite.getMinU(), sprite.getMaxV()).color(r, g, b, a).next();

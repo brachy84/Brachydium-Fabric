@@ -14,13 +14,12 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +33,7 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     }
 
     @Nullable
-    public TileEntity getTileEntity(CompoundTag tag) {
+    public TileEntity getTileEntity(NbtCompound tag) {
         TileEntity tile = null;
         BlockEntityGroup<?> group = BrachydiumApi.BLOCK_ENTITY_GROUP_REGISTRY.tryGetEntry(new Identifier(tag.getString("ID")));
         if (group != null) {
@@ -45,9 +44,9 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockView world) {
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         Brachydium.LOGGER.info("Creating blockEntity");
-        return new BlockEntityHolder(group);
+        return new BlockEntityHolder(group, pos, state);
     }
 
     @Override

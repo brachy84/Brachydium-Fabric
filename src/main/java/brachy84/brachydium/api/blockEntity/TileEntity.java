@@ -3,7 +3,7 @@ package brachy84.brachydium.api.blockEntity;
 import brachy84.brachydium.Brachydium;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -78,13 +78,13 @@ public abstract class TileEntity {
         return ActionResult.PASS;
     }
 
-    public CompoundTag serializeTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound serializeTag() {
+        NbtCompound tag = new NbtCompound();
         Brachydium.LOGGER.info("Saving facing: " + getFrontFacing().getId());
         tag.putInt("front", getFrontFacing().getId());
 
-        CompoundTag traitTag = new CompoundTag();
-        for(TileTrait trait : traits) {
+        NbtCompound traitTag = new NbtCompound();
+        for(TileTrait trait : traits.values()) {
             traitTag.put(trait.getName(), trait.serializeTag());
         }
         tag.put("MBETraits", traitTag);
@@ -92,13 +92,10 @@ public abstract class TileEntity {
         return tag;
     }
 
-    public void deserializeTag(CompoundTag tag) {
+    public void deserializeTag(NbtCompound tag) {
         Direction facing = Direction.byId(tag.getInt("front"));
-        if(facing == null)
-            Brachydium.LOGGER.info("Facing from NBT is null");
-        else
-            setFrontFacing(facing);
-        CompoundTag traitTag = tag.getCompound("MBETraits");
+        setFrontFacing(facing);
+        NbtCompound traitTag = tag.getCompound("MBETraits");
         for(String key : traitTag.getKeys()) {
             TileTrait trait = findTrait(key);
             if(trait != null) {

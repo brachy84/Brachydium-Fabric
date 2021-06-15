@@ -8,7 +8,7 @@ import me.shedaniel.rei.api.fractions.Fraction;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
@@ -34,7 +34,7 @@ public class FluidStack {
         this.amount = amount;
     }
 
-    public static FluidStack fromTag(CompoundTag tag) {
+    public static FluidStack fromNbt(NbtCompound tag) {
         Fluid fluid = Registry.FLUID.get(new Identifier(tag.getString("id")));
         return new FluidStack(fluid, tag.getInt("amount"));
     }
@@ -133,7 +133,7 @@ public class FluidStack {
         return Lists.newArrayList(EntryStack.create(fluid, Fraction.ofWhole(1000)));
     }
 
-    public CompoundTag toTag(CompoundTag tag) {
+    public NbtCompound writeNbt(NbtCompound tag) {
         Identifier id = getId();
         tag.putString("id", id == null ? "minecraft:empty" : id.toString());
         tag.putInt("amount", amount);

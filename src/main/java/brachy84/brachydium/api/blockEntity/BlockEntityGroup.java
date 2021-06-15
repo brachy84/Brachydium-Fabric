@@ -3,7 +3,7 @@ package brachy84.brachydium.api.blockEntity;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -23,7 +23,7 @@ public abstract class BlockEntityGroup<K> {
         this.id = id;
     }
 
-    public abstract TileEntity getBlockEntity(CompoundTag tag);
+    public abstract TileEntity getBlockEntity(NbtCompound tag);
 
     public BlockEntityType<BlockEntityHolder> getType() {
         return type;

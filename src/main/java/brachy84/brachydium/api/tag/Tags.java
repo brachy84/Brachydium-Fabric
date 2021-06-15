@@ -6,6 +6,7 @@ import net.minecraft.item.Item;
 import net.minecraft.tag.ServerTagManagerHolder;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class Tags {
 
@@ -18,11 +19,7 @@ public class Tags {
             Brachydium.LOGGER.error("Can't load tag {} now. Tags are loaded on world load", name);
             return null;
         }
-        Tag<Item> tag = ServerTagManagerHolder.getTagManager().getItems().getTag(new Identifier(name));
-        if(tag == null) {
-            Brachydium.LOGGER.error("Could not find a tag with name " + name);
-        }
-        return tag;
+        return ServerTagManagerHolder.getTagManager().getTag(Registry.ITEM_KEY, new Identifier(name), id -> new NullPointerException("Could not find tag " + id));
     }
 
     public static final String INGOT = "ingots";

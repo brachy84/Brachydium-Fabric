@@ -69,11 +69,6 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Override
     protected void init() {
         super.init();
-    }
-
-    @Override
-    public void init(MinecraftClient client, int width, int height) {
-        super.init(client, width, height);
         gui.resize(new Size(width, height));
         screenShape = Shape.rect(new Size(width, height));
         backgroundHeight = (int) gui.getGuiSize().height;
@@ -96,7 +91,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
-        RenderSystem.translatef(-x, -y, 0);
+        matrices.translate(-x, -y, 0);
         gui.render(matrices, new Point(mouseX, mouseY), delta);
     }
 

@@ -9,7 +9,7 @@ import io.github.astrarre.transfer.v0.api.transaction.Key;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import io.github.astrarre.transfer.v0.api.transaction.keys.ObjectKeyImpl;
 import net.minecraft.fluid.Fluid;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,8 +39,8 @@ public class SingleFluidTank implements Slot<Fluid>, InventoryListener {
         this.type = new ObjectKeyImpl<>(FluidStack.EMPTY);
     }
 
-    public static SingleFluidTank fromTag(CompoundTag tag) {
-        FluidStack stack = FluidStack.fromTag(tag.getCompound("content"));
+    public static SingleFluidTank fromTag(NbtCompound tag) {
+        FluidStack stack = FluidStack.fromNbt(tag.getCompound("content"));
         SingleFluidTank tank = new SingleFluidTank(tag.getInt("capacity"), tag.getBoolean("ext"), tag.getBoolean("ins"));
         tank.set(null, stack.getFluid(), stack.getAmount());
         return tank;
@@ -126,12 +126,12 @@ public class SingleFluidTank implements Slot<Fluid>, InventoryListener {
         return 0;
     }
 
-    public CompoundTag toTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound toTag() {
+        NbtCompound tag = new NbtCompound();
         tag.putBoolean("ins", insertable);
         tag.putBoolean("ext", extractable);
         tag.putInt("capacity", capacity);
-        tag.put("content", getStack(null).toTag(new CompoundTag()));
+        tag.put("content", getStack(null).writeNbt(new NbtCompound()));
         return tag;
     }
 

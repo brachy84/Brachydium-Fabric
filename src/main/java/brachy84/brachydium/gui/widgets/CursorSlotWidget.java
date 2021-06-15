@@ -47,12 +47,12 @@ public class CursorSlotWidget extends ResourceSlotWidget<ItemStack> {
 
     @Override
     public ItemStack getResource() {
-        return gui.player.inventory.getCursorStack();
+        return gui.getScreen().getScreenHandler().getCursorStack();
     }
 
     @Override
     public boolean setResource(ItemStack resource) {
-        gui.player.inventory.setCursorStack(resource);
+        gui.getScreen().getScreenHandler().setCursorStack(resource);
         if(gui.player instanceof ServerPlayerEntity) {
             sendToClient((ServerPlayerEntity) gui.player);
         }

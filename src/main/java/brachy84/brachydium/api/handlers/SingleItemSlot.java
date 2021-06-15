@@ -7,7 +7,7 @@ import io.github.astrarre.transfer.v0.api.transaction.Key;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import io.github.astrarre.transfer.v0.api.transaction.keys.ObjectKeyImpl;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -138,7 +138,7 @@ public class SingleItemSlot implements Slot<ItemKey> {
         ItemStack stack = getStack(null);
         StringBuilder builder = new StringBuilder("[");
         builder.append(stack.getItem().toString());
-        CompoundTag tag = stack.getTag();
+        NbtCompound tag = stack.getTag();
         if(tag != null && !tag.isEmpty()) {
             builder.append(' ').append(tag);
         }

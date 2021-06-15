@@ -1,8 +1,8 @@
 package brachy84.brachydium.api.block;
 
-import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntityUIFactory;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntity;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityUIFactory;
 import brachy84.brachydium.Brachydium;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.*;
@@ -16,6 +16,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
@@ -60,13 +61,13 @@ public class BlockMachine extends Block implements BlockEntityProvider {
 
     @Nullable
     @Override
-    public BlockEntity createBlockEntity(BlockView world) {
+    public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         Brachydium.LOGGER.info("Creating blockEntity");
-        ensureBlockEntityNotNull(world, null);
+        ensureBlockEntityNotNull(null, null);
         if (metaBlockEntity == null) {
             throw new NullPointerException("A MetaBlockEntity with id " + id + " doesn't exist");
         }
-        return new MetaBlockEntityHolder(metaBlockEntity);
+        return new MetaBlockEntityHolder(metaBlockEntity, Direction.NORTH, pos, state);
     }
 
     @Override

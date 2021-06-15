@@ -1,47 +1,56 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.gui.ModularGui;
+import brachy84.brachydium.gui.api.IUIHolder;
+import brachy84.brachydium.gui.widgets.RootWidget;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.Tickable;
+import net.minecraft.util.math.BlockPos;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class BlockEntityHolder extends BlockEntity implements Tickable {
+/**
+ * A BLockEntity which can hold a TileEntity of a BlockEntityGroup
+ * see also: {@link TileEntity}, {@link BlockEntityGroup}
+ */
+public class BlockEntityHolder extends BlockEntity implements IUIHolder {
 
     private BlockEntityGroup<?> group;
     public final Identifier id;
     @Nullable
     private TileEntity currentTile;
 
-    public BlockEntityHolder(BlockEntityGroup<?> group) {
-        super(group.getType());
+    public BlockEntityHolder(BlockEntityGroup<?> group, BlockPos pos, BlockState state) {
+        super(group.getType(), pos, state);
         this.id = group.id;
     }
 
-    public BlockEntityHolder(Identifier id, BlockEntityType<?> type) {
+    /*public BlockEntityHolder(Identifier id, BlockEntityType<?> type) {
         super(type);
         this.id = id;
-    }
+    }*/
 
-    @Override
+
     public void tick() {
         if(currentTile != null)
             currentTile.tick();
     }
 
     @Override
-    public CompoundTag toTag(CompoundTag tag) {
-        super.toTag(tag);
+    public NbtCompound writeNbt(NbtCompound tag) {
+        super.writeNbt(tag);
         tag.putString("ID", group.id.toString());
         tag.put("Tile", currentTile.serializeTag());
         return tag;
     }
 
     @Override
-    public void fromTag(BlockState state, CompoundTag tag) {
-        super.fromTag(state, tag);
+    public void readNbt(NbtCompound tag) {
+        super.readNbt(tag);
         if (currentTile == null) {
             currentTile = group.getBlockEntity(tag);
         }
@@ -50,9 +59,13 @@ public class BlockEntityHolder extends BlockEntity implements Tickable {
 
 
     public void setActiveTileEntity(TileEntity tile) {
-        if(currentTile != null) currentTile.setHolder(null);
+        if(currentTile != null) {
+            currentTile.onDetach();
+            currentTile.setHolder(null);
+        }
         this.currentTile = tile;
         currentTile.setHolder(this);
+        currentTile.onAttach();
     }
 
     public TileEntity getActiveTileEntity() {
@@ -65,5 +78,21 @@ public class BlockEntityHolder extends BlockEntity implements Tickable {
 
     public Identifier getId() {
         return id;
+    }
+
+    @Override
+    public boolean hasUI() {
+        if (currentTile != null) {
+            return currentTile.hasUI();
+        }
+        return false;
+    }
+
+    @Override
+    public @NotNull ModularGui createUi(PlayerEntity player) {
+        if (currentTile != null) {
+            return currentTile.createUi(player);
+        }
+        return new ModularGui(RootWidget.builder().build(), this, player);
     }
 }

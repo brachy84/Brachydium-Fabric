@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
@@ -21,7 +21,7 @@ public class TieredBlockEntityGroup extends BlockEntityGroup<Integer> {
     }
 
     @Override
-    public TileEntity getBlockEntity(CompoundTag tag) {
+    public TileEntity getBlockEntity(NbtCompound tag) {
         if (!tag.contains("tier")) {
             throw new IllegalStateException("Tag does not contain 'tier'");
         }

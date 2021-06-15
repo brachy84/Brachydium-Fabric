@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 
 import java.util.HashMap;
@@ -10,7 +10,7 @@ import java.util.HashMap;
  */
 public class SingleBlockEntity extends BlockEntityGroup<Void> {
 
-    private TileEntity tileEntity;
+    private final TileEntity tileEntity;
 
     protected SingleBlockEntity(Identifier id, TileEntity tileEntity) {
         super(id, new HashMap<>());
@@ -18,7 +18,7 @@ public class SingleBlockEntity extends BlockEntityGroup<Void> {
     }
 
     @Override
-    public TileEntity getBlockEntity(CompoundTag tag) {
+    public TileEntity getBlockEntity(NbtCompound tag) {
         return tileEntity;
     }
 }

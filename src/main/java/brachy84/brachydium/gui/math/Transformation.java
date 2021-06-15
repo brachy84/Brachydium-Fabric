@@ -84,7 +84,7 @@ public class Transformation {
         return this;
     }
 
-    public void applyRotation() {
+    /*public void applyRotation() {
         RenderSystem.rotatef(rotation, center.getX(), center.getY(), z);
     }
 
@@ -94,7 +94,7 @@ public class Transformation {
 
     public void applyTranslation() {
         RenderSystem.translatef(transX, transY, transZ);
-    }
+    }*/
 
     public void setRotationVector(Point point, int z) {
         this.center = point;
