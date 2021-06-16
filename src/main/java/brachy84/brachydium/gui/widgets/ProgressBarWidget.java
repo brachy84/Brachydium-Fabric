@@ -5,7 +5,7 @@ import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
-import me.shedaniel.rei.api.widgets.Widgets;
+import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import net.minecraft.client.util.math.MatrixStack;
 
 import java.util.List;
@@ -66,9 +66,9 @@ public class ProgressBarWidget extends Widget {
     }
 
     @Override
-    public void getReiWidgets(List<me.shedaniel.rei.gui.widget.Widget> widgets, Point origin) {
+    public void getReiWidgets(List<me.shedaniel.rei.api.client.gui.widgets.Widget> widgets, Point origin) {
         GuiHelperImpl guiHelper = new GuiHelperImpl(new MatrixStack());
-        me.shedaniel.rei.gui.widget.Widget renderer = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
+        me.shedaniel.rei.api.client.gui.widgets.Widget renderer = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
             guiHelper.setMatrixStack(matrices);
             draw(guiHelper, origin.add(relativPos));
         }));

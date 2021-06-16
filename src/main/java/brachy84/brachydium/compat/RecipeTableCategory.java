@@ -11,13 +11,15 @@ import brachy84.brachydium.gui.widgets.FluidSlotWidget;
 import brachy84.brachydium.gui.widgets.ItemSlotWidget;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.EntryStack;
-import me.shedaniel.rei.api.RecipeCategory;
-import me.shedaniel.rei.api.widgets.Label;
-import me.shedaniel.rei.api.widgets.Slot;
-import me.shedaniel.rei.api.widgets.Widgets;
-import me.shedaniel.rei.gui.widget.Widget;
-import net.minecraft.client.resource.language.I18n;
+import me.shedaniel.rei.api.client.gui.Renderer;
+import me.shedaniel.rei.api.client.gui.widgets.Label;
+import me.shedaniel.rei.api.client.gui.widgets.Slot;
+import me.shedaniel.rei.api.client.gui.widgets.Widget;
+import me.shedaniel.rei.api.client.gui.widgets.Widgets;
+import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
+import me.shedaniel.rei.api.common.category.CategoryIdentifier;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.text.Text;
@@ -30,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
+public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> {
 
     private RecipeTable<?> recipeTable;
 
@@ -44,17 +46,16 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
     }
 
     @Override
-    public @NotNull String getCategoryName() {
-        return I18n.translate("brachydium.category." + getIdentifier().getPath());
+    public Renderer getIcon() {
+        if(recipeTable.getTileItems().size() > 0 && recipeTable.getTileItems().get(0) != null) {
+            return EntryStacks.of(recipeTable.getTileItems().get(0));
+        }
+        return EntryStacks.of(new ItemStack(Items.ACACIA_DOOR));
     }
 
     @Override
-    public @NotNull EntryStack getLogo() {
-        if(recipeTable.getTileItems().size() > 0 && recipeTable.getTileItems().get(0) != null) {
-            EntryStack stack = EntryStack.create(recipeTable.getTileItems().get(0));
-            if(stack != null) return stack;
-        }
-        return EntryStack.create(new ItemStack(Items.ACACIA_DOOR));
+    public Text getTitle() {
+        return new TranslatableText("brachydium.category." + getIdentifier().getPath());
     }
 
     @Override
@@ -103,10 +104,10 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
     }
 
     private void setEntries(RecipeTableDisplay display, List<ResourceSlotWidget<?>> slots, List<Slot> reiSlots) {
-        Iterator<List<EntryStack>> inputItems = display.getItemInputs().iterator();
-        Iterator<List<EntryStack>> inputFluids = display.getFluidInputs().iterator();
-        Iterator<List<EntryStack>> outputItems = display.getItemOutputs().iterator();
-        Iterator<List<EntryStack>> outputFluids = display.getFluidOutputs().iterator();
+        Iterator<EntryIngredient> inputItems = display.getItemInputs().iterator();
+        Iterator<EntryIngredient> inputFluids = display.getFluidInputs().iterator();
+        Iterator<EntryIngredient> outputItems = display.getItemOutputs().iterator();
+        Iterator<EntryIngredient> outputFluids = display.getFluidOutputs().iterator();
         for(int i = 0; i < reiSlots.size(); i++) {
             ResourceSlotWidget<?> slot = slots.get(i);
             Slot reiSlot = reiSlots.get(i);
@@ -138,5 +139,10 @@ public class RecipeTableCategory implements RecipeCategory<RecipeTableDisplay> {
     @Override
     public int getDisplayWidth(RecipeTableDisplay display) {
         return 150;
+    }
+
+    @Override
+    public CategoryIdentifier<? extends RecipeTableDisplay> getCategoryIdentifier() {
+        return null;
     }
 }

@@ -7,17 +7,16 @@ import brachy84.brachydium.gui.api.ResourceSlotWidget;
 import brachy84.brachydium.gui.api.SlotTags;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
-import brachy84.brachydium.gui.math.*;
-import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
+import brachy84.brachydium.gui.math.AABB;
+import brachy84.brachydium.gui.math.Point;
+import brachy84.brachydium.gui.math.Shape;
+import brachy84.brachydium.gui.math.Size;
 import com.mojang.blaze3d.systems.RenderSystem;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import me.shedaniel.rei.api.widgets.Widgets;
-import me.shedaniel.rei.gui.widget.Widget;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import me.shedaniel.rei.api.client.gui.widgets.Widget;
+import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
@@ -222,7 +221,7 @@ public class ItemSlotWidget extends ResourceSlotWidget<ItemStack> {
     @Override
     public void getReiWidgets(List<Widget> widgets, Point origin) {
         Point reiPos = origin.add(relativPos);
-        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Point(1, 1)).toReiPoint());
+        me.shedaniel.rei.api.client.gui.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Point(1, 1)).toReiPoint());
         slot.backgroundEnabled(false);
         if (itemSlot.supportsInsertion()) {
             slot.markInput();

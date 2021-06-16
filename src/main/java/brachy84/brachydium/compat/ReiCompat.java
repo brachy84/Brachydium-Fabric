@@ -1,62 +1,50 @@
 package brachy84.brachydium.compat;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.recipe.MTRecipe;
+import brachy84.brachydium.api.recipe.Recipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
-import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.*;
-import me.shedaniel.rei.api.plugins.REIPluginV0;
+import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
+import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
+import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.common.category.CategoryIdentifier;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.BlockItem;
-import net.minecraft.util.ActionResult;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
-public class ReiCompat implements REIPluginV0 {
+public class ReiCompat implements REIClientPlugin {
 
     public static Identifier category(RecipeTable<?> recipeTable) {
         return Brachydium.id(recipeTable.unlocalizedName + "_recipes");
     }
 
-    @Override
     public Identifier getPluginIdentifier() {
         return Brachydium.id("default_plugin");
     }
 
     @Override
-    public void registerPluginCategories(RecipeHelper recipeHelper) {
+    public void registerCategories(CategoryRegistry registry) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            recipeHelper.registerCategory(new RecipeTableCategory(recipeTable));
+            CategoryIdentifier<RecipeTableDisplay> id = CategoryIdentifier.of(category(recipeTable));
+            registry.addWorkstations(id, EntryIngredients.ofItemStacks(recipeTable.getTileItems().stream().map(ItemStack::new).collect(Collectors.toList())));
+            registry.add(new RecipeTableCategory(recipeTable));
         }
     }
 
     @Override
-    public void registerRecipeDisplays(RecipeHelper recipeHelper) {
+    public void registerDisplays(DisplayRegistry registry) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            for(MTRecipe recipe : recipeTable.getRecipeList()) {
-                recipeHelper.registerDisplay(new RecipeTableDisplay(recipe, category(recipeTable)));
+            for(Recipe recipe : recipeTable.getRecipeList()) {
+                registry.add(new RecipeTableDisplay(recipe, category(recipeTable)));
             }
         }
     }
 
-    @Override
-    public void registerOthers(RecipeHelper recipeHelper) {
-        for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            Identifier id = Brachydium.id(recipeTable.unlocalizedName + "_recipes");
-            for(BlockItem item : recipeTable.getTileItems()) {
-                recipeHelper.registerWorkingStations(id, EntryStack.create(item));
-            }
-        }
-    }
-
-    @Override
+    /*@Override
     public void registerBounds(DisplayHelper displayHelper) {
         BaseBoundsHandler boundsHandler = BaseBoundsHandler.getInstance();
         boundsHandler.registerExclusionZones(ModularGuiHandledScreen.class, () -> {
@@ -81,5 +69,5 @@ public class ReiCompat implements REIPluginV0 {
                 return ActionResult.PASS;
             }
         });
-    }
+    }*/
 }

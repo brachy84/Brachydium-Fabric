@@ -17,8 +17,8 @@ import io.github.astrarre.transfer.v0.api.Extractable;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import me.shedaniel.rei.api.widgets.Widgets;
-import me.shedaniel.rei.gui.widget.Widget;
+import me.shedaniel.rei.api.client.gui.widgets.Widget;
+import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
@@ -163,7 +163,7 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     @Override
     public void getReiWidgets(List<Widget> widgets, Point origin) {
         Point reiPos = origin.add(relativPos);
-        me.shedaniel.rei.api.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Point(1, 1)).toReiPoint());
+        me.shedaniel.rei.api.client.gui.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Point(1, 1)).toReiPoint());
         slot.backgroundEnabled(false);
         if (fluidSlot.supportsInsertion()) {
             slot.markInput();
