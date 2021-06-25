@@ -29,7 +29,7 @@
       "brachy84.brachydium.api.resource.RRPEntry"
     ],
     "rei_plugins": [
-      "brachy84.brachydium.compat.ReiCompat"
+      "brachy84.brachydium.compat.rei.ReiCompat"
     ],
     "brachydium": [
       "brachy84.testmod.BrachydiumPlugin"
@@ -51,5 +51,11 @@
   },
   "suggests": {
     "canvas": "*"
+  },
+  "custom": {
+    "waila:plugins" : {
+      "id": "brachydium:plugin",
+      "initializer": "brachy84.brachydium.compat.wthit.BrachydiumWailaPlugin"
+    }
   }
 }
