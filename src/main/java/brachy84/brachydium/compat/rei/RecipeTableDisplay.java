@@ -1,4 +1,4 @@
-package brachy84.brachydium.compat;
+package brachy84.brachydium.compat.rei;
 
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;

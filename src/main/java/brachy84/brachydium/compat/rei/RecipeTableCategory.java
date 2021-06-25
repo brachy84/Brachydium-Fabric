@@ -1,4 +1,4 @@
-package brachy84.brachydium.compat;
+package brachy84.brachydium.compat.rei;
 
 import brachy84.brachydium.api.handlers.FluidTankList;
 import brachy84.brachydium.api.handlers.ItemInventory;
@@ -84,7 +84,7 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
                 widgets.add(widget);
             }
             if(!(child instanceof BackgroundWidget)) {
-                lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height));
+                lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height()));
             }
         });
         setEntries(recipeDisplay, brachydiumSlots, reiSlots);
