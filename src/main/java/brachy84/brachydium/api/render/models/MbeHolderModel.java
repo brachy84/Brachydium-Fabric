@@ -1,8 +1,8 @@
 package brachy84.brachydium.api.render.models;
 
 import brachy84.brachydium.api.block.BlockMachineItem;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.render.Texture;
 import brachy84.brachydium.api.render.Textures;
 import com.mojang.datafixers.util.Pair;
@@ -53,10 +53,11 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         renderContext.meshConsumer().accept(mesh);
         QuadEmitter emitter = renderContext.getEmitter();
         BlockEntity blockEntity = blockRenderView.getBlockEntity(blockPos);
-        if (blockEntity instanceof MetaBlockEntityHolder) {
-            MetaBlockEntityHolder holder = (MetaBlockEntityHolder) blockEntity;
-            if (holder.getMetaBlockEntity() == null) return;
-            holder.getMetaBlockEntity().render(emitter);
+        if (blockEntity instanceof BlockEntityHolder) {
+            TileEntity tile = ((BlockEntityHolder) blockEntity).getActiveTileEntity();
+            if (tile != null) {
+                tile.render(emitter);
+            }
         }
     }
 
@@ -65,8 +66,8 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         renderContext.meshConsumer().accept(mesh);
         if (itemStack.getItem() instanceof BlockMachineItem) {
             QuadEmitter emitter = renderContext.getEmitter();
-            MetaBlockEntity mbe = MetaBlockEntity.getFromId(((BlockMachineItem) itemStack.getItem()).getId());
-            mbe.render(emitter);
+            TileEntity tile = TileEntity.ofStack(itemStack);
+            tile.render(emitter);
         }
     }
 
@@ -126,11 +127,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         System.out.println("baking model");
         JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(DEFAULT_BLOCK_MODEL);
         transformation = defaultBlockModel.getTransformations();
-        if (!Texture.areInitialized()) {
-            for (Texture texture : Texture.getAll()) {
-                texture.makeSprite(textureGetter);
-            }
-        }
+        Texture.loadSprites(textureGetter);
         if (RendererAccess.INSTANCE.hasRenderer()) {
             net.fabricmc.fabric.api.renderer.v1.Renderer renderer = RendererAccess.INSTANCE.getRenderer();
             MeshBuilder builder = renderer.meshBuilder();
