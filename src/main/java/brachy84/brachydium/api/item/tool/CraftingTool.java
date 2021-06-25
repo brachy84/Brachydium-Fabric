@@ -5,16 +5,19 @@ import brachy84.brachydium.api.material.MaterialOld;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.RecipeItem;
+import brachy84.brachydium.gui.math.Color;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
 public class CraftingTool extends Item {
@@ -31,17 +34,23 @@ public class CraftingTool extends Item {
         this.id = Brachydium.id("tool." + name);
 
         ColorProviderRegistry.ITEM.register(((stack1, tintIndex) -> {
+            if (tintIndex == 0) return -1;
             NbtCompound tag = stack1.getTag();
-            if(tag != null) {
-                int color = tag.getInt("Color");
-                if(color > 0) {
-                    return color;
-                    //return Integer.parseInt(Integer.toHexString(color));
-                }
+            if (tag != null) {
+                return tag.getInt("Color");
             }
             return -1;
         }), this);
 
+    }
+
+    @Override
+    public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
+        ItemStack stack = new ItemStack(this);
+        NbtCompound tag = stack.getOrCreateTag();
+        tag.putInt("Color", Color.of(30, 60, 220).asInt());
+        stack.setTag(tag);
+        stacks.add(stack);
     }
 
     @Override
@@ -53,15 +62,15 @@ public class CraftingTool extends Item {
     @Override
     public Text getName(ItemStack stack) {
         String material = stack.getTag().getString("Material");
-        if(material != null && !material.trim().equals("")) {
-            return new TranslatableText(Brachydium.MOD_ID+ ".tool." + name, I18n.translate("material." + material));
+        if (material != null && !material.trim().equals("")) {
+            return new TranslatableText(Brachydium.MOD_ID + ".tool." + name, I18n.translate("material." + material));
         }
-        return new TranslatableText(Brachydium.MOD_ID+ ".tool." + name);
+        return new TranslatableText(Brachydium.MOD_ID + ".tool." + name);
     }
 
     @Override
     public Text getName() {
-        return new TranslatableText(Brachydium.MOD_ID+ ".tool." + name);
+        return new TranslatableText(Brachydium.MOD_ID + ".tool." + name);
     }
 
     public void createRecipe(MaterialOld materialOld, RecipeItem[] items, String... pattern) {
@@ -85,15 +94,15 @@ public class CraftingTool extends Item {
 
     public RecipeItem getIngredient(String key, int index, int damage) {
         return new RecipeItem(key, id.toString(), tool -> tool
-            .remainder(group -> group
-                .entry("item", id.toString())
-                .group("data", data -> data
-                    .entry("Damage", "$ i" + index + ".Damage + " + damage + " * i"+index+".DmgMod")
-                    .entry("Material", "$ i" + index + ".Material")
-                    .entry("Color", "$ i" + index + ".Color")
-                    .entry("DmgMod", "$ i" + index + ".DmgMod"), "{}"
+                .remainder(group -> group
+                        .entry("item", id.toString())
+                        .group("data", data -> data
+                                .entry("Damage", "$ i" + index + ".Damage + " + damage + " * i" + index + ".DmgMod")
+                                .entry("Material", "$ i" + index + ".Material")
+                                .entry("Color", "$ i" + index + ".Color")
+                                .entry("DmgMod", "$ i" + index + ".DmgMod"), "{}"
+                        )
                 )
-            )
         );
     }
 
