@@ -1,9 +1,9 @@
 package brachy84.brachydium.mixin;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.recipe.RecipeLoadEvent;
+import brachy84.brachydium.api.resource.ResourceReloadListener;
+import brachy84.brachydium.api.tag.LoadableTag;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceReloadListener;
 import net.minecraft.tag.TagManagerLoader;
 import net.minecraft.util.profiler.Profiler;
 import org.spongepowered.asm.mixin.Mixin;
@@ -22,7 +22,9 @@ public class TagManagerLoaderMixin {
         CompletableFuture<Void> future = cir.getReturnValue();
         future.thenRun(() -> {
             Brachydium.LOGGER.info("reloading tags");
-            RecipeLoadEvent.EVENT.invoker().load();
+            Brachydium.setTagsLoaded();
+            LoadableTag.loadAll();
+            //RecipeLoadEvent.EVENT.invoker().load();
         });
         cir.setReturnValue(future);
     }
