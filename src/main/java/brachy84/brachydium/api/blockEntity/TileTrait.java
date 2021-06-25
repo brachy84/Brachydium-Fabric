@@ -1,17 +1,17 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.api.blockEntity.old.MetaBlockEntity;
-import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityHolder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
 
+import java.util.Objects;
+
 public abstract class TileTrait {
 
-    protected MetaBlockEntity metaBlockEntity;
+    protected final TileEntity tile;
 
-    public TileTrait(MetaBlockEntity mbe) {
-        this.metaBlockEntity = mbe;
-        metaBlockEntity.addTrait(this);
+    public TileTrait(TileEntity tile) {
+        this.tile = Objects.requireNonNull(tile);
+        this.tile.addTrait(this);
     }
 
     /**
@@ -25,7 +25,7 @@ public abstract class TileTrait {
     //@Deprecated
     //public BlockApiHolder<?, ?>[] getApis() { return null; }
 
-    public abstract void addApis(BlockEntityType<MetaBlockEntityHolder> type);
+    public abstract void addApis(BlockEntityType<BlockEntityHolder> type);
 
     /**
      * Gets called every tick
@@ -43,4 +43,8 @@ public abstract class TileTrait {
      * @param tag to deserialize
      */
     abstract public void deserializeTag(NbtCompound tag);
+
+    public TileEntity getTile() {
+        return tile;
+    }
 }
