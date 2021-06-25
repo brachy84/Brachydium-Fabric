@@ -29,7 +29,7 @@ public class MaterialBlock extends Block {
     }
 
     public Identifier makeId() {
-        return Brachydium.id(String.format("material.%s_%s", tag.getName(), material.getRegistryName()));
+        return Brachydium.id(String.format("material/%s.%s", tag.getName(), material.getRegistryName()));
     }
 
     @Override

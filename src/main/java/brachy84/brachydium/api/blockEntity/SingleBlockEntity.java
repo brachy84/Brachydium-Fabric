@@ -21,4 +21,17 @@ public class SingleBlockEntity extends BlockEntityGroup<Void> {
     public TileEntity getBlockEntity(NbtCompound tag) {
         return tileEntity;
     }
+
+    @Override
+    public final void writeNbt(NbtCompound tag, Void unused) {
+    }
+
+    @Override
+    public final void writeTileNbt(NbtCompound tag, TileEntity tile) {
+    }
+
+    @Override
+    public final Void getKeyOfTile(TileEntity tile) {
+        return null;
+    }
 }

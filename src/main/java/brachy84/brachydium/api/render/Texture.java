@@ -7,6 +7,7 @@ import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,13 +17,9 @@ import java.util.function.Function;
 @Environment(EnvType.CLIENT)
 public class Texture {
 
-    private static boolean inittialised = false;
+    private static boolean loaded = false;
 
     private static final List<Texture> textures = new ArrayList<>();
-
-    public static boolean areInitialized() {
-        return inittialised;
-    }
 
     private SpriteIdentifier spriteId;
     private Sprite sprite;
@@ -32,13 +29,16 @@ public class Texture {
         add(this);
     }
 
+    public Texture(String namespace, String path) {
+        this(new Identifier(namespace, path));
+    }
+
     public Texture(String path) {
         this(Brachydium.id(path));
     }
 
     public void makeSprite(Function<SpriteIdentifier, Sprite> textureGetter) {
         sprite = textureGetter.apply(spriteId);
-        inittialised = true;
     }
 
     private static void add(Texture texture) {
@@ -54,6 +54,18 @@ public class Texture {
     }
 
     public Sprite getSprite() {
+        if(!loaded) {
+            throw new IllegalStateException("Can't get Sprite when they are not loaded");
+        }
         return sprite;
+    }
+
+    @ApiStatus.Internal
+    public static void loadSprites(Function<SpriteIdentifier, Sprite> textureGetter) {
+        if(loaded) return;
+        for (Texture texture : textures) {
+            texture.makeSprite(textureGetter);
+        }
+        loaded = true;
     }
 }

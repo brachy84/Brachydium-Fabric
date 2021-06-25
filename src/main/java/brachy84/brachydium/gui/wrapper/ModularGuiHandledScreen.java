@@ -41,7 +41,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     private ModularGui gui;
     private List<Interactable> interactables = new ArrayList<>();
     private GuiHelperImpl guiHelper;
-    private Shape screenShape;
+    //private Shape screenShape;
     private float delta;
 
     public ModularGuiHandledScreen(ModularScreenHandler screenHandler, PlayerInventory inventory) {
@@ -53,7 +53,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         this.guiHelper = new GuiHelperImpl(new MatrixStack());
         this.guiHelper.setZOffset(-1);
         setZOffset(guiHelper.getZOffset());
-        screenShape = Shape.rect(new Size(width, height));
+        //screenShape = Shape.rect(new Size(width, height));
 
         gui.initWidgets();
         initializeInteractables();
@@ -70,9 +70,9 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     protected void init() {
         super.init();
         gui.resize(new Size(width, height));
-        screenShape = Shape.rect(new Size(width, height));
-        backgroundHeight = (int) gui.getGuiSize().height;
-        backgroundWidth = (int) gui.getGuiSize().width;
+        //screenShape = Shape.rect(new Size(width, height));
+        backgroundHeight = (int) gui.getGuiSize().height();
+        backgroundWidth = (int) gui.getGuiSize().width();
         init();
     }
 
@@ -189,7 +189,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
             top.onClickReleased(point, button);
             return true;
         }*/
-        return false;
+        return mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
@@ -205,7 +205,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
             ClientPlayNetworking.send(Networking.MOUSE_DRAGGED, buf);
         }
-        return false;
+        return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
@@ -221,7 +221,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
             ClientPlayNetworking.send(Networking.MOUSE_SCROLLED, buf);
         }
-        return false;
+        return super.mouseScrolled(mouseX, mouseY, amount);
     }
 
     @Override
@@ -244,6 +244,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
     @Override
     public void mouseMoved(double mouseX, double mouseY) {
+        super.mouseMoved(mouseX, mouseY);
         //interactables.forEach(interactable -> interactable.onMouseMoved(new Point(mouseX, mouseY)));
     }
 

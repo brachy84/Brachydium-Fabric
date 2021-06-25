@@ -11,11 +11,18 @@ public class Materials {
     //public static final Material Copper = new Material("copper", 0xDB9430, METALL)
     //        .setBlockSettings(5f, 6f, 1);
 
-    public static final Material Aluminium2 = Material.builder().registryName("aluminium")
+    public static final Material Aluminium = Material.builder().registryName("aluminium")
             .color(66, 135, 245)
             .type(MaterialType.METAL)
             .addFlags(Plate)
             .element(Element.Al)
+            .build();
+
+    public static final Material Copper = Material.builder().registryName("copper")
+            .color(200, 80, 80)
+            .type(MaterialType.METAL)
+            .addFlags(Plate)
+            .element(Element.Cu)
             .build();
 
     public static void init() {

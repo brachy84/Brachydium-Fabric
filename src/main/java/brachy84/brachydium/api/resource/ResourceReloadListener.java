@@ -1,7 +1,6 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.material.JsonMaterial;
 import brachy84.brachydium.api.recipe.JsonRecipe;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import com.google.gson.JsonElement;
@@ -26,7 +25,7 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
     }
 
     @Override
-    public void apply(ResourceManager manager) {
+    public void reload(ResourceManager manager) {
         RecipeLoadEvent.EVENT.invoker().load();
         for(Identifier id : manager.findResources("brachydium", path -> path.endsWith(".json"))) {
             if(id.getPath().contains("/recipes/")) {

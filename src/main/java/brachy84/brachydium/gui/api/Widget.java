@@ -160,7 +160,7 @@ public abstract class Widget {
      * add rei widgets to the list that represents this widget
      */
     @ApiStatus.OverrideOnly
-    public void getReiWidgets(List<me.shedaniel.rei.gui.widget.Widget> widgets, Point origin) {
+    public void getReiWidgets(List<me.shedaniel.rei.api.client.gui.widgets.Widget> widgets, Point origin) {
     }
 
     public static final Widget NULL = new Widget(AABB.ltwh(0, 0, 0, 0)) {

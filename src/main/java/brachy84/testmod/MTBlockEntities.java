@@ -1,20 +1,42 @@
 package brachy84.testmod;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.BrachydiumApi;
-import brachy84.brachydium.api.blockEntity.old.WorkableMetaBlockEntity;
-import brachy84.brachydium.api.energy.Voltages;
+import brachy84.brachydium.api.blockEntity.IntBlockEntityGroup;
+import brachy84.brachydium.api.blockEntity.TieredBlockEntityGroup;
+import brachy84.brachydium.api.blockEntity.TieredWorkableTile;
+import brachy84.brachydium.api.blockEntity.TileEntity;
+import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.recipe.RecipeTables;
-import brachy84.brachydium.api.render.Textures;
+import net.minecraft.util.Identifier;
 
-import static brachy84.brachydium.Brachydium.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 public class MTBlockEntities {
 
-    public static WorkableMetaBlockEntity ALLOY_SMELTER;
-    public static WorkableMetaBlockEntity MIXER;
+    public static TieredBlockEntityGroup ALLOY_SMELTER;
+    public static TieredBlockEntityGroup MIXER;
 
     public static void init() {
-        //MIXER = BrachydiumApi.registerTileEntity(new WorkableMetaBlockEntity(id("mixer"), Voltages.LV, Textures.MIXER, RecipeTables.MIXER_RECIPES));
-        //ALLOY_SMELTER = BrachydiumApi.registerTileEntity(new WorkableMetaBlockEntity(id("alloy_smelter"), Voltages.LV, Textures.ALLOY_SMELTER, RecipeTables.ALLOYER_RECIPES));
+        MIXER = createTieredWorkables(id("mixer"), RecipeTables.MIXER_RECIPES, 2, 2);
+        ALLOY_SMELTER = createTieredWorkables(id("alloy_smelter"), RecipeTables.ALLOYER_RECIPES, 3, 5);
+    }
+
+    public static TieredBlockEntityGroup createTieredWorkables(Identifier id, RecipeTable<?> recipeTable, int min, int max) {
+        return createTieredWorkables(id, recipeTable, IntStream.rangeClosed(min, max).toArray());
+    }
+
+    public static TieredBlockEntityGroup createTieredWorkables(Identifier id, RecipeTable<?> recipeTable, int... tiers) {
+        Map<Integer, TileEntity> map = new HashMap<>();
+        for (int i = 0; i < tiers.length; i++) {
+            map.put(tiers[i], new TieredWorkableTile(recipeTable, tiers[i]));
+        }
+        return BrachydiumApi.registerBlockEntityGroup(new TieredBlockEntityGroup(id, map));
+    }
+
+    public static Identifier id(String path) {
+        return Brachydium.id(path);
     }
 }

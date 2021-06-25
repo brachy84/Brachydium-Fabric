@@ -25,6 +25,8 @@ public class Material {
     public final String chemicalFormula;
     private final MaterialType type;
 
+    public final String mod;
+
     private final ImmutableList<MaterialStack> components;
     private final List<IMaterialFlag<?>> materialFlags = new ArrayList<>();
     private final Map<String, Item> items = new HashMap<>();
@@ -45,6 +47,7 @@ public class Material {
         this.chemicalFormula = calculateChemicalFormula();
         addFlags(flags);
         addFlags(type.getDefaultFlags());
+        this.mod = Brachydium.getCurrentPlugin();
     }
 
     public static Material create(String registryName, Color color, MaterialType type, ImmutableList<MaterialStack> components, Element element, IMaterialFlag<?>... flags) {

@@ -1,8 +1,6 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.material.Material;
-import brachy84.brachydium.common.Materials;
 import net.devtech.arrp.api.RRPPreGenEntrypoint;
 import net.minecraft.util.Identifier;
 

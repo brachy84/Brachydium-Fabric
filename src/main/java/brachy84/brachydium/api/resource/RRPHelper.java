@@ -47,7 +47,7 @@ public class RRPHelper {
 
     public static void addBasicMaterialItemModel(String material, String component) {
         //itemModels.put("material/" + material + "." + component, model().parent("item/generated").textures(new JTextures().layer0("mechtech:item/component/" + component)));
-        RESOURCE_PACK.addModel(model().parent("item/generated").textures(new JTextures().layer0("brachydium:item/component/" + component)), mtId("item/material/" + material + "." + component));
+        RESOURCE_PACK.addModel(model().parent("item/generated").textures(new JTextures().layer0("brachydium:item/materials/" + component)), mtId("item/material/" + component + "." + material));
     }
     public static void addBasicMaterialBlockState(String material, String component) {
         //blockStates.put("material/" + material + "." + component, state(JState.variant(JState.model("mechtech:block/component/" + component))));
@@ -66,7 +66,7 @@ public class RRPHelper {
 
     public static void addSimpleMaterialItemTag(String material, TagDictionary.Entry tag) {
         //itemTags.put("c:items/" + material + "_" + component + "s", tag().add(new MTIdentifier("material/" + material + "." + component)));
-        RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + tag.getTagName()), tag().add(mtId("material." + tag.getName() + "." + material)));
+        RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + tag.getTagName()), tag().add(mtId("material/" + tag.getName() + "." + material)));
     }
 
     public static void addSimpleLootTable(String block) {
@@ -134,7 +134,7 @@ public class RRPHelper {
     }
 
     public static void addGenericMbeBlockState(Identifier id) {
-        JState state = state().add(variant().put("", JState.model(MOD_ID + ":block/generic_mbe")));
-        RESOURCE_PACK.addBlockState(state, new Identifier(id.getNamespace(), id.getPath()));
+        JState state = state().add(variant().put("", JState.model(id.getNamespace() + ":block/generic_tile")));
+        RESOURCE_PACK.addBlockState(state, id);
     }
 }
