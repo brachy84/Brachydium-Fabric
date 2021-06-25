@@ -2,9 +2,8 @@ package brachy84.brachydium.api.fluid;
 
 import brachy84.brachydium.api.util.MatchingType;
 import brachy84.brachydium.client.BrachydiumClient;
-import com.google.common.collect.Lists;
-import me.shedaniel.rei.api.EntryStack;
-import me.shedaniel.rei.api.fractions.Fraction;
+import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.Fluids;
@@ -129,8 +128,12 @@ public class FluidStack {
         return getId().getPath() + " " + amount;
     }
 
-    public List<EntryStack> toEntryStack() {
-        return Lists.newArrayList(EntryStack.create(fluid, Fraction.ofWhole(1000)));
+    public EntryIngredient toEntryStack() {
+        return EntryIngredients.of(toArchitecturyFLuidStack());
+    }
+
+    public dev.architectury.fluid.FluidStack toArchitecturyFLuidStack() {
+        return dev.architectury.fluid.FluidStack.create(fluid, amount);
     }
 
     public NbtCompound writeNbt(NbtCompound tag) {
