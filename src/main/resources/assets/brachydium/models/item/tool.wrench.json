@@ -1,6 +1,6 @@
 {
   "parent": "item/handheld",
   "textures": {
-    "layer0": "mechtech:item/tool/wrench"
+    "layer0": "brachydium:item/tool/wrench"
   }
 }

@@ -1,7 +1,7 @@
 {
   "parent": "item/handheld",
   "textures": {
-    "layer0": "mechtech:item/tool/handle",
-    "layer1": "mechtech:item/tool/hammer"
+    "layer0": "brachydium:item/tool/handle",
+    "layer1": "brachydium:item/tool/hammer"
   }
 }
