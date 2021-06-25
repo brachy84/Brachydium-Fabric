@@ -1,57 +1,53 @@
 package brachy84.brachydium.api.handlers;
 
-import brachy84.brachydium.api.blockEntity.IWorkable;
-import brachy84.brachydium.api.blockEntity.InventoryListener;
-import brachy84.brachydium.api.blockEntity.MBETrait;
-import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.blockEntity.*;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.network.Channels;
-import brachy84.brachydium.api.recipe.MTRecipe;
+import brachy84.brachydium.api.recipe.Recipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Participant;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Random;
 
 /**
  * This class handles finding and running recipes consuming inputs and energy and inserting outputs
  * Energy can be any form of energy like normal "Redstone Flux", but also something like steam or mana
  */
-public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable {
+public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable {
 
     public final RecipeTable<?> recipeTable;
+    private InventoryHolder inventories;
 
-    protected MTRecipe lastRecipe;
+    protected Recipe lastRecipe;
 
     /**
      * currently running recipe
      */
-    private MTRecipe currentRecipe;
+    private Recipe currentRecipe;
 
     /**
      * This is the recipe that gets stored when the ingredients are found but the output is blocked
      */
-    private MTRecipe storedRecipe;
+    private Recipe storedRecipe;
 
     /**
      * A collection of recipes which has items that are currently in the inventory
      */
-    protected Collection<MTRecipe> possibleRecipes;
+    protected Collection<Recipe> possibleRecipes;
     protected boolean allowOverclocking = true;
     protected int progress, duration, recipeEUt;
 
@@ -61,17 +57,18 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     private State state;
 
-    public AbstractRecipeLogic(MetaBlockEntity mbe, RecipeTable<?> recipeTable) {
-        super(mbe);
+    public AbstractRecipeLogic(TileEntity tile, RecipeTable<?> recipeTable) {
+        super(tile);
         this.recipeTable = recipeTable;
         possibleRecipes = recipeTable.getRecipeList();
         state = State.IDLING;
-        metaBlockEntity.appendInitialiseListener(this::addListeners);
+        //tile.appendInitialiseListener(this::addListeners);
+        inventories = tile.getInventories();
     }
 
     @Override
-    public void update() {
-        if (!metaBlockEntity.isClient()) {
+    public void tick() {
+        if (!tile.isClient()) {
             if (isActive()) {
                 onRecipeTick();
             }
@@ -79,18 +76,17 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     }
 
     private void addListeners() {
-
-        if (metaBlockEntity.getImportFluids() instanceof InventoryListener) {
-            ((InventoryListener) metaBlockEntity.getImportFluids()).addListener(this::onInventoryUpdate);
+        if (inventories.getImportFluids() instanceof InventoryListener) {
+            ((InventoryListener) inventories.getImportFluids()).addListener(this::onInventoryUpdate);
         }
-        if (metaBlockEntity.getImportItems() instanceof InventoryListener) {
-            ((InventoryListener) metaBlockEntity.getImportItems()).addListener(this::onInventoryUpdate);
+        if (inventories.getImportItems() instanceof InventoryListener) {
+            ((InventoryListener) inventories.getImportItems()).addListener(this::onInventoryUpdate);
         }
-        if (metaBlockEntity.getExportItems() instanceof InventoryListener) {
-            ((InventoryListener) metaBlockEntity.getExportItems()).addListener(this::onOutputChanged);
+        if (inventories.getExportItems() instanceof InventoryListener) {
+            ((InventoryListener) inventories.getExportItems()).addListener(this::onOutputChanged);
         }
-        if (metaBlockEntity.getExportFluids() instanceof InventoryListener) {
-            ((InventoryListener) metaBlockEntity.getExportFluids()).addListener(this::onOutputChanged);
+        if (inventories.getExportFluids() instanceof InventoryListener) {
+            ((InventoryListener) inventories.getExportFluids()).addListener(this::onOutputChanged);
         }
     }
 
@@ -131,7 +127,7 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     @Override
     public void setWorkingEnabled(boolean workingEnabled) {
         this.workingEnabled = workingEnabled;
-        if(workingEnabled)
+        if (workingEnabled)
             setState(State.IDLING); // FIXME: this might cause issues
         else
             setState(State.DISABLED);
@@ -160,17 +156,21 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
 
     public void setState(State state) {
         this.state = state;
-        if (!metaBlockEntity.isClient()) {
+        if (!tile.isClient()) {
             PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeBlockPos(metaBlockEntity.getPos());
+            buf.writeBlockPos(tile.getPos());
             buf.writeString(state.toString());
-            for (PlayerEntity player : metaBlockEntity.getWorld().getPlayers()) {
-                BlockPos pos = metaBlockEntity.getPos();
-                if (player instanceof ServerPlayerEntity && metaBlockEntity.getWorld().isPlayerInRange(pos.getX(), pos.getY(), pos.getZ(), 64)) {
+            for (PlayerEntity player : tile.getWorld().getPlayers()) {
+                BlockPos pos = tile.getPos();
+                if (player instanceof ServerPlayerEntity && tile.getWorld().isPlayerInRange(pos.getX(), pos.getY(), pos.getZ(), 64)) {
                     ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.UPDATE_WORKING_STATE, buf);
                 }
             }
         }
+    }
+
+    public void setState(String state) {
+        setState(State.valueOf(state));
     }
 
     public State getState() {
@@ -190,19 +190,19 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         if (lastRecipe != null && tryRecipe(lastRecipe)) {
             return;
         }
-        for (MTRecipe recipe : possibleRecipes) {
+        for (Recipe recipe : possibleRecipes) {
             if (tryRecipe(recipe)) {
                 return;
             }
         }
     }
 
-    protected void setupRecipe(MTRecipe recipe) {
+    protected void setupRecipe(Recipe recipe) {
         Brachydium.LOGGER.info("Setting up recipe " + recipe.getName());
         currentRecipe = recipe;
         setState(State.RUNNING);
         try (Transaction transaction = Transaction.create()) {
-            if (!canConsume(transaction, recipe, metaBlockEntity.getImportItems(), metaBlockEntity.getImportFluids())) {
+            if (!canConsume(transaction, recipe, inventories.getImportItems(), inventories.getImportFluids())) {
                 Brachydium.LOGGER.error("Could not consume ingredients! Something is really wrong");
                 currentRecipe = null;
                 return;
@@ -237,10 +237,10 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
      * @param recipe to try
      * @return true if the ingredients are found, otherwise false
      */
-    public boolean tryRecipe(MTRecipe recipe) {
+    public boolean tryRecipe(Recipe recipe) {
         //FIXME: when output is full and then emptied, the recipe output will be inserted immediately
         Brachydium.LOGGER.info("Trying recipe " + recipe.getName());
-        if (InventoryHelper.hasIngredientsAndFluids(metaBlockEntity.getImportItems(), metaBlockEntity.getImportFluids(), recipe.getInputs(), recipe.getFluidInputs())) {
+        if (InventoryHelper.hasIngredientsAndFluids(inventories.getImportItems(), inventories.getImportFluids(), recipe.getInputs(), recipe.getFluidInputs())) {
             try (Transaction transaction = Transaction.create()) {
                 if (!tryInsertOutput(transaction, recipe)) {
                     Brachydium.LOGGER.info("output blocked");
@@ -257,17 +257,17 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         return false;
     }
 
-    public boolean tryInsertOutput(Transaction transaction, MTRecipe recipe) {
+    public boolean tryInsertOutput(Transaction transaction, Recipe recipe) {
         try (Transaction transaction1 = transaction.nest()) {
             for (ItemStack stack : recipe.getOutputs()) {
-                int inserted = metaBlockEntity.getExportItems().insert(transaction1, ItemKey.of(stack), stack.getCount());
+                int inserted = inventories.getExportItems().insert(transaction1, ItemKey.of(stack), stack.getCount());
                 if (inserted != stack.getCount()) {
                     transaction1.abort();
                     return false;
                 }
             }
             for (FluidStack stack : recipe.getFluidOutputs()) {
-                int inserted = metaBlockEntity.getExportFluids().insert(transaction1, stack.getFluid(), stack.getAmount());
+                int inserted = inventories.getExportFluids().insert(transaction1, stack.getFluid(), stack.getAmount());
                 if (inserted != stack.getAmount()) {
                     transaction1.abort();
                     return false;
@@ -277,7 +277,7 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
         return true;
     }
 
-    public boolean canConsume(Transaction transaction, MTRecipe recipe, Participant<ItemKey> itemHandler, Participant<Fluid> fluidHandler) {
+    public boolean canConsume(Transaction transaction, Recipe recipe, Participant<ItemKey> itemHandler, Participant<Fluid> fluidHandler) {
         for (CountableIngredient ci : recipe.getInputs()) {
             if (!InventoryHelper.extractIngredient(itemHandler, transaction, ci)) {
                 transaction.abort();
@@ -294,8 +294,8 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     }
 
     @Override
-    public CompoundTag serializeTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound serializeTag() {
+        NbtCompound tag = new NbtCompound();
         tag.putString("state", state.toString());
         if (currentRecipe == null) {
             tag.putString("recipe", "null");
@@ -307,7 +307,7 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
     }
 
     @Override
-    public void deserializeTag(CompoundTag tag) {
+    public void deserializeTag(NbtCompound tag) {
         state = State.valueOf(tag.getString("state"));
         String recipe = tag.getString("recipe");
         if (!recipe.equals("null")) {
@@ -324,11 +324,15 @@ public abstract class AbstractRecipeLogic extends MBETrait implements IWorkable 
      */
     public boolean isState(State... states) {
         for (State state : states) {
-            if (this.state == state) {
+            if (isState(state)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean isState(State state) {
+        return this.state == state;
     }
 
     /**
