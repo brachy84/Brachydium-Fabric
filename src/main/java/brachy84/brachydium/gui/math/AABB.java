@@ -30,7 +30,7 @@ public final class AABB {
     }
 
     public static AABB of(Size size, Point point) {
-        return AABB.ltwh(point.getX(), point.getY(), size.width, size.height);
+        return AABB.ltwh(point.getX(), point.getY(), size.width(), size.height());
     }
 
     /**

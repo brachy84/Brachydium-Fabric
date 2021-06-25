@@ -1,22 +1,8 @@
 package brachy84.brachydium.gui.math;
 
-import java.util.Objects;
-
-public class Size {
+public record Size(float width, float height) {
 
     public static final Size ZERO = new Size(0, 0);
-
-    public float width, height;
-
-    public Size(float width, float height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    public void resize(float w, float h) {
-        this.width = w;
-        this.height = h;
-    }
 
     /**
      * @param size to center
@@ -24,26 +10,5 @@ public class Size {
      */
     public Point getCenteringPointForChild(Size size) {
         return new Point((width - size.width) / 2, (height - size.height) / 2);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Size size = (Size) o;
-        return Float.compare(size.width, width) == 0 && Float.compare(size.height, height) == 0;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(width, height);
-    }
-
-    @Override
-    public String toString() {
-        return "Size{" +
-                "width=" + width +
-                ", height=" + height +
-                '}';
     }
 }
