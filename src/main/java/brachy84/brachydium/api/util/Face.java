@@ -31,26 +31,26 @@ public enum Face {
     }
 
     public Direction getDirection(Direction front) {
-        switch (this) {
-            case FRONT: return front;
-            case BACK:  return front.getOpposite();
-            case TOP:   return Direction.UP;
-            case BOTTOM:return Direction.DOWN;
-            case LEFT:  return front.rotateYClockwise();
-            case RIGHT: return front.rotateYCounterclockwise();
-        }
-        return null;
+        return switch (this) {
+            case FRONT -> front;
+            case BACK -> front.getOpposite();
+            case TOP -> Direction.UP;
+            case BOTTOM -> Direction.DOWN;
+            case LEFT -> front.rotateYClockwise();
+            case RIGHT -> front.rotateYCounterclockwise();
+            default -> null;
+        };
     }
 
     public Face getOpposite() {
-        switch (this) {
-            case FRONT: return BACK;
-            case BACK:  return FRONT;
-            case TOP:   return BOTTOM;
-            case BOTTOM:return TOP;
-            case LEFT:  return RIGHT;
-            case RIGHT: return LEFT;
-        }
-        return null;
+        return switch (this) {
+            case FRONT -> BACK;
+            case BACK -> FRONT;
+            case TOP -> BOTTOM;
+            case BOTTOM -> TOP;
+            case LEFT -> RIGHT;
+            case RIGHT -> LEFT;
+            default -> null;
+        };
     }
 }
