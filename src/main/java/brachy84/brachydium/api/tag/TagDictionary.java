@@ -4,12 +4,13 @@ import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.BrachydiumApi;
 import brachy84.brachydium.api.block.MaterialBlock;
 import brachy84.brachydium.api.block.MaterialBlockItem;
+import brachy84.brachydium.api.item.ColorProvider;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.material.IMaterialFlag;
-import brachy84.brachydium.api.material.MaterialOld;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.resource.RRPHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -57,6 +58,7 @@ public class TagDictionary {
         private final String name;
         private final String tagName;
         private final Type type;
+        private ColorProvider colorProvider;
 
         private final List<IFlagRegistrationHandler<Entry>> tagProcessors = new ArrayList<>();
         private final List<IFlagRegistrationHandler<Entry>> resourceProcessors = new ArrayList<>();
@@ -68,6 +70,7 @@ public class TagDictionary {
             this.type = type;
             entries.put(name, this);
             register();
+            this.colorProvider = ColorProvider.allLayers();
         }
 
         public static Entry of(String name, long amount, Type type) {
@@ -80,10 +83,6 @@ public class TagDictionary {
 
         public CountableIngredient unify(Material material, int amount) {
             return CountableIngredient.of(getStringTag(material), amount);
-        }
-
-        public String getStringTag(MaterialOld materialOld) {
-            return String.format("c:%s_%s", materialOld.getName(), tagName);
         }
 
         public String getStringTag(Material material) {
@@ -111,6 +110,10 @@ public class TagDictionary {
             return type;
         }
 
+        public void setColorProvider(ColorProvider colorProvider) {
+            this.colorProvider = colorProvider;
+        }
+
         @Override
         public String getIdentifier() {
             return "tag:" + name;
@@ -136,6 +139,8 @@ public class TagDictionary {
 
         @Override
         public void runResourceProviders(Material material) {
+            if(type == Type.ITEM) RRPHelper.addBasicMaterialItemModel(material.getRegistryName(), name);
+            RRPHelper.addSimpleMaterialItemTag(material.registryName, this);
             for(IFlagRegistrationHandler<Entry> processor : resourceProcessors) {
                 processor.processMaterial(material, this);
             }
@@ -149,14 +154,15 @@ public class TagDictionary {
         public Item registerItem(Material material) {
             if(type == Type.ITEM) {
                 MaterialItem item = new MaterialItem(this, material);
-                RRPHelper.addSimpleMaterialItemTag(material.registryName, this);
+                ColorProviderRegistry.ITEM.register((stack, tintIndex) -> colorProvider.getColor(tintIndex, material), item);
                 return Registry.register(Registry.ITEM, item.makeId(), item);
             }
             if(type == Type.BLOCK) {
                 MaterialBlock block = new MaterialBlock(material, this);
-                RRPHelper.addSimpleMaterialItemTag(material.registryName, this);
+                MaterialBlockItem item = new MaterialBlockItem(block);
+                ColorProviderRegistry.BLOCK.register(((state, world, pos, tintIndex) -> material.color.asInt()));
                 Registry.register(Registry.BLOCK, block.makeId(), block);
-                return Registry.register(Registry.ITEM, block.makeId(), new MaterialBlockItem(block));
+                return Registry.register(Registry.ITEM, block.makeId(), item);
             }
             if(type == Type.FLUID) {
                 BrachydiumApi.registerFluid(Brachydium.MOD_ID, getName(), material);
