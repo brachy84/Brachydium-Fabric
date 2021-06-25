@@ -16,26 +16,21 @@ repositories {
 	maven { url "https://maven.shedaniel.me/" }
 
 	// LibMultiPart & LibBlockAttributes
-	maven {
+	/*maven {
 		name = "BuildCraft"
 		url = "https://mod-buildcraft.com/maven"
-	}
+	}*/
 	// ARRP
 	maven {
 		url = 'https://raw.githubusercontent.com/Devan-Kerman/Devan-Repo/master/'
 	}
-	// temporary
-	maven {
-		name = "Technici4n"
-		url = "https://raw.githubusercontent.com/Technici4n/Technici4n-maven/master/"
-		content {
-			includeGroup "net.fabricmc.fabric-api"
-			includeGroup "dev.technici4n"
-		}
-	}
 	// Astarre
 	maven {
 		url "https://storage.googleapis.com/devan-maven/"
+	}
+	// wthit aka waila
+	maven {
+		url "https://bai.jfrog.io/artifactory/maven"
 	}
 }
 
@@ -45,17 +40,16 @@ dependencies {
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-	// Experimental fluid API
-	//include modImplementation("net.fabricmc.fabric-api:fabric-transfer-api-v1:0.1.0+751df5d17d")
-
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api:${project.rei_version}"
-	modRuntime "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
+	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+	//modRuntime "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
 	//modCompile "alexiil.mc.lib:libmultipart-base:${project.libmultipart_version}"
 	//modCompile "alexiil.mc.lib:libblockattributes-all:0.8.4"
 	modImplementation group: 'net.devtech', name: 'arrp', version: project.arrp_version
+
+	modCompileOnly "mcp.mobius.waila:wthit-api:fabric-${project.wthit_version}"
 
 	//include modApi("dev.technici4n:FastTransferLib:${project.ftl_version}")
 
