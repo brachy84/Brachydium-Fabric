@@ -40,7 +40,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     /**
      * The recipes that were registered on this table
      */
-    private final Map<String, MTRecipe> recipeMap = new HashMap<>();
+    private final Map<String, Recipe> recipeMap = new HashMap<>();
 
     private TextureArea itemSlotOverlay;
     private TextureArea fluidSlotOverlay;
@@ -81,26 +81,26 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 .findFirst().orElse(null);
     }
 
-    public Collection<MTRecipe> getRecipeList() {
+    public Collection<Recipe> getRecipeList() {
         return recipeMap.values();
     }
 
-    public Map<String, MTRecipe> getRecipeMap() {
+    public Map<String, Recipe> getRecipeMap() {
         return recipeMap;
     }
 
-    public MTRecipe findRecipe(List<ItemStack> inputs, List<FluidStack> fluidInputs) {
+    public Recipe findRecipe(List<ItemStack> inputs, List<FluidStack> fluidInputs) {
         Objects.requireNonNull(inputs);
         Objects.requireNonNull(fluidInputs);
 
         return null;
     }
 
-    public MTRecipe findRecipe(String name) {
+    public Recipe findRecipe(String name) {
         return recipeMap.get(name);
     }
 
-    public void addRecipe(MTRecipe recipe) {
+    public void addRecipe(Recipe recipe) {
         recipeMap.put(recipe.getName(), recipe);
     }
 

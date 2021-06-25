@@ -1,9 +1,9 @@
 package brachy84.brachydium.api.recipe;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.material.Material;
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.tag.TagDictionary;
 import brachy84.brachydium.api.util.CrypticNumber;
 import net.minecraft.fluid.Fluid;
@@ -34,7 +34,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     protected RecipeBuilder() {
     }
 
-    protected RecipeBuilder(MTRecipe recipe, RecipeTable<R> recipeTable) {
+    protected RecipeBuilder(Recipe recipe, RecipeTable<R> recipeTable) {
         this.recipeTable = recipeTable;
         this.inputs.addAll(recipe.getInputs());
         this.outputs.addAll(recipe.getOutputs());
@@ -76,6 +76,10 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return inputs(Arrays.asList(inputs));
     }
 
+    public R input(CountableIngredient ingredient) {
+        return inputs(ingredient);
+    }
+
     public R input(String tag, int amount) {
         return inputs(CountableIngredient.of(tag, amount));
     }
@@ -87,7 +91,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     public R input(TagDictionary.Entry tag, Material material, int amount) {
         Objects.requireNonNull(tag);
         Objects.requireNonNull(material);
-        return inputs(CountableIngredient.of(tag.getStringTag(material), amount));
+        return input(tag.getStringTag(material), amount);
     }
 
     public R input(Item item, int amount) {
@@ -160,7 +164,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         throw new UnsupportedOperationException("Properties are not yet implemented");
     }
 
-    public MTRecipe buildAndRegister() {
+    public Recipe buildAndRegister() {
         if(validate()) {
             if(name == null || name.trim().equals("")) {
                 String output = "";
@@ -171,7 +175,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
                 }
                 name = String.format("%s_%s_%s", recipeTable.unlocalizedName, output, nameGenerator.next());
             }
-            MTRecipe recipe = new MTRecipe(null, name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
+            Recipe recipe = new Recipe(name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
             recipeTable.addRecipe(recipe);
             Brachydium.LOGGER.info("Registering recipe ({}) for {}", recipe.getName(), recipeTable.unlocalizedName);
             return recipe;
