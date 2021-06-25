@@ -13,15 +13,19 @@ import net.minecraft.block.Material;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 public class BlockEntityHolderBlock extends Block implements BlockEntityProvider {
 
@@ -29,17 +33,14 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
 
     public BlockEntityHolderBlock(BlockEntityGroup<?> group) {
         super(FabricBlockSettings.of(Material.METAL).strength(3, 3));
-        this.group = group;
+        this.group = Objects.requireNonNull(group);
     }
 
-    @Nullable
-    public TileEntity getTileEntity(NbtCompound tag) {
-        TileEntity tile = null;
-        BlockEntityGroup<?> group = BrachydiumApi.BLOCK_ENTITY_GROUP_REGISTRY.tryGetEntry(new Identifier(tag.getString("ID")));
-        if (group != null) {
-            tile = group.getBlockEntity(tag);
+    @Override
+    public void addStacksForDisplay(ItemGroup group, DefaultedList<ItemStack> list) {
+        for (TileEntity tile : this.group.getTileEntities()) {
+            list.add(tile.asStack());
         }
-        return tile;
     }
 
     @Nullable
@@ -55,7 +56,7 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
         Brachydium.LOGGER.info("BlockEntity placed!");
         //TODO: test this on server. If crashes, insert !isClient and sync facing
         if (stack.getItem() instanceof BlockMachineItem && stack.hasTag()) {
-            TileEntity tile = getTileEntity(stack.getTag());
+            TileEntity tile = group.getBlockEntity(stack.getTag());
             if (tile != null) {
                 if (placer != null) tile.setFrontFacing(placer.getHorizontalFacing().getOpposite());
                 BlockEntity blockEntity = world.getBlockEntity(pos);
@@ -75,5 +76,15 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
             }
         }
         return ActionResult.PASS;
+    }
+
+    @Override
+    public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack stack) {
+        if (!world.isClient()) {
+            if(blockEntity instanceof BlockEntityHolder) {
+                 ((BlockEntityHolder) blockEntity).getActiveTileEntity().onDetach();
+            }
+        }
+        super.afterBreak(world, player, pos, state, blockEntity, stack);
     }
 }

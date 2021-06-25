@@ -5,7 +5,6 @@ import brachy84.brachydium.gui.api.IUIHolder;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -13,20 +12,27 @@ import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * A BLockEntity which can hold a TileEntity of a BlockEntityGroup
  * see also: {@link TileEntity}, {@link BlockEntityGroup}
  */
 public class BlockEntityHolder extends BlockEntity implements IUIHolder {
 
-    private BlockEntityGroup<?> group;
+    private final BlockEntityGroup<?> group;
     public final Identifier id;
     @Nullable
     private TileEntity currentTile;
 
     public BlockEntityHolder(BlockEntityGroup<?> group, BlockPos pos, BlockState state) {
         super(group.getType(), pos, state);
+        this.group = group;
         this.id = group.id;
+    }
+
+    public BlockEntityHolder(TileEntity tile, BlockPos pos, BlockState state) {
+        this(Objects.requireNonNull(tile.getGroup(), "TileEntity does not belong to a group!"), pos, state);
     }
 
     /*public BlockEntityHolder(Identifier id, BlockEntityType<?> type) {
@@ -36,7 +42,7 @@ public class BlockEntityHolder extends BlockEntity implements IUIHolder {
 
 
     public void tick() {
-        if(currentTile != null)
+        if (currentTile != null)
             currentTile.tick();
     }
 
@@ -44,7 +50,9 @@ public class BlockEntityHolder extends BlockEntity implements IUIHolder {
     public NbtCompound writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
         tag.putString("ID", group.id.toString());
-        tag.put("Tile", currentTile.serializeTag());
+        if (currentTile != null)
+            tag.put("Tile", currentTile.serializeTag());
+        group.writeTileNbt(tag, currentTile);
         return tag;
     }
 
@@ -52,14 +60,14 @@ public class BlockEntityHolder extends BlockEntity implements IUIHolder {
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
         if (currentTile == null) {
-            currentTile = group.getBlockEntity(tag);
+            setActiveTileEntity(group.getBlockEntity(tag));
         }
         currentTile.deserializeTag(tag.getCompound("Tile"));
     }
 
 
     public void setActiveTileEntity(TileEntity tile) {
-        if(currentTile != null) {
+        if (currentTile != null) {
             currentTile.onDetach();
             currentTile.setHolder(null);
         }
