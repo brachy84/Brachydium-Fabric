@@ -42,7 +42,7 @@ public class ProgressBarWidget extends Widget {
         // always draw empty
         helper.drawTextureArea(empty, point, size);
         float u0 = 0, u1 = 1, v0 = 0, v1 = 1;
-        float width = size.width, height = size.height;
+        float width = size.width(), height = size.height();
         switch (dir) {
             case RIGHT:
                 u1 = (float) progress.getAsDouble();
