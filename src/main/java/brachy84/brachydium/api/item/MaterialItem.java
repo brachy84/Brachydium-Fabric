@@ -22,6 +22,7 @@ public class MaterialItem extends Item {
     private TagDictionary.Entry component;
     private Material material;
     private String translationKey;
+    private ColorProvider colorProvider;
 
     private MaterialItem(Settings settings) {
         super(settings);
@@ -34,7 +35,11 @@ public class MaterialItem extends Item {
     }
 
     public Identifier makeId() {
-        return Brachydium.id(String.format("material.%s_%s", component.getName(), material.getRegistryName()));
+        return Brachydium.id(String.format("material/%s.%s", component.getName(), material.getRegistryName()));
+    }
+
+    public ColorProvider getColorProvider() {
+        return colorProvider;
     }
 
     @Override
