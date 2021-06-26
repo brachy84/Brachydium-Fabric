@@ -1,7 +1,6 @@
 package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
-import brachy84.brachydium.api.blockEntity.old.MetaBlockEntityUIFactory;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.render.Textures;
@@ -47,22 +46,20 @@ public class Brachydium implements ModInitializer {
         RecipeLoadEvent.EVENT.register(Material::runProcessors);
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
         System.out.println("--------------------------------------------------");
-        for(BrachydiumInitializer plugin : plugins) {
+        for (BrachydiumInitializer plugin : plugins) {
             currentRegisteringMod = plugin.getModId();
-            RecipeLoadEvent.EVENT.register(plugin::registerRecipes);
             plugin.registerMaterials();
         }
         currentRegisteringMod = "NONE";
         Material.REGISTRY.freeze();
         Material.registerItems();
         Material.registerResources();
-        for(BrachydiumInitializer plugin : plugins) {
+        for (BrachydiumInitializer plugin : plugins) {
             currentRegisteringMod = plugin.getModId();
+            plugin.registerRecipes();
             plugin.registerGeneral();
         }
         currentRegisteringMod = "NONE";
-
-        MetaBlockEntityUIFactory.INSTANCE.init();
 
         RRPHelper.initOtherResources();
         //RESOURCE_PACK.dump(new File("brachydium_assets"));
