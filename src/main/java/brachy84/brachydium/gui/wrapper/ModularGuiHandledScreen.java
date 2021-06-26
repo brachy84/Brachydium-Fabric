@@ -5,17 +5,14 @@ import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.Networking;
 import brachy84.brachydium.gui.api.IUIHolder;
 import brachy84.brachydium.gui.api.Interactable;
+import brachy84.brachydium.gui.api.Widget;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.Point;
-import brachy84.brachydium.gui.math.Shape;
 import brachy84.brachydium.gui.math.Size;
-import brachy84.brachydium.gui.api.Widget;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -37,11 +34,9 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     private IUIHolder uiHolder;
     private PlayerEntity player;
     private Interactable focused;
-    //private ModularGuiOld guiOld;
     private ModularGui gui;
     private List<Interactable> interactables = new ArrayList<>();
     private GuiHelperImpl guiHelper;
-    //private Shape screenShape;
     private float delta;
 
     public ModularGuiHandledScreen(ModularScreenHandler screenHandler, PlayerInventory inventory) {
@@ -53,27 +48,17 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         this.guiHelper = new GuiHelperImpl(new MatrixStack());
         this.guiHelper.setZOffset(-1);
         setZOffset(guiHelper.getZOffset());
-        //screenShape = Shape.rect(new Size(width, height));
 
         gui.initWidgets();
         initializeInteractables();
     }
 
-    /*public ModularGuiHandledScreen(ModularGui gui) {
-        super(new LiteralText("Hello"));
-        this.gui = gui;
-        this.guiHelper = new GuiHelperImpl(new MatrixStack());
-        this.guiHelper.setZOffset(0);
-    }*/
-
     @Override
     protected void init() {
         super.init();
         gui.resize(new Size(width, height));
-        //screenShape = Shape.rect(new Size(width, height));
         backgroundHeight = (int) gui.getGuiSize().height();
         backgroundWidth = (int) gui.getGuiSize().width();
-        init();
     }
 
     @Override
@@ -86,13 +71,15 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
     @Override
     protected void drawBackground(MatrixStack matrices, float delta, int mouseX, int mouseY) {
-        gui.renderBackground();
+        gui.renderBackground(matrices, new Point(mouseX, mouseY), delta);
     }
 
     @Override
     protected void drawForeground(MatrixStack matrices, int mouseX, int mouseY) {
+        matrices.push();
         matrices.translate(-x, -y, 0);
         gui.render(matrices, new Point(mouseX, mouseY), delta);
+        matrices.pop();
     }
 
     @Override
@@ -117,14 +104,14 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Nullable
     public Interactable getHoveredInteractable(Point point) {
         Interactable topWidget = null;
-        for(Interactable interactable : interactables.stream().filter(interactable ->
+        for (Interactable interactable : interactables.stream().filter(interactable ->
                 interactable.isMouseOver(point) && interactable.getParent().isEnabled()).collect(Collectors.toSet())) {
-            if(interactable instanceof Widget) {
-                if(topWidget == null) {
+            if (interactable instanceof Widget) {
+                if (topWidget == null) {
                     topWidget = interactable;
                     continue;
                 }
-                if(((Widget) interactable).getLayer() > topWidget.getParent().getLayer()) {
+                if (((Widget) interactable).getLayer() > topWidget.getParent().getLayer()) {
                     topWidget = interactable;
                 }
             }
@@ -141,7 +128,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     }
 
     public boolean isFocused(Interactable interactable) {
-        return focused  != null && interactable == focused;
+        return focused != null && interactable == focused;
     }
 
     @Nullable
@@ -153,7 +140,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         Point point = new Point(mouseX, mouseY);
         Interactable focused = getHoveredInteractable(point);
-        if(focused != null) {
+        if (focused != null) {
             Brachydium.LOGGER.info("Click");
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(focused));
@@ -172,7 +159,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         Point point = new Point(mouseX, mouseY);
         Interactable focused = getHoveredInteractable(point);
-        if(focused != null) {
+        if (focused != null) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(focused));
             buf.writeDouble(mouseX);
@@ -183,18 +170,12 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
 
             setDragging(false);
         }
-        /*Point point = new Point(mouseX, mouseY);
-        Interactable top = getHoveredInteractable(point);
-        if(top != null) {
-            top.onClickReleased(point, button);
-            return true;
-        }*/
-        return mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(mouseX, mouseY, button);
     }
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        if(this.getFocusedWidget() != null && this.isDragging()) {
+        if (this.getFocusedWidget() != null && this.isDragging()) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(getFocusedWidget()));
             buf.writeDouble(mouseX);
@@ -212,7 +193,7 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
         Point point = new Point(mouseX, mouseY);
         Interactable focused = getHoveredInteractable(point);
-        if(focused != null) {
+        if (focused != null) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeInt(gui.findIdForSynced(focused));
             buf.writeDouble(mouseX);
@@ -256,11 +237,14 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Deprecated
     @Nullable
     @Override
-    public final Element getFocused() { return null; }
+    public final Element getFocused() {
+        return null;
+    }
 
     @Deprecated
     @Override
-    public final void setFocused(@Nullable Element focused) { }
+    public final void setFocused(@Nullable Element focused) {
+    }
 
     public ModularGui getGui() {
         return gui;

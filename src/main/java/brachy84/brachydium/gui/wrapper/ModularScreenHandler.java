@@ -6,10 +6,10 @@ import brachy84.brachydium.gui.api.IUIHolder;
 import net.fabricmc.fabric.api.screenhandler.v1.ScreenHandlerRegistry;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.screen.NamedScreenHandlerFactory;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 
@@ -48,6 +48,7 @@ public class ModularScreenHandler extends ScreenHandler {
         this.gui = uiHolder.createUi(player);
 
         gui.initWidgets();
+        gui.open();
     }
 
     @Override
