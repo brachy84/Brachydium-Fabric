@@ -116,7 +116,7 @@ public interface Interactable extends ISyncedWidget {
      * @return if left or right shift is pressed
      */
     @Environment(EnvType.CLIENT)
-    default boolean hasShiftDown() {
+    static boolean hasShiftDown() {
         return isKeyPressed(GLFW.GLFW_KEY_LEFT_SHIFT) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_SHIFT);
     }
 
@@ -124,7 +124,7 @@ public interface Interactable extends ISyncedWidget {
      * @return if alt or alt gr is pressed
      */
     @Environment(EnvType.CLIENT)
-    default boolean hasAltDown() {
+    static boolean hasAltDown() {
         return isKeyPressed(GLFW.GLFW_KEY_LEFT_ALT) || isKeyPressed(GLFW.GLFW_KEY_RIGHT_ALT);
     }
 
@@ -133,7 +133,7 @@ public interface Interactable extends ISyncedWidget {
      * @return if the key of codec is pressed
      */
     @Environment(EnvType.CLIENT)
-    default boolean isKeyPressed(int codec) {
+    static boolean isKeyPressed(int codec) {
         return InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), codec);
     }
 }
