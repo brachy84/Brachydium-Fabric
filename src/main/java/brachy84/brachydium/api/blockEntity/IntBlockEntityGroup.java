@@ -22,6 +22,6 @@ public abstract class IntBlockEntityGroup extends BlockEntityGroup<Integer> {
 
     @Override
     public void writeNbt(NbtCompound tag, Integer integer) {
-        tag.putInt(TILE_KEY, (Integer) integer);
+        tag.putInt(TILE_KEY, integer);
     }
 }
