@@ -44,7 +44,7 @@ dependencies {
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
-	//modRuntime "me.shedaniel:RoughlyEnoughItems:${project.rei_version}"
+	modRuntime "me.shedaniel:RoughlyEnoughItems-runtime-fabric:${project.rei_version}"
 	//modCompile "alexiil.mc.lib:libmultipart-base:${project.libmultipart_version}"
 	//modCompile "alexiil.mc.lib:libblockattributes-all:0.8.4"
 	modImplementation group: 'net.devtech', name: 'arrp', version: project.arrp_version
