@@ -10,6 +10,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -33,7 +34,6 @@ public abstract class TileEntity implements IUIHolder {
     private final List<RenderTrait> renderTraits = new ArrayList<>();
 
     protected TileEntity() {
-        createBaseRenderer();
     }
 
     public static TileEntity ofStack(ItemStack stack) {
@@ -42,6 +42,14 @@ public abstract class TileEntity implements IUIHolder {
         if(!stack.hasTag())
             throw new IllegalArgumentException("Can't get TileEntity with a null tag");
         return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getTag());
+    }
+
+    /**
+     * Gets called when the tiles group builds
+     */
+    @ApiStatus.Internal
+    public void setUp() {
+        Objects.requireNonNull(createBaseRenderer());
     }
 
     public InventoryHolder createInventories() {
@@ -140,6 +148,9 @@ public abstract class TileEntity implements IUIHolder {
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+        if(!isClient()) {
+            TileEntityUIFactory.INSTANCE.openUI(getHolder(), (ServerPlayerEntity) player);
+        }
         return ActionResult.PASS;
     }
 
@@ -238,6 +249,10 @@ public abstract class TileEntity implements IUIHolder {
         return asStack(1);
     }
 
+    /**
+     * @param amount of the stack
+     * @return the Tile as item with identifying nbt data
+     */
     public ItemStack asStack(int amount) {
         ItemStack item = new ItemStack(asItem(), amount);
         getGroup().writeTileNbt(item.getOrCreateTag(), this);
