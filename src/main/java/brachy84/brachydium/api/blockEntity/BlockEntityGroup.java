@@ -34,6 +34,7 @@ public abstract class BlockEntityGroup<K> {
                 }
             }
             tile.setGroup(this);
+            tile.setUp();
         }
     }
 
@@ -41,9 +42,18 @@ public abstract class BlockEntityGroup<K> {
         return new Class[0];
     }
 
-    public abstract TileEntity getBlockEntity(NbtCompound tag);
+    public TileEntity getBlockEntity(NbtCompound tag) {
+        if (tag == null)
+            throw new IllegalStateException("Tag can't be null");//return (TileEntity) blockEntityMap.values().toArray()[0];
+        if (!tag.contains(TILE_KEY)) {
+            throw new IllegalStateException("Tag does not contain " + TILE_KEY);
+        }
+        return blockEntityMap.get(readKey(tag));
+    }
 
     public abstract void writeNbt(NbtCompound tag, K k);
+
+    public abstract K readKey(NbtCompound tag);
 
     @ApiStatus.Internal
     public void writeTileNbt(NbtCompound tag, TileEntity tile) {

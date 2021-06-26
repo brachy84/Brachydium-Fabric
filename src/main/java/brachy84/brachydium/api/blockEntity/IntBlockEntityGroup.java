@@ -12,12 +12,8 @@ public abstract class IntBlockEntityGroup extends BlockEntityGroup<Integer> {
     }
 
     @Override
-    public TileEntity getBlockEntity(NbtCompound tag) {
-        if (tag == null) throw new IllegalStateException("Tag can't be null");//return (TileEntity) blockEntityMap.values().toArray()[0];
-        if (!tag.contains(TILE_KEY)) {
-            throw new IllegalStateException("Tag does not contain " + TILE_KEY);
-        }
-        return blockEntityMap.get(tag.getInt(TILE_KEY));
+    public Integer readKey(NbtCompound tag) {
+        return tag.getInt(TILE_KEY);
     }
 
     @Override
