@@ -1,7 +1,6 @@
 package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.BrachydiumApi;
 import brachy84.brachydium.api.blockEntity.BlockEntityGroup;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
@@ -15,10 +14,8 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
@@ -60,19 +57,21 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
             if (tile != null) {
                 if (placer != null) tile.setFrontFacing(placer.getHorizontalFacing().getOpposite());
                 BlockEntity blockEntity = world.getBlockEntity(pos);
-                if(blockEntity instanceof BlockEntityHolder) {
+                if (blockEntity instanceof BlockEntityHolder) {
                     ((BlockEntityHolder) blockEntity).setActiveTileEntity(tile);
                 }
             }
         }
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (!world.isClient()) {
-            BlockEntity blockEntity = world.getBlockEntity(pos);
-            if(blockEntity instanceof BlockEntityHolder) {
-                return ((BlockEntityHolder) blockEntity).getActiveTileEntity().onUse(state, world, pos, player, hand, hit);
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if (blockEntity instanceof BlockEntityHolder) {
+            TileEntity tile = ((BlockEntityHolder) blockEntity).getActiveTileEntity();
+            if (tile != null) {
+                return tile.onUse(state, world, pos, player, hand, hit);
             }
         }
         return ActionResult.PASS;
@@ -81,8 +80,11 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     @Override
     public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, ItemStack stack) {
         if (!world.isClient()) {
-            if(blockEntity instanceof BlockEntityHolder) {
-                 ((BlockEntityHolder) blockEntity).getActiveTileEntity().onDetach();
+            if (blockEntity instanceof BlockEntityHolder) {
+                TileEntity tile = ((BlockEntityHolder) blockEntity).getActiveTileEntity();
+                if (tile != null) {
+                    tile.onDetach();
+                }
             }
         }
         super.afterBreak(world, player, pos, state, blockEntity, stack);
