@@ -21,7 +21,7 @@ public class Texture {
 
     private static final List<Texture> textures = new ArrayList<>();
 
-    private SpriteIdentifier spriteId;
+    private final SpriteIdentifier spriteId;
     private Sprite sprite;
 
     public Texture(Identifier path) {
@@ -35,10 +35,6 @@ public class Texture {
 
     public Texture(String path) {
         this(Brachydium.id(path));
-    }
-
-    public void makeSprite(Function<SpriteIdentifier, Sprite> textureGetter) {
-        sprite = textureGetter.apply(spriteId);
     }
 
     private static void add(Texture texture) {
@@ -60,11 +56,16 @@ public class Texture {
         return sprite;
     }
 
+    @Override
+    public String toString() {
+        return spriteId.getTextureId().toString();
+    }
+
     @ApiStatus.Internal
     public static void loadSprites(Function<SpriteIdentifier, Sprite> textureGetter) {
         if(loaded) return;
         for (Texture texture : textures) {
-            texture.makeSprite(textureGetter);
+            texture.sprite = textureGetter.apply(texture.spriteId);
         }
         loaded = true;
     }
