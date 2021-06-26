@@ -4,6 +4,7 @@ import brachy84.brachydium.gui.api.*;
 import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
+import brachy84.brachydium.gui.widgets.CursorSlotWidget;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
 import com.google.common.collect.BiMap;
@@ -92,11 +93,12 @@ public class ModularGui implements ISizeProvider {
         return syncedWidgets.inverse().get(syncedWidget);
     }
 
-    public void renderBackground() {
+    public void renderBackground(MatrixStack matrices, Point mousePos, float delta) {
+        rootWidget.render(matrices, mousePos, delta);
     }
 
     public void render(MatrixStack matrices, Point mousePos, float delta) {
-        rootWidget.render(matrices, mousePos, delta);
+        //rootWidget.render(matrices, mousePos, delta);
         rootWidget.drawForeground(matrices, mousePos, delta);
     }
 
@@ -106,6 +108,10 @@ public class ModularGui implements ISizeProvider {
 
     public void open() {
 
+    }
+
+    public CursorSlotWidget getCursorSlot() {
+        return rootWidget.getCursorSlot();
     }
 
     @Override

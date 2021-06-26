@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class RootWidget extends ParentWidget {
 
-    private static CursorSlotWidget cursorSlot;
+    private final CursorSlotWidget cursorSlot;
 
     private RootWidget(BackgroundWidget background, BiMap<Integer, Widget> children) {
         super(background, children);
@@ -78,7 +78,7 @@ public class RootWidget extends ParentWidget {
     }
 
     @Nullable
-    public static CursorSlotWidget getCursorSlot() {
+    public CursorSlotWidget getCursorSlot() {
         return cursorSlot;
     }
 
