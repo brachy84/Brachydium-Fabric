@@ -46,6 +46,7 @@ public class CraftingTool extends Item {
 
     @Override
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
+        if(group != ItemGroups.GENERAL) return;
         ItemStack stack = new ItemStack(this);
         NbtCompound tag = stack.getOrCreateTag();
         tag.putInt("Color", Color.of(30, 60, 220).asInt());
