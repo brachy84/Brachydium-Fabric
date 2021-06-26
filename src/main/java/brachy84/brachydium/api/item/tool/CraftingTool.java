@@ -1,9 +1,7 @@
 package brachy84.brachydium.api.item.tool;
 
-import brachy84.brachydium.ItemGroups;
-import brachy84.brachydium.api.material.MaterialOld;
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.resource.RRPHelper;
+import brachy84.brachydium.ItemGroups;
 import brachy84.brachydium.api.resource.RecipeItem;
 import brachy84.brachydium.gui.math.Color;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
@@ -72,25 +70,6 @@ public class CraftingTool extends Item {
     @Override
     public Text getName() {
         return new TranslatableText(Brachydium.MOD_ID + ".tool." + name);
-    }
-
-    public void createRecipe(MaterialOld materialOld, RecipeItem[] items, String... pattern) {
-        float dmgMod = MAX_DURABILITY / (float) materialOld.getToolProperties().getDurability();
-        RRPHelper.addNbtRecipe(id.getPath() + "_" + materialOld.getName(), builder -> builder
-                .type("shaped")
-                //.group("test_group")
-                .pattern(pattern)
-                .keys(
-                        items
-                )
-                .result(id.toString(), nbtItemBuilder -> nbtItemBuilder
-                        .data(group -> group
-                                .entry("Material", materialOld.getName())
-                                .entry("Color", materialOld.getColor())
-                                .entry("DmgMod", dmgMod)
-                        )
-                )
-        );
     }
 
     public RecipeItem getIngredient(String key, int index, int damage) {

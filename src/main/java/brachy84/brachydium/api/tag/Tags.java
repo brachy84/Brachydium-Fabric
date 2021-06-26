@@ -1,7 +1,7 @@
 package brachy84.brachydium.api.tag;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.material.MaterialOld;
+import brachy84.brachydium.api.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.tag.ServerTagManagerHolder;
 import net.minecraft.tag.Tag;
@@ -10,8 +10,8 @@ import net.minecraft.util.registry.Registry;
 
 public class Tags {
 
-    public static String materialItem(String tag, MaterialOld materialOld) {
-        return "c:" + materialOld.getName() + "_" + tag;
+    public static String materialItem(String tag, Material materialOld) {
+        return "c:" + materialOld.getRegistryName() + "_" + tag;
     }
 
     public static Tag<Item> of(Identifier id) {
