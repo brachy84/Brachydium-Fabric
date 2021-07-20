@@ -46,4 +46,8 @@ public class FlagManager {
     public boolean exists(String flag) {
         return flagMap.containsKey(flag);
     }
+
+    public long getStore() {
+        return store;
+    }
 }

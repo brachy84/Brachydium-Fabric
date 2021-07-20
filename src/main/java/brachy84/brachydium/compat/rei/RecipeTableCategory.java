@@ -1,5 +1,6 @@
 package brachy84.brachydium.compat.rei;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.handlers.FluidTankList;
 import brachy84.brachydium.api.handlers.ItemInventory;
 import brachy84.brachydium.api.recipe.RecipeTable;
@@ -8,7 +9,7 @@ import brachy84.brachydium.gui.math.AABB;
 import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.widgets.BackgroundWidget;
 import brachy84.brachydium.gui.widgets.FluidSlotWidget;
-import brachy84.brachydium.gui.widgets.ItemSlotWidget;
+import brachy84.brachydium.gui.widgets.ItemSlotWidgetOld;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.Renderer;
@@ -41,7 +42,7 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
     }
 
     @Override
-    public @NotNull Identifier getIdentifier() {
+    public CategoryIdentifier<? extends RecipeTableDisplay> getCategoryIdentifier() {
         return ReiCompat.category(recipeTable);
     }
 
@@ -78,12 +79,13 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
             child.getReiWidgets(innerWidgets, origin);
             for(Widget widget : innerWidgets) {
                 if(widget instanceof Slot && child instanceof ResourceSlotWidget) {
+                    Brachydium.LOGGER.info("Adding resource slot to rei");
                     brachydiumSlots.add((ResourceSlotWidget<?>) child);
                     reiSlots.add((Slot) widget);
                 }
                 widgets.add(widget);
             }
-            if(!(child instanceof BackgroundWidget)) {
+            if(innerWidgets.size() > 0) {
                 lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height()));
             }
         });
@@ -111,20 +113,24 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
         for(int i = 0; i < reiSlots.size(); i++) {
             ResourceSlotWidget<?> slot = slots.get(i);
             Slot reiSlot = reiSlots.get(i);
-            if(slot instanceof ItemSlotWidget) {
+            if(slot instanceof ItemSlotWidgetOld) {
                 if(reiSlot.getNoticeMark() == 1) {
                     if(!inputItems.hasNext()) continue;
+                    Brachydium.LOGGER.info(" - inputItem");
                     reiSlot.entries(inputItems.next());
                 } else if(reiSlot.getNoticeMark() == 2) {
                     if(!outputItems.hasNext()) continue;
+                    Brachydium.LOGGER.info(" - outputItem");
                     reiSlot.entries(outputItems.next());
                 }
             } else if(slot instanceof FluidSlotWidget) {
                 if(reiSlot.getNoticeMark() == 1) {
                     if(!inputFluids.hasNext()) continue;
+                    Brachydium.LOGGER.info(" - inputFluid");
                     reiSlot.entries(inputFluids.next());
                 } else if(reiSlot.getNoticeMark() == 2) {
                     if(!outputFluids.hasNext()) continue;
+                    Brachydium.LOGGER.info(" - outputFluid");
                     reiSlot.entries(outputFluids.next());
                 }
             }
@@ -139,10 +145,5 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
     @Override
     public int getDisplayWidth(RecipeTableDisplay display) {
         return 150;
-    }
-
-    @Override
-    public CategoryIdentifier<? extends RecipeTableDisplay> getCategoryIdentifier() {
-        return null;
     }
 }

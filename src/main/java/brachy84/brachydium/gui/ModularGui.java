@@ -6,12 +6,16 @@ import brachy84.brachydium.gui.math.Point;
 import brachy84.brachydium.gui.math.Size;
 import brachy84.brachydium.gui.widgets.CursorSlotWidget;
 import brachy84.brachydium.gui.widgets.RootWidget;
+import brachy84.brachydium.gui.wrapper.McSlot;
 import brachy84.brachydium.gui.wrapper.ModularGuiHandledScreen;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -29,7 +33,9 @@ public class ModularGui implements ISizeProvider {
     //private final ImmutableList<Runnable> uiCloseCallback;
     private final BiMap<Integer, ISyncedWidget> syncedWidgets = HashBiMap.create(1);
     private int nextSyncedId = 0;
-    private List<Interactable> interactables = new ArrayList<>();
+    private final List<Interactable> interactables = new ArrayList<>();
+
+    private final List<McSlot> mcSlots = new ArrayList<>();
 
     /**
      * UIHolder of this modular UI
@@ -51,7 +57,7 @@ public class ModularGui implements ISizeProvider {
         rootWidget.resize(screenSize);
     }
 
-    public void initWidgets() {
+    private void initWidgets() {
         rootWidget.initWidgets(this);
         rootWidget.forAllChildren(widget -> {
             if(widget instanceof Interactable) {
@@ -107,11 +113,15 @@ public class ModularGui implements ISizeProvider {
     }
 
     public void open() {
-
+        initWidgets();
     }
 
-    public CursorSlotWidget getCursorSlot() {
-        return rootWidget.getCursorSlot();
+    public ItemStack getCursorStack() {
+        return getScreen().getScreenHandler().getCursorStack();
+    }
+
+    public void setCursorStack(ItemStack stack) {
+        getScreen().getScreenHandler().setCursorStack(stack);
     }
 
     @Override
@@ -138,5 +148,16 @@ public class ModularGui implements ISizeProvider {
         if(MinecraftClient.getInstance().currentScreen instanceof ModularGuiHandledScreen)
             return (ModularGuiHandledScreen) MinecraftClient.getInstance().currentScreen;
         return null;
+    }
+
+    public void addMcItemSlot(McSlot slot) {
+        mcSlots.add(slot);
+    }
+
+    @ApiStatus.Internal
+    public List<McSlot> getAndClearSlots() {
+        List<McSlot> slots = Lists.newArrayList(mcSlots);
+        mcSlots.clear();
+        return slots;
     }
 }

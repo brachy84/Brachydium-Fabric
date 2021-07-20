@@ -1,0 +1,33 @@
+{
+  "table": "alloy_smelter",
+  "inputs": [
+    "item;minecraft:iron_ingot;1",
+    {
+      "item": "material.ingot_copper",
+      "count": 1,
+      "chance": 0.1
+    },
+    {
+      "tag": "c:copper_ingots;2"
+    },
+    {
+      "tag": "aluminium_ingots"
+    },
+    {
+      "fluid": "minecraft:water;1296"
+    },
+    {
+      "fluid": "material.copper;144"
+    }
+  ],
+  "outputs": [
+    {
+      "_comment": "outputs accept the same as inputs, BUT tags, so only item and fluids with same syntax"
+    }
+  ],
+  "eut": 512,
+  "duration": 100,
+  "properties": [
+
+  ]
+}

@@ -3,11 +3,15 @@ package brachy84.brachydium.api.render;
 import brachy84.brachydium.Brachydium;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.render.model.SpriteAtlasManager;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,7 +19,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
-public class Texture {
+public class Texture implements IRenderable {
 
     private static boolean loaded = false;
 
@@ -49,9 +53,12 @@ public class Texture {
         return spriteId;
     }
 
-    public Sprite getSprite() {
-        if(!loaded) {
-            throw new IllegalStateException("Can't get Sprite when they are not loaded");
+    @Override
+    public @NotNull Sprite getSprite() {
+        if(sprite == null) {
+            if (!loaded)
+                throw new IllegalStateException("Can't get Sprite when they are not loaded");
+            this.sprite = MinecraftClient.getInstance().getSpriteAtlas(spriteId.getAtlasId()).apply(spriteId.getTextureId());
         }
         return sprite;
     }
@@ -63,7 +70,7 @@ public class Texture {
 
     @ApiStatus.Internal
     public static void loadSprites(Function<SpriteIdentifier, Sprite> textureGetter) {
-        if(loaded) return;
+        if (loaded) return;
         for (Texture texture : textures) {
             texture.sprite = textureGetter.apply(texture.spriteId);
         }

@@ -1,6 +1,5 @@
 package brachy84.brachydium.gui.api;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.impl.GuiHelperImpl;
 import brachy84.brachydium.gui.math.AABB;
@@ -68,7 +67,8 @@ public abstract class Widget {
     @Environment(EnvType.CLIENT)
     public abstract void draw(MatrixStack matrices, Point mousePos, float delta);
 
-    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {}
+    public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
+    }
 
     /**
      * called when opening the screen

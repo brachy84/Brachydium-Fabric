@@ -112,12 +112,12 @@ public class GuiHelperImpl extends GuiHelper {
 
     @Override
     public void drawTextureArea(TextureArea texture, Point point, Size drawSize) {
-        client.getTextureManager().bindTexture(texture.getPath());
+        //client.getTextureManager().bindTexture(texture.getPath());
         //matrices.color4f(1f, 1f, 1f, 1f);
         Matrix4f matrix4f = matrices.peek().getModel();
 
         AABB bounds = AABB.of(drawSize, point);
-
+        RenderSystem.setShaderTexture(0, texture.getPath());
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
         bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);

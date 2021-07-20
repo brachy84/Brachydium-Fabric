@@ -35,7 +35,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
      * This contains all block items of the tile that use this recipeMap
      * Only for REI
      */
-    private final List<BlockItem> tileItems = new ArrayList<>();
+    private final List<ItemStack> tileItems = new ArrayList<>();
 
     /**
      * The recipes that were registered on this table
@@ -116,11 +116,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return recipeBuilderSample.copy();
     }
 
-    public void addTileItem(BlockItem item) {
+    public void addTileItem(ItemStack item) {
         tileItems.add(item);
     }
 
-    public List<BlockItem> getTileItems() {
+    public List<ItemStack> getTileItems() {
         return Collections.unmodifiableList(tileItems);
     }
 
@@ -222,8 +222,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
 
     protected void addSlot(RootWidget.Builder builder, int x, int y, int slotIndex, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isFluid, boolean isOutputs) {
         if (!isFluid) {
-            Slot<ItemKey> itemSlot = itemHandler.getSlots().get(slotIndex);
-            builder.itemSlot(itemSlot, isOutputs, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT, getSlotOverlays(false, isOutputs));
+            builder.itemSlot(itemHandler, slotIndex, !isOutputs, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT, getSlotOverlays(false, isOutputs));
         } else {
             Slot<Fluid> fluidSlot = fluidHandler.getSlots().get(slotIndex);
             builder.fluidSlot(fluidSlot, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT, getSlotOverlays(true, isOutputs));
@@ -257,5 +256,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             return new TextureArea[]{base, overlay};
         }
         return new TextureArea[]{base};
+    }
+
+    @Override
+    public String toString() {
+        return unlocalizedName;
     }
 }

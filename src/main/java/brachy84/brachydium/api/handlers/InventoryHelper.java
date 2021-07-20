@@ -19,7 +19,7 @@ public class InventoryHelper {
 
     public static boolean extractIngredient(Extractable<ItemKey> extractable, Transaction transaction, CountableIngredient ci) {
         int extracted = 0;
-        for (ItemStack stack : ci.getIngredient().getMatchingStacksClient()) {
+        for (ItemStack stack : ci.getIngredient().getMatchingStacks()) {
             int toExtract = ci.getAmount() - extracted;
             extracted += extractable.extract(transaction, ItemKey.of(stack), toExtract);
             if (extracted == ci.getAmount()) {

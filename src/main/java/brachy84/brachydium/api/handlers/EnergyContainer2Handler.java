@@ -2,7 +2,7 @@ package brachy84.brachydium.api.handlers;
 
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.blockEntity.TileTrait;
+import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
@@ -28,11 +28,6 @@ public class EnergyContainer2Handler extends TileTrait implements IEnergyContain
 
     public EnergyContainer2Handler(TileEntity tile, long capacity, long voltage, boolean input) {
         this(tile, capacity, 0, input ? voltage : 0, input ? 0 : voltage);
-    }
-
-    @Override
-    public String getName() {
-        return "EnergyContainerHandler";
     }
 
     @Override

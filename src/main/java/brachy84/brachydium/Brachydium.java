@@ -6,10 +6,14 @@ import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.render.Textures;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.ResourceReloadListener;
+import brachy84.brachydium.api.tag.LoadableTag;
+import brachy84.brachydium.gui.Networking;
 import brachy84.brachydium.gui.ServerUi;
+import brachy84.brachydium.gui.api.ISyncedWidget;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resource.ResourceType;
@@ -19,7 +23,9 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Brachydium implements ModInitializer {
 
@@ -40,6 +46,11 @@ public class Brachydium implements ModInitializer {
 
     @Override
     public void onInitialize() {
+        /*ServerPlayNetworking.registerGlobalReceiver(ResourceReloadListener.RELOAD_CHANNEL, ((server, player, handler, buf, responseSender) -> {
+            Brachydium.LOGGER.info("reloading tags server");
+            Brachydium.setTagsLoaded();
+            LoadableTag.loadAll();
+        }));*/
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
         ServerUi.init();
         Textures.init();
@@ -63,7 +74,7 @@ public class Brachydium implements ModInitializer {
 
         RRPHelper.initOtherResources();
         //RESOURCE_PACK.dump(new File("brachydium_assets"));
-        RRPCallback.EVENT.register(a -> a.add(RESOURCE_PACK));
+        RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
         System.out.println("--------------------------------------------------");
     }
 

@@ -33,7 +33,7 @@ public class CraftingTool extends Item {
 
         ColorProviderRegistry.ITEM.register(((stack1, tintIndex) -> {
             if (tintIndex == 0) return -1;
-            NbtCompound tag = stack1.getTag();
+            NbtCompound tag = stack1.getNbt();
             if (tag != null) {
                 return tag.getInt("Color");
             }
@@ -46,9 +46,9 @@ public class CraftingTool extends Item {
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
         if(group != ItemGroups.GENERAL) return;
         ItemStack stack = new ItemStack(this);
-        NbtCompound tag = stack.getOrCreateTag();
+        NbtCompound tag = stack.getOrCreateNbt();
         tag.putInt("Color", Color.of(30, 60, 220).asInt());
-        stack.setTag(tag);
+        stack.setNbt(tag);
         stacks.add(stack);
     }
 
@@ -60,7 +60,7 @@ public class CraftingTool extends Item {
 
     @Override
     public Text getName(ItemStack stack) {
-        String material = stack.getTag().getString("Material");
+        String material = stack.getNbt().getString("Material");
         if (material != null && !material.trim().equals("")) {
             return new TranslatableText(Brachydium.MOD_ID + ".tool." + name, I18n.translate("material." + material));
         }

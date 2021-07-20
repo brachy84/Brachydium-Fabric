@@ -21,7 +21,7 @@ public class Voltage {
     public static final Voltage GEV = new Voltage(12, 33554432L, "GEV");
     public static final Voltage GIV = new Voltage(13, 134217728L, "GIV");
     public static final Voltage UGV = new Voltage(14, 536870912L, "UGV");
-    public static final Voltage UXGV = new Voltage(15, 2147483648L, "UXVG");
+    public static final Voltage UXGV = new Voltage(15, 2147483648L, "UXGV");
 
     //             8.589.934.592                     omega     OV
     //            34.359.738.368                high omega    HOV
@@ -54,5 +54,10 @@ public class Voltage {
         this.voltage = voltage;
         this.shortName = name.toLowerCase();
         this.langKey = Brachydium.MOD_ID + ".voltage." + name + ".name";
+    }
+
+    @Override
+    public String toString() {
+        return shortName;
     }
 }

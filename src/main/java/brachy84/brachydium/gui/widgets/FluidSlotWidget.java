@@ -80,16 +80,11 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     }
 
     private void setCursorStack(ItemStack stack) {
-        CursorSlotWidget.get().ifPresent(cursorSlot -> {
-            cursorSlot.setResource(stack);
-        });
+        gui.setCursorStack(stack);
     }
 
     private ItemStack getCursorStack() {
-        if (CursorSlotWidget.get().isPresent()) {
-            return CursorSlotWidget.get().get().getResource();
-        }
-        throw new IllegalStateException("CursorSlotWidget can not be null!!!");
+        return gui.getCursorStack();
     }
 
     @Override

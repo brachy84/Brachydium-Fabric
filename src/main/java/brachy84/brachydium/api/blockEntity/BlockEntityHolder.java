@@ -10,6 +10,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,16 +19,25 @@ import java.util.Objects;
 
 /**
  * A BLockEntity which can hold a TileEntity of a BlockEntityGroup
- * see also: {@link TileEntity}, {@link BlockEntityGroup}
+ * see also: {@link TileEntity}, {@link TileEntityGroup}
  */
 public class BlockEntityHolder extends BlockEntity implements BlockEntityClientSerializable, IUIHolder {
 
-    private final BlockEntityGroup<?> group;
+    @Nullable
+    public static BlockEntityHolder getOf(World world, BlockPos pos) {
+        BlockEntity blockEntity = world.getBlockEntity(pos);
+        if(blockEntity instanceof BlockEntityHolder)
+            return (BlockEntityHolder) blockEntity;
+        return null;
+    }
+
+    private final TileEntityGroup<?> group;
     public final Identifier id;
     @Nullable
     private TileEntity currentTile;
+    private TileEntityFactory<?> currentFactory;
 
-    public BlockEntityHolder(BlockEntityGroup<?> group, BlockPos pos, BlockState state) {
+    public BlockEntityHolder(TileEntityGroup<?> group, BlockPos pos, BlockState state) {
         super(group.getType(), pos, state);
         this.group = group;
         this.id = group.id;
@@ -47,7 +58,8 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         tag.putString("ID", group.id.toString());
         if (currentTile != null) {
             tag.put("Tile", currentTile.serializeTag());
-            group.writeTileNbt(tag, currentTile);
+            group.writeTileNbt(tag, currentFactory);
+            tag.putInt("dir", currentTile.getFrontFace().getId());
         }
         return tag;
     }
@@ -56,26 +68,28 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
         if (currentTile == null) {
-            setActiveTileEntity(group.getBlockEntity(tag));
+            setActiveTileEntity(group.getBlockEntity(tag), Direction.byId(tag.getInt("dir")));
         }
         currentTile.deserializeTag(tag.getCompound("Tile"));
     }
 
-    public void setActiveTileEntity(TileEntity tile) {
-        if (currentTile != null) {
-            currentTile.onDetach();
-            currentTile.setHolder(null);
+    public void setActiveTileEntity(TileEntityFactory<?> factory, Direction front) {
+        if (this.currentTile != null) {
+            this.currentTile.onDetach();
+            this.currentTile.setHolder(null);
         }
-        this.currentTile = tile;
-        currentTile.setHolder(this);
-        currentTile.onAttach();
+        this.currentFactory = factory;
+        this.currentTile = factory.create();
+        this.currentTile.setHolder(this);
+        this.currentTile.setFrontFace(front);
+        this.currentTile.onAttach();
     }
 
     public TileEntity getActiveTileEntity() {
         return currentTile;
     }
 
-    public BlockEntityGroup<?> getGroup() {
+    public TileEntityGroup<?> getGroup() {
         return group;
     }
 
@@ -102,13 +116,15 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
     @Override
     public void fromClientTag(NbtCompound tag) {
         if (currentTile == null) {
-            setActiveTileEntity(group.getBlockEntity(tag));
+            setActiveTileEntity(group.getBlockEntity(tag), Direction.byId(tag.getInt("dir")));
         }
     }
 
     @Override
     public NbtCompound toClientTag(NbtCompound tag) {
-        group.writeTileNbt(tag, currentTile);
+        if(currentTile == null) return tag;
+        group.writeTileNbt(tag, currentFactory);
+        tag.putInt("dir", currentTile.getFrontFace().getId());
         return tag;
     }
 }

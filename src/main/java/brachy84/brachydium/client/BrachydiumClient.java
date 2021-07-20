@@ -3,7 +3,7 @@ package brachy84.brachydium.client;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.handlers.AbstractRecipeLogic;
+import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.resource.ModelProvider;
 import brachy84.brachydium.api.resource.ResourceProvider;

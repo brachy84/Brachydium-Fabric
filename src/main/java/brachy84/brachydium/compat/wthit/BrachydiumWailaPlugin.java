@@ -11,9 +11,9 @@ public class BrachydiumWailaPlugin implements IWailaPlugin {
         registrar.addDisplayItem(new IBlockComponentProvider() {
             @Override
             public ItemStack getDisplayItem(IBlockAccessor accessor, IPluginConfig config) {
-                if(accessor.getBlockEntity() instanceof BlockEntityHolder) {
+                if (accessor.getBlockEntity() instanceof BlockEntityHolder) {
                     TileEntity tile = ((BlockEntityHolder) accessor.getBlockEntity()).getActiveTileEntity();
-                    if(tile != null) {
+                    if (tile != null) {
                         return tile.asStack();
                     }
                 }

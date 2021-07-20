@@ -11,16 +11,16 @@ import java.util.Optional;
 public class BucketHelper {
 
     public static Fluid getFluid(Item item) {
-        if(item instanceof BucketItemAccess_AccessFluid) {
-            return ((BucketItemAccess_AccessFluid) item).getFluid();
+        if(item instanceof BucketItemAccess_AccessFluid bucket) {
+            return bucket.getFluid();
         }
         return Fluids.EMPTY;
     }
 
     public static Optional<Item> getBucketForFluid(Fluid fluid) {
         return Registry.ITEM.stream().filter(item -> {
-            if(item instanceof BucketItemAccess_AccessFluid) {
-                Fluid bucketFluid = ((BucketItemAccess_AccessFluid) item).getFluid();
+            if(item instanceof BucketItemAccess_AccessFluid bucket) {
+                Fluid bucketFluid = bucket.getFluid();
                 return fluid == bucketFluid;
             }
             return false;

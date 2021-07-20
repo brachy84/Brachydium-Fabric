@@ -24,6 +24,9 @@
   "brachydium.tool.hammer" : "%s Hammer",
   "brachydium.tool.screw_driver" : "%s Screw Driver",
   "brachydium.tool.file" : "%s File",
-  "brachydium.tool.saw" : "%s Saw"
+  "brachydium.tool.saw" : "%s Saw",
+
+  "brachydium.tile.alloy_smelter" : "%s Alloy Smelter",
+  "brachydium.mixer.alloy_smelter" : "%s Mixer"
 }
 

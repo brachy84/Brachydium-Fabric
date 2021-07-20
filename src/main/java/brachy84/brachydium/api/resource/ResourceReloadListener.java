@@ -3,10 +3,14 @@ package brachy84.brachydium.api.resource;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.JsonRecipe;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
+import brachy84.brachydium.api.tag.LoadableTag;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.tag.RequiredTagList;
 import net.minecraft.util.Identifier;
 
 import java.io.ByteArrayOutputStream;
@@ -17,6 +21,8 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
 
     public static final ResourceReloadListener INSTANCE = new ResourceReloadListener();
 
+    public static final Identifier RELOAD_CHANNEL = Brachydium.id("reload_resources");
+
     private ResourceReloadListener() {}
 
     @Override
@@ -26,6 +32,10 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
 
     @Override
     public void reload(ResourceManager manager) {
+        /*Brachydium.LOGGER.info("reloading tags");
+        Brachydium.setTagsLoaded();
+        LoadableTag.loadAll();*/
+        //ClientPlayNetworking.send(RELOAD_CHANNEL, PacketByteBufs.create());
         RecipeLoadEvent.EVENT.invoker().load();
         for(Identifier id : manager.findResources("brachydium", path -> path.endsWith(".json"))) {
             if(id.getPath().contains("/recipes/")) {

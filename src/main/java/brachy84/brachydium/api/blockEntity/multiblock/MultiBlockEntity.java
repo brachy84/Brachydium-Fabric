@@ -1,16 +1,15 @@
 package brachy84.brachydium.api.blockEntity.multiblock;
 
-import brachy84.brachydium.api.blockEntity.MetaBlockEntity;
+import brachy84.brachydium.api.blockEntity.TileEntity;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Vec3i;
 
-public abstract class MultiBlockEntity extends MetaBlockEntity {
+public abstract class MultiBlockEntity extends TileEntity {
 
     private WorldStructure structure;
 
-    public MultiBlockEntity(Identifier id) {
-        super(id);
+    public MultiBlockEntity() {
     }
 
     @Override

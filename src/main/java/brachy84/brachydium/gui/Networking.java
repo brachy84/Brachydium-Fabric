@@ -12,4 +12,6 @@ public class Networking {
     public static final Identifier MOUSE_DRAGGED = Brachydium.id("mouse_dragged");
     public static final Identifier MOUSE_SCROLLED = Brachydium.id("mouse_scrolled");
 
+    public static final Identifier SYNC_CURSOR = Brachydium.id("sync_cursor");
+
 }

@@ -91,7 +91,7 @@ public class TagDictionary {
 
         public ItemStack asStack(Material material, int amount) {
             //TODO get Item first
-            return unify(material, amount).getIngredient().getMatchingStacksClient()[0];
+            return unify(material, amount).getIngredient().getMatchingStacks()[0];
         }
 
         public long getValue() {

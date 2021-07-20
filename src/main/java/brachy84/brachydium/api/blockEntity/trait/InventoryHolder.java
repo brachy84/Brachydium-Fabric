@@ -1,5 +1,8 @@
-package brachy84.brachydium.api.blockEntity;
+package brachy84.brachydium.api.blockEntity.trait;
 
+import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.TileEntity;
+import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.handlers.CombinedFluidTankList;
 import brachy84.brachydium.api.handlers.CombinedItemInventory;
 import brachy84.brachydium.api.handlers.FluidTankList;
@@ -33,11 +36,6 @@ public class InventoryHolder extends TileTrait {
 
     public InventoryHolder(TileEntity tile) {
         this(tile, 0, 0, 0, 0);
-    }
-
-    @Override
-    public String getName() {
-        return "inventory_holder";
     }
 
     @Override

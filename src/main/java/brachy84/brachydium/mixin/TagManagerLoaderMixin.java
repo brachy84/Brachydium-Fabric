@@ -21,9 +21,9 @@ public class TagManagerLoaderMixin {
     public void reloadMixin(ResourceReloadListener.Synchronizer synchronizer, ResourceManager manager, Profiler prepareProfiler, Profiler applyProfiler, Executor prepareExecutor, Executor applyExecutor, CallbackInfoReturnable<CompletableFuture<Void>> cir) {
         CompletableFuture<Void> future = cir.getReturnValue();
         future.thenRun(() -> {
-            Brachydium.LOGGER.info("reloading tags");
+            /*Brachydium.LOGGER.info("reloading tags client");
             Brachydium.setTagsLoaded();
-            LoadableTag.loadAll();
+            LoadableTag.loadAll();*/
             //RecipeLoadEvent.EVENT.invoker().load();
         });
         cir.setReturnValue(future);

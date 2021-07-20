@@ -1,21 +1,21 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
-import brachy84.brachydium.api.handlers.AbstractRecipeLogic;
+import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.handlers.EnergyContainer2Handler;
-import brachy84.brachydium.api.handlers.RecipeEnergyLogic;
+import brachy84.brachydium.api.blockEntity.trait.RecipeEnergyLogic;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.Textures;
 import brachy84.brachydium.gui.ModularGui;
 import brachy84.brachydium.gui.widgets.RootWidget;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class TieredWorkableTile extends  WorkableTileEntity implements ITiered {
+public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
 
     private final int tier;
-    private IEnergyContainer2 energyContainer;
+    private final IEnergyContainer2 energyContainer;
 
     public TieredWorkableTile(RecipeTable<?> recipeTable, int tier) {
         super(recipeTable);
@@ -23,11 +23,20 @@ public class TieredWorkableTile extends  WorkableTileEntity implements ITiered {
         energyContainer = new EnergyContainer2Handler(this, (long) Math.pow(2, tier) * 8, (long) Math.pow(2, tier), true);
     }
 
+    /*@Override
+    public TileEntity createCopy(BlockEntityHolder holder) {
+        return new TieredWorkableTile(getRecipeTable(), tier);
+    }*/
+
     @Override
-    public RenderTrait createBaseRenderer() {
-        return new RenderTrait(this, Textures.MACHINECASING[tier]);
+    public @NotNull TileEntityFactory<?> createFactory() {
+        return new TileEntityFactory<>(this, tile -> new TieredWorkableTile(tile.getRecipeTable(), tile.getTier()));
     }
 
+    @Override
+    public TileEntityRenderer createBaseRenderer() {
+        return TileEntityRenderer.create(this, Textures.MACHINECASING[tier]);
+    }
 
     @Override
     protected @NotNull AbstractRecipeLogic createWorkable(RecipeTable<?> recipeTable) {
@@ -42,6 +51,7 @@ public class TieredWorkableTile extends  WorkableTileEntity implements ITiered {
     @Override
     public @NotNull ModularGui createUi(PlayerEntity player) {
         RootWidget.Builder builder = RootWidget.builder();
+        builder.bindPlayerInventory(player.getInventory());
         getRecipeTable().createUITemplate(() -> getWorkable().getProgressPercent(), builder, getInventories().getImportItems(), getInventories().getExportItems(), getInventories().getImportFluids(), getInventories().getExportFluids());
         return new ModularGui(builder.build(), getHolder(), player);
     }
@@ -49,12 +59,5 @@ public class TieredWorkableTile extends  WorkableTileEntity implements ITiered {
     @Override
     public int getTier() {
         return tier;
-    }
-
-    @Override
-    public ItemStack asStack() {
-        ItemStack item = new ItemStack(asItem());
-        ((IntBlockEntityGroup)getGroup()).writeNbt(item.getOrCreateTag(), tier);
-        return item;
     }
 }

@@ -138,7 +138,7 @@ public class SingleItemSlot implements Slot<ItemKey> {
         ItemStack stack = getStack(null);
         StringBuilder builder = new StringBuilder("[");
         builder.append(stack.getItem().toString());
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if(tag != null && !tag.isEmpty()) {
             builder.append(' ').append(tag);
         }

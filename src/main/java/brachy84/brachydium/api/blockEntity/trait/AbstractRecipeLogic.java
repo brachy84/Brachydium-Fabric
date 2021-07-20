@@ -1,8 +1,11 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.blockEntity.trait;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.*;
+import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
+import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.handlers.InventoryHelper;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.recipe.Recipe;

@@ -2,11 +2,22 @@ package brachy84.brachydium.api.blockEntity;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
+import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
+import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
+import brachy84.brachydium.api.blockEntity.trait.TileTrait;
+import brachy84.brachydium.api.cover.Cover;
+import brachy84.brachydium.api.cover.CoverableApi;
+import brachy84.brachydium.api.cover.ICoverable;
+import brachy84.brachydium.api.handlers.ApiHolder;
 import brachy84.brachydium.gui.api.IUIHolder;
+import brachy84.brachydium.gui.wrapper.UIFactory;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -23,29 +34,75 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public abstract class TileEntity implements IUIHolder {
+public abstract class TileEntity extends ApiHolder implements IUIHolder, IOrientable, ICoverable {
 
-    private BlockEntityGroup<?> group;
+    @Nullable
+    public static TileEntity getOf(BlockEntity blockEntity) {
+        if (blockEntity instanceof BlockEntityHolder)
+            return ((BlockEntityHolder) blockEntity).getActiveTileEntity();
+        return null;
+    }
+
+    @Nullable
+    public static TileEntity getOf(World world, BlockPos pos) {
+        BlockEntityHolder holder = BlockEntityHolder.getOf(world, pos);
+        if (holder == null) return null;
+        return holder.getActiveTileEntity();
+    }
+
+    private TileEntityFactory<?> factory;
+    private TileEntityGroup<?> group;
     private BlockEntityHolder holder;
     private final Map<String, TileTrait> traits = new HashMap<>();
     private Direction frontFacing;
     private InventoryHolder inventories;
     private final List<Runnable> onAttachListener = new ArrayList<>();
-    private final List<RenderTrait> renderTraits = new ArrayList<>();
+    private final List<TileEntityRenderer> tileEntityRenderers = new ArrayList<>();
+    private final EnumMap<Direction, Cover> coverMap = new EnumMap<>(Direction.class);
 
     protected TileEntity() {
+        this.frontFacing = Direction.NORTH;
+        for (Direction direction : Direction.values()) {
+            coverMap.put(direction, null);
+        }
     }
 
-    public static TileEntity ofStack(ItemStack stack) {
-        if(!(stack.getItem() instanceof BlockMachineItem))
-            throw new IllegalArgumentException("Item is not BlockMachineItem");
-        if(!stack.hasTag())
-            throw new IllegalArgumentException("Can't get TileEntity with a null tag");
-        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getTag());
+    @ApiStatus.Internal
+    protected final TileEntityFactory<?> createAndSetFactory() {
+        setFactory(createFactory());
+        return this.factory;
+    }
+
+    @ApiStatus.Internal
+    protected final void setFactory(TileEntityFactory<?> factory) {
+        this.factory = Objects.requireNonNull(factory);
     }
 
     /**
-     * Gets called when the tiles group builds
+     * This creates a new instance of this tile entity when it's placed
+     * <b>IMPORTANT:</b> override it in <b>EVERY</b> non abstract class to avoid issues
+     * <p> example
+     * {@code return new TileFactory<>(this, tile -> new TileEntity());}
+     *
+     * @return a tile factory
+     */
+    public abstract @NotNull TileEntityFactory<?> createFactory();
+
+    public TileEntityFactory<?> getFactory() {
+        return factory;
+    }
+
+    public static TileEntity ofStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockMachineItem))
+            throw new IllegalArgumentException("Item is not BlockMachineItem");
+        if (!stack.hasNbt())
+            throw new IllegalArgumentException("Can't get TileEntity with a null tag");
+        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getNbt()).getOriginal();
+    }
+
+    /**
+     * Gets called when a new TileEntity is created
+     * It's basically a late constructor
      */
     @ApiStatus.Internal
     public void setUp() {
@@ -66,8 +123,8 @@ public abstract class TileEntity implements IUIHolder {
     public void addTrait(TileTrait trait) {
         Objects.requireNonNull(trait);
         traits.put(trait.getName(), trait);
-        if (trait instanceof RenderTrait) {
-            renderTraits.add((RenderTrait) trait);
+        if (trait instanceof TileEntityRenderer) {
+            tileEntityRenderers.add((TileEntityRenderer) trait);
         }
     }
 
@@ -96,12 +153,46 @@ public abstract class TileEntity implements IUIHolder {
         return null;
     }
 
+    /**
+     * @param name of the trait
+     * @return if the tile has a trait with name
+     */
     public boolean hasTrait(String name) {
         return findTrait(name) != null;
     }
 
+    /**
+     * @param clazz class of the trait
+     * @param <T>   type of the trait
+     * @return if the tile has a trait that is an instance of clazz
+     */
     public <T extends TileTrait> boolean hasTrait(Class<T> clazz) {
         return getTrait(clazz) != null;
+    }
+
+    @Override
+    public Set<BlockApiLookup<Object, Object>> getLookups() {
+        Set<BlockApiLookup<Object, Object>> lookups = new HashSet<>(super.getLookups());
+        for (TileTrait trait : traits.values()) {
+            lookups.addAll(trait.getLookups());
+        }
+        return lookups;
+    }
+
+    @Override
+    public <A, C> A getApiProvider(BlockApiLookup<A, C> apiLookup, World world, BlockPos pos, BlockState state, @Nullable BlockEntity blockEntity, C context) {
+        A api = super.getApiProvider(apiLookup, world, pos, state, blockEntity, context);
+        if (api != null) return api;
+        for (TileTrait trait : traits.values()) {
+            api = trait.getApiProvider(apiLookup, world, pos, state, blockEntity, context);
+            if (api != null) return api;
+        }
+        return null;
+    }
+
+    @Override
+    public void registerApis() {
+        registerApi(CoverableApi.LOOKUP, this);
     }
 
     public void addApis() {
@@ -124,16 +215,16 @@ public abstract class TileEntity implements IUIHolder {
     public void onDetach() {
     }
 
-    public abstract RenderTrait createBaseRenderer();
+    public abstract TileEntityRenderer createBaseRenderer();
 
     public void render(QuadEmitter emitter) {
-        for (RenderTrait renderTrait : renderTraits) {
-            renderTrait.onRender(emitter);
+        for (TileEntityRenderer tileEntityRenderer : tileEntityRenderers) {
+            tileEntityRenderer.onRender(emitter);
         }
-        /*
-        for(Renderer renderer : renderers) {
-            renderer.render(emitter, frontFacing);
-        }*/
+    }
+
+    public boolean isTicking() {
+        return true;
     }
 
     public void tick() {
@@ -141,23 +232,30 @@ public abstract class TileEntity implements IUIHolder {
             if (shouldTick(trait))
                 trait.tick();
         });
+        for (Direction direction : Direction.values()) {
+            Cover cover = getCover(direction);
+            if (cover != null && cover.isTicking())
+                cover.tick();
+        }
     }
 
     public boolean shouldTick(TileTrait trait) {
-        return !(trait instanceof RenderTrait);
+        return !(trait instanceof TileEntityRenderer);
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(!isClient()) {
-            TileEntityUIFactory.INSTANCE.openUI(getHolder(), (ServerPlayerEntity) player);
+        if (player instanceof ServerPlayerEntity) {
+            UIFactory.openUI(getHolder(), (ServerPlayerEntity) player);
+            return ActionResult.SUCCESS;
+            //TileEntityUIFactory.INSTANCE.openUI(getHolder(), (ServerPlayerEntity) player);
         }
         return ActionResult.PASS;
     }
 
     public NbtCompound serializeTag() {
         NbtCompound tag = new NbtCompound();
-        Brachydium.LOGGER.info("Saving facing: " + getFrontFacing().getId());
-        tag.putInt("front", getFrontFacing().getId());
+        Brachydium.LOGGER.info("Saving facing: " + getFrontFace().getId());
+        tag.putInt("front", getFrontFace().getId());
 
         NbtCompound traitTag = new NbtCompound();
         for (TileTrait trait : traits.values()) {
@@ -166,13 +264,14 @@ public abstract class TileEntity implements IUIHolder {
                 traitTag.put(trait.getName(), tag1);
         }
         tag.put("MBETraits", traitTag);
+        tag.put("Covers", serializeCovers());
 
         return tag;
     }
 
     public void deserializeTag(NbtCompound tag) {
         Direction facing = Direction.byId(tag.getInt("front"));
-        setFrontFacing(facing);
+        setFrontFace(facing);
         NbtCompound traitTag = tag.getCompound("MBETraits");
         for (String key : traitTag.getKeys()) {
             TileTrait trait = findTrait(key);
@@ -180,6 +279,27 @@ public abstract class TileEntity implements IUIHolder {
                 trait.deserializeTag(traitTag.getCompound(key));
             }
         }
+        deserializeCovers(tag.getCompound("Covers"));
+    }
+
+    @Override
+    public @Nullable Cover getCover(Direction direction) {
+        return coverMap.get(direction);
+    }
+
+    @Override
+    public boolean canPlaceCover(Cover cover, Direction face) {
+        return face != getFrontFace();
+    }
+
+    @Override
+    public void placeCover(Cover cover, Direction side) {
+        coverMap.put(side, Objects.requireNonNull(cover));
+    }
+
+    @Override
+    public void removeCover(Direction side) {
+        coverMap.remove(side);
     }
 
     public InventoryHolder getInventories() {
@@ -196,9 +316,7 @@ public abstract class TileEntity implements IUIHolder {
         this.holder = holder;
     }
 
-    public boolean isActive() {
-        return false;
-    }
+    public abstract boolean isActive();
 
     @Nullable
     public World getWorld() {
@@ -216,12 +334,12 @@ public abstract class TileEntity implements IUIHolder {
             return getWorld().isClient();
     }
 
-    public Direction getFrontFacing() {
-        if (frontFacing == null) setFrontFacing(Direction.NORTH);
+    public Direction getFrontFace() {
+        if (frontFacing == null) setFrontFace(Direction.NORTH);
         return frontFacing;
     }
 
-    public void setFrontFacing(Direction frontFacing) {
+    public void setFrontFace(Direction frontFacing) {
         this.frontFacing = frontFacing;
     }
 
@@ -229,19 +347,19 @@ public abstract class TileEntity implements IUIHolder {
         return holder.getGroup().getType();
     }
 
-    public BlockEntityGroup<?> getGroup() {
+    public TileEntityGroup<?> getGroup() {
         return group;
     }
 
     @ApiStatus.Internal
-    public final void setGroup(BlockEntityGroup<?> group) {
+    protected final void setGroup(TileEntityGroup<?> group) {
         if (this.group != null) {
             throw new ConcurrentModificationException("The group of TileEntity can only be set once!");
         }
         this.group = group;
     }
 
-    public Item asItem() {
+    public BlockItem asItem() {
         return group.getItem();
     }
 
@@ -255,7 +373,8 @@ public abstract class TileEntity implements IUIHolder {
      */
     public ItemStack asStack(int amount) {
         ItemStack item = new ItemStack(asItem(), amount);
-        getGroup().writeTileNbt(item.getOrCreateTag(), this);
+        if (factory == null) return item;
+        getGroup().writeTileNbt(item.getOrCreateNbt(), factory);
         return item;
     }
 }

@@ -13,6 +13,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
+import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 public class RootWidget extends ParentWidget {
 
+    @Deprecated
     private final CursorSlotWidget cursorSlot;
 
     private RootWidget(BackgroundWidget background, BiMap<Integer, Widget> children) {
@@ -37,10 +39,10 @@ public class RootWidget extends ParentWidget {
     public void onInit() {
         super.onInit();
         background.setGui(gui);
-        cursorSlot.setGui(gui);
-        gui.addSyncedWidget(cursorSlot);
-        cursorSlot.setLayer(1);
-        cursorSlot.onInit();
+        //cursorSlot.setGui(gui);
+        //gui.addSyncedWidget(cursorSlot);
+        //cursorSlot.setLayer(1);
+        //cursorSlot.onInit();
         background.onInit();
     }
 
@@ -56,7 +58,7 @@ public class RootWidget extends ParentWidget {
     public void render(MatrixStack matrices, Point mousePos, float delta) {
         background.render(matrices, mousePos, delta);
         super.render(matrices, mousePos, delta);
-        cursorSlot.render(matrices, mousePos, delta);
+        //cursorSlot.render(matrices, mousePos, delta);
     }
 
     @Override
@@ -68,18 +70,13 @@ public class RootWidget extends ParentWidget {
     public void drawForeground(MatrixStack matrices, Point mousePos, float delta) {
         super.drawForeground(matrices, mousePos, delta);
         background.drawForeground(matrices, mousePos, delta);
-        cursorSlot.drawForeground(matrices, mousePos, delta);
+        //cursorSlot.drawForeground(matrices, mousePos, delta);
     }
 
     @Override
     public void resize(Size screenSize) {
         super.resize(screenSize);
         background.setParentPosition(screenSize.getCenteringPointForChild(size));
-    }
-
-    @Nullable
-    public CursorSlotWidget getCursorSlot() {
-        return cursorSlot;
     }
 
     @Override
@@ -120,12 +117,13 @@ public class RootWidget extends ParentWidget {
             return widget(new DynamicLabelWidget(x, y, text, color));
         }
     */
-        public Builder itemSlot(Slot<ItemKey> itemSlot, Point point, String tag, TextureArea... overlays) {
-            return itemSlot(itemSlot, false, point, tag, overlays);
+
+        public Builder itemSlot(ArrayParticipant<ItemKey> inv, int index, Point point, String tag, TextureArea... overlays) {
+            return widget(new ItemSlotWidget(inv, index, point).setTag(tag).setBackgroundSprites(overlays));
         }
 
-        public Builder itemSlot(Slot<ItemKey> itemSlot, boolean isOutput, Point point, String tag, TextureArea... overlays) {
-            return widget(new ItemSlotWidget(itemSlot, point, isOutput).setTag(tag).setBackgroundSprites(overlays));
+        public Builder itemSlot(ArrayParticipant<ItemKey> inv, int index, boolean canInsert, Point point, String tag, TextureArea... overlays) {
+            return widget(new ItemSlotWidget(inv, index, point).setInsertable(canInsert).setTag(tag).setBackgroundSprites(overlays));
         }
 
         public Builder fluidSlot(Slot<Fluid> fluidSlot, Point point, String tag, TextureArea... overlays) {
@@ -150,7 +148,7 @@ public class RootWidget extends ParentWidget {
                 for (int col = 0; col < 9; col++) {
                     int index = col + (row + 1) * 9;
                     //itemSlot(inv.getSlots().get(index), point);
-                    widget(new ItemSlotWidget(inv.getSlots().get(index), point)
+                    widget(new ItemSlotWidget(inv, index, point)
                             .setTag(SlotTags.PLAYER)
                     );
                     point.translate(18, 0); // move point 18 pixels to the right
@@ -166,7 +164,7 @@ public class RootWidget extends ParentWidget {
 
         public Builder bindPlayerHotbar(PlayerInventoryParticipant inv, Point point) {
             for (int slot = 0; slot < 9; slot++) {
-                widget(new ItemSlotWidget(inv.getSlots().get(slot), point)
+                widget(new ItemSlotWidget(inv, slot, point)
                         .setTag(SlotTags.HOTBAR)
                 );
                 point.translate(18, 0); // move point 18 pixels to the right

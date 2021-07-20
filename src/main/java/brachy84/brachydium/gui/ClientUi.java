@@ -9,7 +9,9 @@ import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.screenhandler.v1.ScreenRegistry;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.screen.ScreenHandler;
 import org.jetbrains.annotations.Nullable;
@@ -22,16 +24,19 @@ public class ClientUi {
             return new ModularGuiHandledScreen(screenHandler, inv);
         });
 
-        ClientPlayNetworking.registerGlobalReceiver(UIFactory.UI_SYNC_ID, (client, handler, buf, responseSender) -> {
-            UIFactory.SyncPacket.read(buf);
-        });
-
-        ClientPlayNetworking.registerGlobalReceiver(Networking.WIDGET_UPDATE, ((client, handler, buf, responseSender) -> {
+        ClientPlayNetworking.registerGlobalReceiver(Networking.WIDGET_UPDATE, (client, handler, buf, responseSender) -> {
             ISyncedWidget syncedWidget = getSyncedWidget(buf);
             if(syncedWidget != null) {
                 syncedWidget.receiveData(buf);
             }
-        }));
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(Networking.SYNC_CURSOR, (client, handler, buf, responseSender) -> {
+            /*ItemStack stack = buf.readItemStack();
+            if(client.currentScreen instanceof ModularGuiHandledScreen) {
+                ((ModularGuiHandledScreen) client.currentScreen).getGui().getCursorSlot().setResource(stack);
+            }*/
+        });
     }
 
     @Nullable

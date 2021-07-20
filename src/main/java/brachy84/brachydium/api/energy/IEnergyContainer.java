@@ -1,9 +1,23 @@
 package brachy84.brachydium.api.energy;
 
-public interface IEnergyContainer extends IPrimitiveEnergyContainer{
+import io.github.astrarre.transfer.v0.api.transaction.Transaction;
+import org.jetbrains.annotations.Nullable;
 
-    long getInputVoltage();
+public interface IEnergyContainer {
 
-    long getOutputVoltage();
+    long getCapacity();
+
+    long getStored();
+
+    /**
+     * This will be called every time on insertion and extraction
+     * see {@link EnergyPacket}
+     * @return energy packet
+     */
+    EnergyPacket createPacket();
+
+    long insert(@Nullable Transaction transaction, long amount);
+
+    long extract(@Nullable Transaction transaction, long amount);
 
 }

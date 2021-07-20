@@ -56,6 +56,7 @@ public class ItemInventory implements ArrayParticipant<ItemKey>, InventoryListen
         return new ItemInventory(tanks, true, false);
     }
 
+    @Override
     public void addListener(Runnable runnable) {
         items.onApply(runnable);
     }

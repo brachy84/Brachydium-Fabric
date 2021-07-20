@@ -18,8 +18,8 @@ import java.util.stream.Collectors;
 @Environment(EnvType.CLIENT)
 public class ReiCompat implements REIClientPlugin {
 
-    public static Identifier category(RecipeTable<?> recipeTable) {
-        return Brachydium.id(recipeTable.unlocalizedName + "_recipes");
+    public static CategoryIdentifier<RecipeTableDisplay> category(RecipeTable<?> recipeTable) {
+        return CategoryIdentifier.of(Brachydium.id(recipeTable.unlocalizedName + "_recipes"));
     }
 
     public Identifier getPluginIdentifier() {
@@ -29,8 +29,7 @@ public class ReiCompat implements REIClientPlugin {
     @Override
     public void registerCategories(CategoryRegistry registry) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            CategoryIdentifier<RecipeTableDisplay> id = CategoryIdentifier.of(category(recipeTable));
-            registry.addWorkstations(id, EntryIngredients.ofItemStacks(recipeTable.getTileItems().stream().map(ItemStack::new).collect(Collectors.toList())));
+            registry.addWorkstations(category(recipeTable), EntryIngredients.ofItemStacks(recipeTable.getTileItems()));
             registry.add(new RecipeTableCategory(recipeTable));
         }
     }

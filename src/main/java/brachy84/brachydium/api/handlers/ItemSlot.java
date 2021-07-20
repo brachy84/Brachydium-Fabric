@@ -36,7 +36,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if ((!supportsInsertion() && transaction == null) || quantity <= 0) {
+        if (quantity <= 0) {
             return 0;
         }
 
@@ -57,7 +57,6 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<ItemKey> insertable) {
-        if(!supportsExtraction() && transaction == null) return;
         ItemStack stack = getStack(transaction);
         if(stack.isEmpty()) return;
         int oldLevel = stack.getCount();
@@ -71,7 +70,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if ((!supportsExtraction() && transaction == null) || quantity <= 0) {
+        if (quantity <= 0) {
             return 0;
         }
         if (type.equals(this.getKey(transaction))) {
@@ -82,7 +81,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public int extract(@Nullable Transaction transaction, int quantity) {
-        if((!supportsExtraction() && transaction == null) || quantity == 0) {
+        if(quantity == 0) {
             return 0;
         }
         int toTake = Math.min(quantity, this.getQuantity(transaction));
@@ -137,7 +136,7 @@ public class ItemSlot implements Slot<ItemKey> {
         ItemStack stack = getStack(null);
         StringBuilder builder = new StringBuilder("[");
         builder.append(stack.getItem().toString());
-        NbtCompound tag = stack.getTag();
+        NbtCompound tag = stack.getNbt();
         if(tag != null && !tag.isEmpty()) {
             builder.append(' ').append(tag);
         }

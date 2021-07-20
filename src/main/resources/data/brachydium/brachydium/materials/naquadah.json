@@ -1,0 +1,20 @@
+{
+  "color": 1,
+  "flags": [
+    "gear",
+    "plate",
+    "molten"
+  ],
+  "element": "Al",
+  "components": [
+    "copper;2",
+    {
+      "material": "aluminium",
+      "count": 3
+    }
+  ],
+  "type": "ITEM",
+  "miningLevel": 2,
+  "hardness": 2.0,
+  "resistance": 4.0
+}

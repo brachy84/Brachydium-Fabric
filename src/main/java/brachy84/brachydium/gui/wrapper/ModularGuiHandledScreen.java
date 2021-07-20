@@ -20,6 +20,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.screen.slot.Slot;
+import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.LiteralText;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,10 +33,10 @@ import java.util.stream.Collectors;
 @Environment(EnvType.CLIENT)
 public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler> {
 
-    private IUIHolder uiHolder;
-    private PlayerEntity player;
+    private final IUIHolder uiHolder;
+    private final PlayerEntity player;
     private Interactable focused;
-    private ModularGui gui;
+    private final ModularGui gui;
     private List<Interactable> interactables = new ArrayList<>();
     private GuiHelperImpl guiHelper;
     private float delta;
@@ -43,13 +45,12 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
         super(screenHandler, inventory, new LiteralText("H"));
         this.uiHolder = screenHandler.getUiHolder();
         this.player = inventory.player;
-        this.gui = uiHolder.createUi(inventory.player);
+        this.gui = screenHandler.getGui();
 
         this.guiHelper = new GuiHelperImpl(new MatrixStack());
         this.guiHelper.setZOffset(-1);
         setZOffset(guiHelper.getZOffset());
 
-        gui.initWidgets();
         initializeInteractables();
     }
 
@@ -134,6 +135,11 @@ public class ModularGuiHandledScreen extends HandledScreen<ModularScreenHandler>
     @Nullable
     public Interactable getFocusedWidget() {
         return focused;
+    }
+
+    @Override
+    protected void onMouseClick(Slot slot, int slotId, int button, SlotActionType actionType) {
+        super.onMouseClick(slot, slotId, button, actionType);
     }
 
     @Override

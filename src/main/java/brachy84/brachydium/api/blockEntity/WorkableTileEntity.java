@@ -1,9 +1,8 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.api.handlers.AbstractRecipeLogic;
-import brachy84.brachydium.api.handlers.RecipeEnergyLogic;
+import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
+import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class WorkableTileEntity extends TileEntity {

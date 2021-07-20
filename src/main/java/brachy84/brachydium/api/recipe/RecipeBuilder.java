@@ -196,15 +196,15 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     protected boolean validate() {
-        boolean matchesII, matchesIO, matchesFI, matchesFO;
-        matchesII = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
-        if(!matchesII) return false;
-        matchesIO = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
-        if(!matchesIO) return false;
-        matchesFI = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
-        if(!matchesFI) return false;
-        matchesFO = fluidOutputs.size() >= recipeTable.getMinFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
-        if(!matchesFO) return false;
+        boolean matches;
+        matches = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
+        if(!matches) return false;
+        matches = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
+        if(!matches) return false;
+        matches = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
+        if(!matches) return false;
+        matches = fluidOutputs.size() >= recipeTable.getMinFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
+        if(!matches) return false;
 
         return EUt != 0 && duration > 0;
     }

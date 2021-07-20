@@ -1,5 +1,6 @@
 package brachy84.brachydium.compat.rei;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.recipe.Recipe;
@@ -12,17 +13,18 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RecipeTableDisplay implements Display {
 
-    private Identifier category;
-    private Recipe recipe;
+    private final CategoryIdentifier<RecipeTableDisplay> category;
+    private final Recipe recipe;
 
-    public RecipeTableDisplay(Recipe recipe, Identifier category) {
-        this.category = category;
-        this.recipe = recipe;
+    public RecipeTableDisplay(Recipe recipe, CategoryIdentifier<RecipeTableDisplay> category) {
+        this.category = Objects.requireNonNull(category);
+        this.recipe = Objects.requireNonNull(recipe);
     }
 
     @Override
@@ -43,10 +45,11 @@ public class RecipeTableDisplay implements Display {
 
     @Override
     public CategoryIdentifier<?> getCategoryIdentifier() {
-        return CategoryIdentifier.of(category);
+        return category;
     }
 
     public Stream<EntryIngredient> getItemInputs() {
+        Brachydium.LOGGER.info("Get item inputs with size {}", recipe.getInputs().size());
         return recipe.getInputs().stream().map(CountableIngredient::toEntryStack);
     }
 

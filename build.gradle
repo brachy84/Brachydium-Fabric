@@ -20,10 +20,6 @@ repositories {
 		name = "BuildCraft"
 		url = "https://mod-buildcraft.com/maven"
 	}*/
-	// ARRP
-	maven {
-		url = 'https://raw.githubusercontent.com/Devan-Kerman/Devan-Repo/master/'
-	}
 	// Astarre
 	maven {
 		url "https://storage.googleapis.com/devan-maven/"
@@ -43,11 +39,11 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
-	modRuntime "me.shedaniel:RoughlyEnoughItems-runtime-fabric:${project.rei_version}"
+	modImplementation "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+	//modRuntime "me.shedaniel:RoughlyEnoughItems-runtime-fabric:${project.rei_version}"
 	//modCompile "alexiil.mc.lib:libmultipart-base:${project.libmultipart_version}"
 	//modCompile "alexiil.mc.lib:libblockattributes-all:0.8.4"
-	modImplementation group: 'net.devtech', name: 'arrp', version: project.arrp_version
+	include(modImplementation("net.devtech:arrp:${project.arrp_version}"))
 
 	modCompileOnly "mcp.mobius.waila:wthit-api:fabric-${project.wthit_version}"
 
@@ -56,7 +52,7 @@ dependencies {
 	include(modImplementation('io.github.astrarre:astrarre-access-v0-fabric:1.6.1'))
 	include('io.github.astrarre:astrarre-util-v0-fabric:1.2.0')
 	include('io.github.astrarre:astrarre-itemview-v0-fabric:1.2.0')
-	modImplementation 'io.github.astrarre:astrarre-transfer-v0-fabric:1.5.15'
+	include(modImplementation('io.github.astrarre:astrarre-transfer-v0-fabric:1.5.15'))
 	include('io.github.astrarre:astrarre-transfer-compat-v0-fabric:0.5.15');
 
 	//modImplementation "libs/worldmesher-0.1-sources-dev.jar"

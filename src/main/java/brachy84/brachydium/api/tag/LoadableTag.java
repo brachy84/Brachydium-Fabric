@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.tag;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.material.Material;
 import com.google.common.collect.Maps;
 import net.minecraft.item.Item;
@@ -9,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class LoadableTag {
 
@@ -29,9 +31,8 @@ public class LoadableTag {
         }
     }
 
-    private Identifier id;
+    private final Identifier id;
     private Tag<Item> tag;
-    private boolean loaded = false;
 
     public static LoadableTag getOrCreate(Identifier id) {
         LoadableTag tag = get(id);
@@ -50,7 +51,7 @@ public class LoadableTag {
     }
 
     private LoadableTag(Identifier id) {
-        this.id = id;
+        this.id = Objects.requireNonNull(id);
         Map<String, LoadableTag> map = new HashMap<>();
         if(tags.containsKey(id.getNamespace())) {
             map = tags.get(id.getNamespace());
@@ -70,16 +71,22 @@ public class LoadableTag {
     }
 
     public void load() {
+        Brachydium.LOGGER.info("Loading tag {}", id);
         tag = Tags.of(id);
-        loaded = tag != null;
+        if(tag == null)
+            Brachydium.LOGGER.error(" - Epic load fail");
     }
 
     public Tag<Item> getTag() {
         return tag;
     }
 
+    public Identifier getId() {
+        return id;
+    }
+
     public boolean isLoaded() {
-        return loaded;
+        return tag != null;
     }
 
     @Nullable

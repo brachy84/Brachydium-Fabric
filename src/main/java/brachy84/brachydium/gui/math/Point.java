@@ -35,8 +35,16 @@ public class Point {
         return new Point(x + p.x, y + p.y);
     }
 
+    public Point add(float x, float y) {
+        return new Point(x + this.x, y + this.y);
+    }
+
     public Point subtract(Point p) {
         return new Point(x - p.x, y - p.y);
+    }
+
+    public Point subtract(float x, float y) {
+        return new Point(this.x - x, this.y - y);
     }
 
     public void move(float x, float y) {
