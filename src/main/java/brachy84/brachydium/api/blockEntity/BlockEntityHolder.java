@@ -1,8 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.gui.ModularGui;
-import brachy84.brachydium.gui.api.IUIHolder;
-import brachy84.brachydium.gui.widgets.RootWidget;
+import brachy84.brachydium.gui.internal.Gui;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
@@ -21,12 +19,13 @@ import java.util.Objects;
  * A BLockEntity which can hold a TileEntity of a BlockEntityGroup
  * see also: {@link TileEntity}, {@link TileEntityGroup}
  */
-public class BlockEntityHolder extends BlockEntity implements BlockEntityClientSerializable, IUIHolder {
+public class BlockEntityHolder extends BlockEntity implements BlockEntityClientSerializable {
 
     @Nullable
     public static BlockEntityHolder getOf(World world, BlockPos pos) {
+        if (world == null || pos == null) return null;
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if(blockEntity instanceof BlockEntityHolder)
+        if (blockEntity instanceof BlockEntityHolder)
             return (BlockEntityHolder) blockEntity;
         return null;
     }
@@ -97,7 +96,7 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         return id;
     }
 
-    @Override
+
     public boolean hasUI() {
         if (currentTile != null) {
             return currentTile.hasUI();
@@ -105,12 +104,11 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         return false;
     }
 
-    @Override
-    public @NotNull ModularGui createUi(PlayerEntity player) {
+    public @NotNull Gui createUi(PlayerEntity player) {
         if (currentTile != null) {
             return currentTile.createUi(player);
         }
-        return new ModularGui(RootWidget.builder().build(), this, player);
+        return Gui.defaultBuilder(player).build();
     }
 
     @Override
@@ -122,7 +120,7 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
 
     @Override
     public NbtCompound toClientTag(NbtCompound tag) {
-        if(currentTile == null) return tag;
+        if (currentTile == null) return tag;
         group.writeTileNbt(tag, currentFactory);
         tag.putInt("dir", currentTile.getFrontFace().getId());
         return tag;

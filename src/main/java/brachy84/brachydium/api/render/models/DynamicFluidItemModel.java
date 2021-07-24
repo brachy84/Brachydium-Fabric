@@ -1,8 +1,7 @@
 package brachy84.brachydium.api.render.models;
 
 import brachy84.brachydium.api.fluid.SimpleFluidRenderer;
-import brachy84.brachydium.api.render.models.ModelHelper;
-import brachy84.brachydium.gui.math.Color;
+import brachy84.brachydium.gui.api.math.Color;
 import io.github.astrarre.transfer.internal.mixin.BucketItemAccess_AccessFluid;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;

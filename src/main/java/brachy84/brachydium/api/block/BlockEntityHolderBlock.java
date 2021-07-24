@@ -82,12 +82,9 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     @SuppressWarnings("deprecation")
     @Override
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof BlockEntityHolder) {
-            TileEntity tile = ((BlockEntityHolder) blockEntity).getActiveTileEntity();
-            if (tile != null) {
-                return tile.onUse(state, world, pos, player, hand, hit);
-            }
+        TileEntity tile = TileEntity.getOf(world, pos);
+        if (tile != null) {
+            return tile.onUse(state, world, pos, player, hand, hit);
         }
         return ActionResult.PASS;
     }

@@ -11,7 +11,7 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
-
+	mavenCentral()
 	// REI
 	maven { url "https://maven.shedaniel.me/" }
 
@@ -28,6 +28,9 @@ repositories {
 	maven {
 		url "https://bai.jfrog.io/artifactory/maven"
 	}
+	maven {
+		url "https://repo.repsy.io/mvn/brachy84/brachydium-gui"
+	}
 }
 
 dependencies {
@@ -38,6 +41,8 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	include modImplementation('brachy84:brachydium-gui:0.0.2')
 
 	modImplementation "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
 	//modRuntime "me.shedaniel:RoughlyEnoughItems-runtime-fabric:${project.rei_version}"

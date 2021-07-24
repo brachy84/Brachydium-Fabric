@@ -8,7 +8,6 @@ import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.resource.ModelProvider;
 import brachy84.brachydium.api.resource.ResourceProvider;
 import brachy84.brachydium.api.resource.VariantProvider;
-import brachy84.brachydium.gui.ClientUi;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -28,7 +27,6 @@ public class BrachydiumClient implements ClientModInitializer {
         ModelLoadingRegistry.INSTANCE.registerModelProvider(new ModelProvider());
         ModelLoadingRegistry.INSTANCE.registerResourceProvider(ResourceProvider::new);
         ModelLoadingRegistry.INSTANCE.registerVariantProvider(VariantProvider::new);
-        ClientUi.init();
 
         ClientPlayNetworking.registerGlobalReceiver(Channels.UPDATE_WORKING_STATE, ((client, handler, buf, responseSender) -> {
             BlockPos pos = buf.readBlockPos();

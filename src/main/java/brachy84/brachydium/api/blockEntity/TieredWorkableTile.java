@@ -1,14 +1,15 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
+import brachy84.brachydium.api.blockEntity.trait.RecipeEnergyLogic;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
-import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.handlers.EnergyContainer2Handler;
-import brachy84.brachydium.api.blockEntity.trait.RecipeEnergyLogic;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.Textures;
-import brachy84.brachydium.gui.ModularGui;
-import brachy84.brachydium.gui.widgets.RootWidget;
+import brachy84.brachydium.gui.api.math.Alignment;
+import brachy84.brachydium.gui.api.math.EdgeInset;
+import brachy84.brachydium.gui.internal.Gui;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,11 +50,10 @@ public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
     }
 
     @Override
-    public @NotNull ModularGui createUi(PlayerEntity player) {
-        RootWidget.Builder builder = RootWidget.builder();
-        builder.bindPlayerInventory(player.getInventory());
+    public @NotNull Gui createUi(PlayerEntity player) {
+        Gui.Builder builder = Gui.defaultBuilder(player).bindPlayerInventory(EdgeInset.bottom(7), Alignment.BottomCenter);
         getRecipeTable().createUITemplate(() -> getWorkable().getProgressPercent(), builder, getInventories().getImportItems(), getInventories().getExportItems(), getInventories().getImportFluids(), getInventories().getExportFluids());
-        return new ModularGui(builder.build(), getHolder(), player);
+        return builder.build();
     }
 
     @Override

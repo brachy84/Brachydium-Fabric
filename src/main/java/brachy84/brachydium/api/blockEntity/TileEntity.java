@@ -8,9 +8,10 @@ import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.cover.Cover;
 import brachy84.brachydium.api.cover.CoverableApi;
 import brachy84.brachydium.api.cover.ICoverable;
+import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
-import brachy84.brachydium.gui.api.IUIHolder;
-import brachy84.brachydium.gui.wrapper.UIFactory;
+import brachy84.brachydium.gui.api.UIHolder;
+import brachy84.brachydium.gui.internal.Gui;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.BlockState;
@@ -18,12 +19,11 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -34,7 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public abstract class TileEntity extends ApiHolder implements IUIHolder, IOrientable, ICoverable {
+public abstract class TileEntity extends ApiHolder implements UIHolder, IOrientable, ICoverable {
 
     @Nullable
     public static TileEntity getOf(BlockEntity blockEntity) {
@@ -244,12 +244,24 @@ public abstract class TileEntity extends ApiHolder implements IUIHolder, IOrient
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (player instanceof ServerPlayerEntity) {
-            UIFactory.openUI(getHolder(), (ServerPlayerEntity) player);
+        if(TileEntityUiFactory.INSTANCE.openUI(this, player)) {
             return ActionResult.SUCCESS;
-            //TileEntityUIFactory.INSTANCE.openUI(getHolder(), (ServerPlayerEntity) player);
         }
         return ActionResult.PASS;
+    }
+
+    public boolean hasUI() {
+        return true;
+    }
+
+    @NotNull
+    public Identifier getUiId() {
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @NotNull
+    public Gui createUi(PlayerEntity player) {
+        return Gui.defaultBuilder(player).build();
     }
 
     public NbtCompound serializeTag() {

@@ -3,7 +3,7 @@ package brachy84.brachydium.api.material;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.tag.TagDictionary;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
-import brachy84.brachydium.gui.math.Color;
+import brachy84.brachydium.gui.api.math.Color;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
 import net.fabricmc.api.EnvType;
@@ -322,7 +322,7 @@ public class Material {
         }
 
         public Builder color(int color) {
-            return color(Color.of(color));
+            return color(new Color(color));
         }
 
         public Builder color(int r, int g, int b) {

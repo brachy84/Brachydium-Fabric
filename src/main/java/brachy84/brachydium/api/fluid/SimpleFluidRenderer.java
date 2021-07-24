@@ -23,7 +23,7 @@
  */
 package brachy84.brachydium.api.fluid;
 
-import brachy84.brachydium.gui.math.AABB;
+import brachy84.brachydium.gui.api.math.AABB;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
 import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
 import net.minecraft.client.MinecraftClient;

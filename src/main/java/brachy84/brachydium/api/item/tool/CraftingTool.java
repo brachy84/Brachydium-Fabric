@@ -3,7 +3,7 @@ package brachy84.brachydium.api.item.tool;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.ItemGroups;
 import brachy84.brachydium.api.resource.RecipeItem;
-import brachy84.brachydium.gui.math.Color;
+import brachy84.brachydium.gui.api.math.Color;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.client.resource.language.I18n;
@@ -44,7 +44,7 @@ public class CraftingTool extends Item {
 
     @Override
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
-        if(group != ItemGroups.GENERAL) return;
+        if (group != ItemGroups.GENERAL) return;
         ItemStack stack = new ItemStack(this);
         NbtCompound tag = stack.getOrCreateNbt();
         tag.putInt("Color", Color.of(30, 60, 220).asInt());
