@@ -9,13 +9,6 @@ public interface IEnergyContainer {
 
     long getStored();
 
-    /**
-     * This will be called every time on insertion and extraction
-     * see {@link EnergyPacket}
-     * @return energy packet
-     */
-    EnergyPacket createPacket();
-
     long insert(@Nullable Transaction transaction, long amount);
 
     long extract(@Nullable Transaction transaction, long amount);
