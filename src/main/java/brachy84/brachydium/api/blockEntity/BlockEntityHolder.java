@@ -4,6 +4,7 @@ import brachy84.brachydium.gui.internal.Gui;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.Identifier;
@@ -96,6 +97,11 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         return id;
     }
 
+    public void scheduleRenderUpdate() {
+        if(world instanceof ClientWorld) {
+            ((ClientWorld) world).scheduleBlockRenders(pos.getX(), pos.getY(), pos.getZ());
+        }
+    }
 
     public boolean hasUI() {
         if (currentTile != null) {

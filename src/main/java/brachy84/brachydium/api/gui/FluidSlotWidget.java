@@ -1,44 +1,42 @@
 package brachy84.brachydium.api.gui;
 
-import brachy84.brachydium.api.fluid.Amounts;
-import brachy84.brachydium.api.fluid.BucketHelper;
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.handlers.SingleFluidTank;
+import brachy84.brachydium.api.handlers.storage.IFluidHandler;
 import brachy84.brachydium.gui.api.IDrawable;
 import brachy84.brachydium.gui.api.IGuiHelper;
+import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.math.Size;
 import brachy84.brachydium.gui.api.widgets.ResourceSlotWidget;
 import brachy84.brachydium.gui.internal.GuiHelper;
 import com.google.common.collect.Lists;
-import io.github.astrarre.transfer.internal.mixin.BucketItemAccess_AccessFluid;
-import io.github.astrarre.transfer.v0.api.Extractable;
-import io.github.astrarre.transfer.v0.api.Insertable;
-import io.github.astrarre.transfer.v0.api.participants.array.Slot;
-import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import me.shedaniel.rei.api.client.gui.widgets.Widget;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
 
     private static final Size SIZE = new Size(18, 18);
-    private final Slot<Fluid> fluidSlot;
+    private final IFluidHandler fluidHandler;
+    private final int index;
+    private byte mark;
 
-    public FluidSlotWidget(Slot<Fluid> fluidSlot, Pos2d point) {
-        this.fluidSlot = fluidSlot;
+    public FluidSlotWidget(IFluidHandler fluidHandler, int index, Pos2d pos) {
+        this.fluidHandler = Objects.requireNonNull(fluidHandler);
+        this.index = index;
+        setSize(SIZE);
+        setPos(pos);
     }
 
     @Override
@@ -63,13 +61,25 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
 
     @Override
     public FluidStack getResource() {
-        return new FluidStack(fluidSlot.getKey(Transaction.GLOBAL), fluidSlot.getQuantity(Transaction.GLOBAL));
+        return fluidHandler.getStackAt(index);
     }
 
     @Override
     public boolean setResource(FluidStack resource) {
-        return fluidSlot.set(Transaction.GLOBAL, resource.getFluid(), resource.getAmount());
+        fluidHandler.setStack(index, resource);
+        return true;
     }
+
+    /*public long insert(FluidStack stack, TransactionContext transactionContext) {
+        return fluidSlot.insert(FluidVariant.of(stack.getFluid(), stack.getNbt()), stack.getAmount(), transactionContext);
+    }
+
+    public FluidStack extract(long amount, TransactionContext transactionContext) {
+        FluidStack stack = getResource();
+        long extrcated = fluidSlot.extract(FluidVariant.of(stack.getFluid(), stack.getNbt()), amount, transactionContext);
+        if(extrcated == 0) return FluidStack.EMPTY;
+        return stack.copyWith((int) extrcated);
+    }*/
 
     private void setCursorStack(ItemStack stack) {
         getGui().setCursorStack(stack);
@@ -86,16 +96,26 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
 
     @Override
     public IDrawable getFallbackTexture() {
-        return null;
+        return GuiTextures.FLUID_SLOT;
     }
 
-    @Override
+    public FluidSlotWidget markInput() {
+        this.mark = 1;
+        return this;
+    }
+
+    public FluidSlotWidget markOutput() {
+        this.mark = 2;
+        return this;
+    }
+
+   /* @Override
     public ActionResult onClick(Pos2d pos, int buttonId, boolean isDoubleClick) {
         ItemStack cursorStack = getCursorStack();
 
         if (cursorStack.getCount() == 1 && cursorStack.getItem() instanceof BucketItemAccess_AccessFluid) {
             Fluid fluid = ((BucketItemAccess_AccessFluid) cursorStack.getItem()).getFluid();
-            if (fluid == Fluids.EMPTY && !fluidSlot.isEmpty(null)) {
+            if (fluid == Fluids.EMPTY && !isEmpty()) {
                 fillBucket(fluidSlot);
             } else if (fluid != Fluids.EMPTY) {
                 emptyBucket(cursorStack, fluidSlot);
@@ -146,18 +166,13 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
             }
         }
         return false;
-    }
+    }*/
 
     @Override
-    public void getReiWidgets(List<Widget> widgets) {
-        Pos2d reiPos = new Pos2d(0, 0);
+    public void getReiWidgets(List<Widget> widgets, AABB bounds, Pos2d reiPos) {
         me.shedaniel.rei.api.client.gui.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Pos2d(1, 1)).asReiPoint());
         slot.backgroundEnabled(false);
-        if (fluidSlot.supportsInsertion()) {
-            slot.markInput();
-        } else if (fluidSlot.supportsExtraction()) {
-            slot.markOutput();
-        }
+        slot.setNoticeMark(mark);
         widgets.add(slot);
         me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
             GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));

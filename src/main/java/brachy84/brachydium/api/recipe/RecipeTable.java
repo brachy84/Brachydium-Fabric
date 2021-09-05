@@ -1,12 +1,17 @@
 package brachy84.brachydium.api.recipe;
 
+import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.gui.FluidSlotWidget;
 import brachy84.brachydium.api.gui.GuiTextures;
+import brachy84.brachydium.api.handlers.InventoryHelper;
+import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.gui.api.TextureArea;
+import brachy84.brachydium.gui.api.math.Pos2d;
+import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
 import brachy84.brachydium.gui.internal.Gui;
-import io.github.astrarre.itemview.v0.fabric.ItemKey;
-import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
-import net.minecraft.fluid.Fluid;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 
 import java.util.*;
@@ -148,6 +153,44 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return maxFluidOutputs;
     }
 
+    public Recipe findRecipe(Inventory inventory, IFluidHandler fluidHandler, long voltage) {
+        List<ItemStack> items = new ArrayList<>();
+        for(int i = 0; i < inventory.size(); i++) {
+            items.add(inventory.getStack(i));
+        }
+        List<FluidStack> fluids = new ArrayList<>();
+        for(int i = 0; i < fluidHandler.getSlots(); i++) {
+            fluids.add(fluidHandler.getStackAt(i));
+        }
+        return findRecipe(items, fluids, voltage);
+    }
+
+    public Recipe findRecipe(List<ItemStack> items, List<FluidStack> fluids, long voltage) {
+        for(Recipe recipe : recipeMap.values()) {
+            if(tryRecipe(recipe, items, fluids, voltage))
+                return recipe;
+        }
+        return null;
+    }
+
+    public boolean tryRecipe(Recipe recipe, List<ItemStack> items, List<FluidStack> fluids, long voltage) {
+        if(recipe.getEUt() > voltage)
+            return false;
+        if(maxInputs > 0) {
+            for(CountableIngredient ci : recipe.getInputs()) {
+                if(!InventoryHelper.containsIngredient(items, ci))
+                    return false;
+            }
+        }
+        if(maxFluidInputs > 0) {
+            for(FluidStack stack : recipe.getFluidInputs()) {
+                if(!InventoryHelper.containsFluidStack(fluids, stack))
+                    return false;
+            }
+        }
+        return true;
+    }
+
     // = Gui Generation =============================================
 
     public RecipeTable<R> setItemSlotOverlay(TextureArea textureArea) {
@@ -160,7 +203,15 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return this;
     }
 
-    public Gui.Builder createUITemplate(DoubleSupplier progress, Gui.Builder builder, ArrayParticipant<ItemKey> importItems, ArrayParticipant<ItemKey> exportItems, ArrayParticipant<Fluid> importFluids, ArrayParticipant<Fluid> exportFluids) {
+    public Gui.Builder createUITemplateOfTile(DoubleSupplier progress, Gui.Builder builder, TileEntity tile) {
+        return createUITemplate(progress, builder, tile.getImportInventory(), tile.getExportInventory(), tile.getImportFluidHandler(), tile.getExportFluidHandler());
+    }
+
+    public Gui.Builder createUITemplate(DoubleSupplier progress, Gui.Builder builder,
+                                        Inventory importItems,
+                                        Inventory exportItems,
+                                        IFluidHandler importFluids,
+                                        IFluidHandler exportFluids) {
         if (builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
@@ -170,9 +221,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return builder;
     }
 
-    protected void addInventorySlotGroup(Gui.Builder builder, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isOutputs) {
-        int itemInputsCount = itemHandler.getSlots().size();
-        int fluidInputsCount = fluidHandler.getSlots().size();
+    protected void addInventorySlotGroup(Gui.Builder builder,
+                                         Inventory itemHandler,
+                                         IFluidHandler fluidHandler, boolean isOutputs) {
+        int itemInputsCount = itemHandler.size();
+        int fluidInputsCount = fluidHandler.getSlots();
         boolean invertFluids = false;
         if (itemInputsCount == 0) {
             int tmp = itemInputsCount;
@@ -211,13 +264,19 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         }
     }
 
-    protected void addSlot(Gui.Builder builder, int x, int y, int slotIndex, ArrayParticipant<ItemKey> itemHandler, ArrayParticipant<Fluid> fluidHandler, boolean isFluid, boolean isOutputs) {
+    protected void addSlot(Gui.Builder builder, int x, int y, int slotIndex,
+                           Inventory itemHandler,
+                           IFluidHandler fluidHandler, boolean isFluid, boolean isOutputs) {
         if (!isFluid) {
-            //builder.widget(new ItemSlotWidget())
-            //builder.itemSlot(itemHandler, slotIndex, !isOutputs, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT, getSlotOverlays(false, isOutputs));
+            ItemSlotWidget slot = new ItemSlotWidget(itemHandler, slotIndex, new Pos2d(x, y));
+            if (isOutputs) slot.markOutput();
+            else slot.markInput();
+            builder.widget(slot);
         } else {
-            //Slot<Fluid> fluidSlot = fluidHandler.getSlots().get(slotIndex);
-            //builder.fluidSlot(fluidSlot, new Point(x, y), isOutputs ? SlotTags.OUTPUT : SlotTags.INPUT, getSlotOverlays(true, isOutputs));
+            FluidSlotWidget slot = new FluidSlotWidget(fluidHandler, slotIndex, new Pos2d(x, y));
+            if (isOutputs) slot.markOutput();
+            else slot.markInput();
+            builder.widget(slot);
         }
     }
 

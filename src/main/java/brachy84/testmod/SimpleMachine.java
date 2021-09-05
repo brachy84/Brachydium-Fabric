@@ -19,8 +19,8 @@ public class SimpleMachine extends TieredWorkableTile {
         max = Math.max(max, 0);
         if(max < min) throw new IllegalArgumentException("Max can't be smaller than Min");
         SimpleMachine[] machines = new SimpleMachine[max - min + 1];
-        for(int i = min; i < machines.length; i++)
-            machines[i] = new SimpleMachine(recipeTable, i);
+        for(int i = 0; i < machines.length; i++)
+            machines[i] = new SimpleMachine(recipeTable, i + min);
         return machines;
     }
 

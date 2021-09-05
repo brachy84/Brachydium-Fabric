@@ -1,42 +1,45 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.handlers.oldAstrarre;
 
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.Insertable;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
+import io.github.astrarre.transfer.v0.api.transaction.Key;
 import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import io.github.astrarre.transfer.v0.api.transaction.keys.DiffKey;
+import io.github.astrarre.transfer.v0.api.transaction.keys.ObjectKeyImpl;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+public class SingleItemSlot implements Slot<ItemKey> {
 
-public class ItemSlot implements Slot<ItemKey> {
-
-    private final DiffKey.Array<ItemStack> inventory;
-    private final int slot;
+    private final Key.Object<ItemStack> type;
     public int max = 64;
     private final boolean extractable, insertable;
 
-    public ItemSlot(DiffKey.Array<ItemStack> inventory, int slot) {
-        this(inventory, slot, true, true);
+    public SingleItemSlot() {
+        this(true, true);
     }
 
-    public ItemSlot(DiffKey.Array<ItemStack> inventory, int slot, boolean extractable, boolean insertable) {
-        this.inventory = inventory;
+    public SingleItemSlot(boolean extractable, boolean insertable) {
         this.extractable = extractable;
         this.insertable = insertable;
-        this.slot = slot;
+        this.type = new ObjectKeyImpl<>(ItemStack.EMPTY);
+    }
+
+    public SingleItemSlot(Key.Object<ItemStack> type) {
+        this.type = type;
+        this.extractable = true;
+        this.insertable = true;
     }
 
     public ItemStack getStack(@Nullable Transaction transaction) {
-        return inventory.get(transaction).get(slot);
+        return type.get(transaction);
     }
 
     @Override
     public int insert(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if (quantity <= 0) {
+        if ((!supportsInsertion() && transaction == null) || quantity <= 0) {
             return 0;
         }
 
@@ -57,6 +60,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public void extract(@Nullable Transaction transaction, Insertable<ItemKey> insertable) {
+        if(!supportsExtraction() && transaction == null) return;
         ItemStack stack = getStack(transaction);
         if(stack.isEmpty()) return;
         int oldLevel = stack.getCount();
@@ -70,7 +74,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public int extract(@Nullable Transaction transaction, @NotNull ItemKey type, int quantity) {
-        if (quantity <= 0) {
+        if ((!supportsExtraction() && transaction == null) || quantity <= 0) {
             return 0;
         }
         if (type.equals(this.getKey(transaction))) {
@@ -81,7 +85,7 @@ public class ItemSlot implements Slot<ItemKey> {
 
     @Override
     public int extract(@Nullable Transaction transaction, int quantity) {
-        if(quantity == 0) {
+        if((!supportsExtraction() && transaction == null) || quantity == 0) {
             return 0;
         }
         int toTake = Math.min(quantity, this.getQuantity(transaction));
@@ -109,9 +113,7 @@ public class ItemSlot implements Slot<ItemKey> {
     @Override
     public boolean set(@Nullable Transaction transaction, ItemKey key, int quantity) {
         if(quantity <= key.getMaxStackSize()) {
-            List<ItemStack> stacks = inventory.get(transaction);
-            stacks.set(slot, key.createItemStack(quantity));
-            inventory.set(transaction, stacks);
+            type.set(transaction, key.createItemStack(quantity));
             return true;
         }
         return false;

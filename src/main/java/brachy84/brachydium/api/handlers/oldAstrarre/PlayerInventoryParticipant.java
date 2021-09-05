@@ -1,8 +1,7 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.handlers.oldAstrarre;
 
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
 import io.github.astrarre.transfer.v0.api.ReplacingParticipant;
-import io.github.astrarre.transfer.v0.api.item.ItemSlotParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import io.github.astrarre.transfer.v0.api.player.PlayerParticipant;

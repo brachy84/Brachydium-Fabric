@@ -1,4 +1,4 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.handlers.oldAstrarre;
 
 import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.fluid.FluidStack;
@@ -120,7 +120,7 @@ public class FluidTankList implements ArrayParticipant<Fluid>, InventoryListener
         NbtList list = new NbtList();
         for(Slot<Fluid> slot : getSlots()) {
             FluidStack stack = new FluidStack(slot.getKey(null), slot.getQuantity(null));
-            list.add(stack.writeNbt(new NbtCompound()));
+            list.add(stack.toNbt());
         }
         tag.put("content", list);
         return tag;

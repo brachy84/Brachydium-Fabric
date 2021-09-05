@@ -40,7 +40,7 @@ public class Material {
 
     private Material(String registryName, Color color, MaterialType type, ImmutableList<MaterialStack> components, Element element, IMaterialFlag<?>... flags) {
         this.registryName = registryName;
-        this.color = color.withAlpha((byte) 255);
+        this.color = color.withAlpha(255);
         this.type = type;
         this.components = components;
         this.element = element;

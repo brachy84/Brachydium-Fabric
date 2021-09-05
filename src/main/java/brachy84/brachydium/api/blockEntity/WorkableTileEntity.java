@@ -1,8 +1,15 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
 import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
+import brachy84.brachydium.api.handlers.storage.FluidInventory;
+import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.handlers.storage.ItemInventory;
 import brachy84.brachydium.api.recipe.RecipeTable;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.minecraft.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class WorkableTileEntity extends TileEntity {
@@ -11,11 +18,6 @@ public abstract class WorkableTileEntity extends TileEntity {
 
     public WorkableTileEntity(RecipeTable<?> recipeTable) {
         this.workable = createWorkable(recipeTable);
-    }
-
-    @Override
-    public InventoryHolder createInventories() {
-        return new InventoryHolder(this, getRecipeTable().getMaxInputs(), getRecipeTable().getMaxOutputs(), getRecipeTable().getMaxFluidInputs(), getRecipeTable().getMaxFluidOutputs());
     }
 
     @NotNull
@@ -32,5 +34,25 @@ public abstract class WorkableTileEntity extends TileEntity {
     @Override
     public boolean isActive() {
         return workable.isActive();
+    }
+
+    @Override
+    public IFluidHandler createInputFluidHandler() {
+        return FluidInventory.importInventory(getRecipeTable().getMaxFluidInputs(), 64 * 81000);
+    }
+
+    @Override
+    public IFluidHandler createOutputFluidHandler() {
+        return FluidInventory.exportInventory(getRecipeTable().getMaxFluidOutputs(), 64 * 81000);
+    }
+
+    @Override
+    public Inventory createInputItemHandler() {
+        return ItemInventory.importInventory(getRecipeTable().getMaxInputs());
+    }
+
+    @Override
+    public Inventory createOutputItemHandler() {
+        return ItemInventory.exportInventory(getRecipeTable().getMaxOutputs());
     }
 }

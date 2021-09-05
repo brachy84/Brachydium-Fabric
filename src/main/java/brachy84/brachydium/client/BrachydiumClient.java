@@ -40,6 +40,7 @@ public class BrachydiumClient implements ClientModInitializer {
                             String state = buf.readString();
                             Brachydium.LOGGER.info("Setting state to {} at {} on Client", state, pos);
                             recipeLogic.setState(AbstractRecipeLogic.State.valueOf(state));
+                            tile.scheduleRenderUpdate();
                         }
                     }
                 }

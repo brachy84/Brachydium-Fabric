@@ -1,8 +1,10 @@
 package brachy84.brachydium.api.blockEntity.trait;
 
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.ITiered;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.energy.IEnergyContainer2;
+import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import net.minecraft.block.entity.BlockEntityType;
 
@@ -31,6 +33,11 @@ public class RecipeEnergyLogic extends AbstractRecipeLogic {
     protected boolean drawEnergy(long amount) {
         return true;
         //return amount == energyContainer.get().removeEnergy(amount);
+    }
+
+    @Override
+    protected long getMachineVoltage() {
+        return tile instanceof ITiered ? Voltage.VALUES[((ITiered) tile).getTier()].voltage : 0;
     }
 
     @Override

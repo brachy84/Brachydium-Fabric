@@ -2,7 +2,6 @@ package brachy84.brachydium.api.blockEntity;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
-import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.cover.Cover;
@@ -10,14 +9,25 @@ import brachy84.brachydium.api.cover.CoverableApi;
 import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
+import brachy84.brachydium.api.handlers.storage.*;
 import brachy84.brachydium.gui.api.UIHolder;
 import brachy84.brachydium.gui.internal.Gui;
+import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
+import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -55,10 +65,21 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     private BlockEntityHolder holder;
     private final Map<String, TileTrait> traits = new HashMap<>();
     private Direction frontFacing;
-    private InventoryHolder inventories;
     private final List<Runnable> onAttachListener = new ArrayList<>();
     private final List<TileEntityRenderer> tileEntityRenderers = new ArrayList<>();
     private final EnumMap<Direction, Cover> coverMap = new EnumMap<>(Direction.class);
+    private Inventory importItems;
+    private Inventory exportItems;
+    private IFluidHandler importFluids;
+    private IFluidHandler exportFluids;
+
+    private Storage<ItemVariant> importItemStorage;
+    private Storage<ItemVariant> exportItemStorage;
+    private Storage<FluidVariant> importFluidStorage;
+    private Storage<FluidVariant> exportFluidStorage;
+
+    private Storage<ItemVariant> itemStorage;
+    private Storage<FluidVariant> fluidStorage;
 
     protected TileEntity() {
         this.frontFacing = Direction.NORTH;
@@ -109,8 +130,19 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         Objects.requireNonNull(createBaseRenderer());
     }
 
-    public InventoryHolder createInventories() {
-        return new InventoryHolder(this);
+    public void initializeInventories() {
+        this.importItems = createInputItemHandler();
+        this.exportItems = createOutputItemHandler();
+        this.importFluids = createInputFluidHandler();
+        this.exportFluids = createOutputFluidHandler();
+
+        this.importItemStorage = InventoryStorage.of(importItems, null);
+        this.exportItemStorage = InventoryStorage.of(exportItems, null);
+        this.importFluidStorage = FluidInventoryStorage.of(importFluids);
+        this.exportFluidStorage = FluidInventoryStorage.of(exportFluids);
+
+        this.itemStorage = new CombinedStorage<>(Lists.newArrayList(importItemStorage, exportItemStorage));
+        this.fluidStorage = new CombinedStorage<>(Lists.newArrayList(importFluidStorage, exportFluidStorage));
     }
 
     /**
@@ -193,6 +225,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     @Override
     public void registerApis() {
         registerApi(CoverableApi.LOOKUP, this);
+        registerApi(FluidStorage.SIDED, fluidStorage);
+        registerApi(ItemStorage.SIDED, itemStorage);
     }
 
     public void addApis() {
@@ -206,7 +240,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public void onAttach() {
-        inventories = createInventories();
+        initializeInventories();
         for (Runnable runnable : onAttachListener) {
             runnable.run();
         }
@@ -264,6 +298,66 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return Gui.defaultBuilder(player).build();
     }
 
+    public Inventory createInputItemHandler() {
+        return new ItemInventory(0);
+    }
+
+    public Inventory createOutputItemHandler() {
+        return new ItemInventory(0);
+    }
+
+    public IFluidHandler createInputFluidHandler() {
+        return IFluidHandler.EMPTY;
+    }
+
+    public IFluidHandler createOutputFluidHandler() {
+        return IFluidHandler.EMPTY;
+    }
+
+    public IFluidHandler getExportFluidHandler() {
+        return exportFluids;
+    }
+
+    public IFluidHandler getImportFluidHandler() {
+        return importFluids;
+    }
+
+    public Inventory getExportInventory() {
+        return exportItems;
+    }
+
+    public Inventory getImportInventory() {
+        return importItems;
+    }
+
+    public Storage<FluidVariant> getExportFluidStorage() {
+        return exportFluidStorage;
+    }
+
+    public Storage<FluidVariant> getImportFluidStorage() {
+        return importFluidStorage;
+    }
+
+    public Storage<ItemVariant> getExportItemStorage() {
+        return exportItemStorage;
+    }
+
+    public Storage<ItemVariant> getImportItemStorage() {
+        return importItemStorage;
+    }
+
+    public Storage<ItemVariant> getItemStorage() {
+        return itemStorage;
+    }
+
+    public Storage<FluidVariant> getFluidStorage() {
+        return fluidStorage;
+    }
+
+    public void scheduleRenderUpdate() {
+        holder.scheduleRenderUpdate();
+    }
+
     public NbtCompound serializeTag() {
         NbtCompound tag = new NbtCompound();
         Brachydium.LOGGER.info("Saving facing: " + getFrontFace().getId());
@@ -312,10 +406,6 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     @Override
     public void removeCover(Direction side) {
         coverMap.remove(side);
-    }
-
-    public InventoryHolder getInventories() {
-        return inventories;
     }
 
     @NotNull

@@ -2,19 +2,16 @@ package brachy84.brachydium.api.blockEntity.trait;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.*;
-import brachy84.brachydium.api.blockEntity.trait.InventoryHolder;
-import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.handlers.InventoryHelper;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.recipe.Recipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import io.github.astrarre.itemview.v0.fabric.ItemKey;
-import io.github.astrarre.transfer.v0.api.Participant;
-import io.github.astrarre.transfer.v0.api.transaction.Transaction;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
+import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.ItemStack;
@@ -23,7 +20,9 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -33,7 +32,6 @@ import java.util.Random;
 public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable {
 
     public final RecipeTable<?> recipeTable;
-    private InventoryHolder inventories;
 
     protected Recipe lastRecipe;
 
@@ -66,7 +64,6 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
         possibleRecipes = recipeTable.getRecipeList();
         state = State.IDLING;
         //tile.appendInitialiseListener(this::addListeners);
-        inventories = tile.getInventories();
     }
 
     @Override
@@ -79,17 +76,17 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
     }
 
     private void addListeners() {
-        if (inventories.getImportFluids() instanceof InventoryListener) {
-            ((InventoryListener) inventories.getImportFluids()).addListener(this::onInventoryUpdate);
+        if (tile.getImportFluidHandler() instanceof InventoryListener) {
+            ((InventoryListener) tile.getImportFluidHandler()).addListener(this::onInventoryUpdate);
         }
-        if (inventories.getImportItems() instanceof InventoryListener) {
-            ((InventoryListener) inventories.getImportItems()).addListener(this::onInventoryUpdate);
+        if (tile.getImportInventory() instanceof InventoryListener) {
+            ((InventoryListener) tile.getImportInventory()).addListener(this::onInventoryUpdate);
         }
-        if (inventories.getExportItems() instanceof InventoryListener) {
-            ((InventoryListener) inventories.getExportItems()).addListener(this::onOutputChanged);
+        if (tile.getExportInventory() instanceof InventoryListener) {
+            ((InventoryListener) tile.getExportInventory()).addListener(this::onOutputChanged);
         }
-        if (inventories.getExportFluids() instanceof InventoryListener) {
-            ((InventoryListener) inventories.getExportFluids()).addListener(this::onOutputChanged);
+        if (tile.getExportFluidHandler() instanceof InventoryListener) {
+            ((InventoryListener) tile.getExportFluidHandler()).addListener(this::onOutputChanged);
         }
     }
 
@@ -108,7 +105,7 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
 
     protected void recipeCompleted() {
         Brachydium.LOGGER.info("Completing recipe");
-        Transaction transaction = Transaction.create();
+        Transaction transaction = Transaction.openOuter();
         if (!tryInsertOutput(transaction, currentRecipe)) {
             Brachydium.LOGGER.error("Failed to insert recipe outputs");
         }
@@ -157,6 +154,8 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
 
     protected abstract boolean drawEnergy(long amount);
 
+    protected abstract long getMachineVoltage();
+
     public void setState(State state) {
         this.state = state;
         if (!tile.isClient()) {
@@ -190,11 +189,19 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
 
     protected void trySearchNewRecipe() {
         Brachydium.LOGGER.info("searching recipe");
-        if (lastRecipe != null && tryRecipe(lastRecipe)) {
+        List<ItemStack> items = new ArrayList<>();
+        for(int i = 0; i < tile.getImportInventory().size(); i++) {
+            items.add(tile.getImportInventory().getStack(i));
+        }
+        List<FluidStack> fluids = new ArrayList<>();
+        for(int i = 0; i < tile.getImportFluidHandler().getSlots(); i++) {
+            fluids.add(tile.getImportFluidHandler().getStackAt(i));
+        }
+        if (lastRecipe != null && tryRecipe(lastRecipe, items, fluids)) {
             return;
         }
         for (Recipe recipe : possibleRecipes) {
-            if (tryRecipe(recipe)) {
+            if (tryRecipe(recipe, items, fluids)) {
                 return;
             }
         }
@@ -204,14 +211,6 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
         Brachydium.LOGGER.info("Setting up recipe " + recipe.getName());
         currentRecipe = recipe;
         setState(State.RUNNING);
-        try (Transaction transaction = Transaction.create()) {
-            if (!canConsume(transaction, recipe, inventories.getImportItems(), inventories.getImportFluids())) {
-                Brachydium.LOGGER.error("Could not consume ingredients! Something is really wrong");
-                currentRecipe = null;
-                return;
-            }
-            transaction.commit();
-        }
         progress = 0;
         duration = recipe.getDuration();
         recipeEUt = recipe.getEUt();
@@ -230,7 +229,15 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
         if (isState(State.OUTPUT_BLOCKED)) {
             Brachydium.LOGGER.info("Trying recipe after output unblocked");
             setState(State.IDLING);
-            tryRecipe(storedRecipe);
+            List<ItemStack> items = new ArrayList<>();
+            for(int i = 0; i < tile.getImportInventory().size(); i++) {
+                items.add(tile.getImportInventory().getStack(i));
+            }
+            List<FluidStack> fluids = new ArrayList<>();
+            for(int i = 0; i < tile.getImportFluidHandler().getSlots(); i++) {
+                fluids.add(tile.getImportFluidHandler().getStackAt(i));
+            }
+            tryRecipe(storedRecipe, items, fluids);
         }
     }
 
@@ -240,11 +247,11 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
      * @param recipe to try
      * @return true if the ingredients are found, otherwise false
      */
-    public boolean tryRecipe(Recipe recipe) {
+    public boolean tryRecipe(Recipe recipe, List<ItemStack> items, List<FluidStack> fluids) {
         //FIXME: when output is full and then emptied, the recipe output will be inserted immediately
         Brachydium.LOGGER.info("Trying recipe " + recipe.getName());
-        if (InventoryHelper.hasIngredientsAndFluids(inventories.getImportItems(), inventories.getImportFluids(), recipe.getInputs(), recipe.getFluidInputs())) {
-            try (Transaction transaction = Transaction.create()) {
+        if (recipeTable.tryRecipe(recipe, items, fluids, getMachineVoltage())) {
+            try (Transaction transaction = Transaction.openOuter()) {
                 if (!tryInsertOutput(transaction, recipe)) {
                     Brachydium.LOGGER.info("output blocked");
                     setState(State.OUTPUT_BLOCKED);
@@ -261,16 +268,16 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
     }
 
     public boolean tryInsertOutput(Transaction transaction, Recipe recipe) {
-        try (Transaction transaction1 = transaction.nest()) {
+        try (Transaction transaction1 = transaction.openNested()) {
             for (ItemStack stack : recipe.getOutputs()) {
-                int inserted = inventories.getExportItems().insert(transaction1, ItemKey.of(stack), stack.getCount());
+                long inserted = tile.getExportItemStorage().insert(ItemVariant.of(stack), stack.getCount(), transaction1);
                 if (inserted != stack.getCount()) {
                     transaction1.abort();
                     return false;
                 }
             }
             for (FluidStack stack : recipe.getFluidOutputs()) {
-                int inserted = inventories.getExportFluids().insert(transaction1, stack.getFluid(), stack.getAmount());
+                long inserted = tile.getExportFluidStorage().insert(stack.asFluidVariant(), stack.getAmount(), transaction1);
                 if (inserted != stack.getAmount()) {
                     transaction1.abort();
                     return false;
@@ -280,7 +287,7 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
         return true;
     }
 
-    public boolean canConsume(Transaction transaction, Recipe recipe, Participant<ItemKey> itemHandler, Participant<Fluid> fluidHandler) {
+    /*public boolean canConsume(Transaction transaction, Recipe recipe, Participant<ItemKey> itemHandler, Participant<Fluid> fluidHandler) {
         for (CountableIngredient ci : recipe.getInputs()) {
             if (!InventoryHelper.extractIngredient(itemHandler, transaction, ci)) {
                 transaction.abort();
@@ -294,7 +301,7 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
             }
         }
         return true;
-    }
+    }*/
 
     @Override
     public NbtCompound serializeTag() {

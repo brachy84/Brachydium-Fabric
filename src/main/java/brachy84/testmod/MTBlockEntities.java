@@ -14,7 +14,7 @@ public class MTBlockEntities {
 
     public static void init() {
         ALLOY_SMELTER = BrachydiumApi.registerTileEntityGroup(IntTileEntityGroup.createOfArray(id("alloy_smelter"), SimpleMachine.createForRange(RecipeTables.ALLOYER_RECIPES, 0, 8)));
-        MIXER =         BrachydiumApi.registerTileEntityGroup(IntTileEntityGroup.createOfArray(id("mixer"), SimpleMachine.createForRange(RecipeTables.MIXER_RECIPES, 0, 8)));
+        MIXER = BrachydiumApi.registerTileEntityGroup(IntTileEntityGroup.createOfArray(id("mixer"), SimpleMachine.createForRange(RecipeTables.MIXER_RECIPES, 0, 8)));
     }
 
     public static Identifier id(String path) {

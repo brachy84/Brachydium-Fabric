@@ -1,4 +1,4 @@
-package brachy84.brachydium.api.handlers;
+package brachy84.brachydium.api.handlers.oldAstrarre;
 
 import brachy84.brachydium.Brachydium;
 import io.github.astrarre.itemview.v0.fabric.ItemKey;
@@ -6,7 +6,6 @@ import io.github.astrarre.transfer.v0.api.participants.array.ArrayParticipant;
 import io.github.astrarre.transfer.v0.api.participants.array.Slot;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
 
 import java.util.ArrayList;

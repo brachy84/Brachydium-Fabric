@@ -6,6 +6,7 @@ import brachy84.brachydium.api.util.MatchingType;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
+import net.fabricmc.fabric.api.tag.TagFactory;
 import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -45,7 +46,7 @@ public class CountableIngredient implements Predicate<ItemStack> {
             ci.tag = LoadableTag.getOrCreate(tag);
             return ci;
         }*/
-        Tag<Item> tag = TagRegistry.item(tagId);
+        Tag<Item> tag = TagFactory.ITEM.create(tagId);
         if(tag == null) {
             return EMPTY;
         }

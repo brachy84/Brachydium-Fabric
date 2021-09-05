@@ -4,7 +4,7 @@ import java.util.Random;
 
 public class CrypticNumber {
 
-    private int length;
+    private final int length;
     private String current;
     private static final String symbols = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 

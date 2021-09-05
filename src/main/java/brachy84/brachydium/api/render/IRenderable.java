@@ -11,6 +11,10 @@ public interface IRenderable extends Supplier<Sprite> {
     @NotNull
     Sprite getSprite();
 
+    default int getLight() {
+        return -1;
+    }
+
     @Override
     default Sprite get() {
         return getSprite();

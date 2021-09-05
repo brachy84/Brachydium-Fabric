@@ -97,7 +97,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
     }
 
     @Override
-    public Sprite getSprite() {
+    public Sprite getParticleSprite() {
         return Textures.MACHINECASING[1].getSprite();
     }
 

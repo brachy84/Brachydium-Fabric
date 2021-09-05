@@ -1,6 +1,7 @@
 package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
+import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.render.Textures;
@@ -9,6 +10,7 @@ import brachy84.brachydium.api.resource.ResourceReloadListener;
 import brachy84.brachydium.api.tag.LoadableTag;
 import brachy84.brachydium.gui.Networking;
 import brachy84.brachydium.gui.ServerUi;
+import brachy84.brachydium.gui.UiFactoryRegistry;
 import brachy84.brachydium.gui.api.ISyncedWidget;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
@@ -54,6 +56,7 @@ public class Brachydium implements ModInitializer {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
         ServerUi.init();
         Textures.init();
+        UiFactoryRegistry.register(TileEntityUiFactory.INSTANCE);
         RecipeLoadEvent.EVENT.register(Material::runProcessors);
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
         System.out.println("--------------------------------------------------");

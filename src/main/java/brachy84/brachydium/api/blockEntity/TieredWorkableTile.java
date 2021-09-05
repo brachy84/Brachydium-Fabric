@@ -52,7 +52,7 @@ public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
     @Override
     public @NotNull Gui createUi(PlayerEntity player) {
         Gui.Builder builder = Gui.defaultBuilder(player).bindPlayerInventory(EdgeInset.bottom(7), Alignment.BottomCenter);
-        getRecipeTable().createUITemplate(() -> getWorkable().getProgressPercent(), builder, getInventories().getImportItems(), getInventories().getExportItems(), getInventories().getImportFluids(), getInventories().getExportFluids());
+        getRecipeTable().createUITemplate(() -> getWorkable().getProgressPercent(), builder, getImportInventory(), getExportInventory(), getImportFluidHandler(), getExportFluidHandler());
         return builder.build();
     }
 
