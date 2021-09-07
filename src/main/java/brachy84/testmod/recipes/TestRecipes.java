@@ -3,7 +3,7 @@ package brachy84.testmod.recipes;
 import brachy84.brachydium.api.recipe.RecipeTables;
 import net.minecraft.item.Items;
 
-import static brachy84.brachydium.api.tag.TagDictionary.*;
+import static brachy84.brachydium.api.material.TagDictionary.*;
 import static brachy84.testmod.Materials.*;
 
 public class TestRecipes {

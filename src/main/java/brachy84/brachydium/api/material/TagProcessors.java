@@ -1,6 +1,5 @@
-package brachy84.brachydium.api.tag;
+package brachy84.brachydium.api.material;
 
-import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.resource.RRPHelper;
 import net.devtech.arrp.json.recipe.JIngredient;
 import net.devtech.arrp.json.recipe.JIngredients;
@@ -9,7 +8,7 @@ import net.devtech.arrp.json.recipe.JResult;
 import net.minecraft.item.ItemStack;
 
 import static brachy84.brachydium.Brachydium.*;
-import static brachy84.brachydium.api.tag.TagDictionary.*;
+import static brachy84.brachydium.api.material.TagDictionary.*;
 
 public class TagProcessors {
 

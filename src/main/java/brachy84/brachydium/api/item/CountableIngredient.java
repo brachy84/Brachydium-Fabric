@@ -1,13 +1,10 @@
 package brachy84.brachydium.api.item;
 
-import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.tag.LoadableTag;
 import brachy84.brachydium.api.util.MatchingType;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.fabricmc.fabric.api.tag.TagFactory;
-import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
@@ -17,8 +14,6 @@ import net.minecraft.util.Identifier;
 import java.util.function.Predicate;
 
 public class CountableIngredient implements Predicate<ItemStack> {
-
-    private LoadableTag tag;
 
     private final Ingredient ingredient;
     private int amount;
@@ -64,10 +59,6 @@ public class CountableIngredient implements Predicate<ItemStack> {
         return amount == 0 || getIngredient() == null;
     }
 
-    public boolean isNotLoaded() {
-        return tag != null && !tag.isLoaded();
-    }
-
     public boolean matches(ItemStack stack, MatchingType type) {
         Ingredient i = getIngredient();
         if(type == MatchingType.EXACT)
@@ -100,7 +91,7 @@ public class CountableIngredient implements Predicate<ItemStack> {
     }
 
     public EntryIngredient toEntryStack() {
-        Brachydium.LOGGER.info("To EntryStack. Size {}", getMatchingStacks().length);
+        //Brachydium.LOGGER.info("To EntryStack. Size {}", getMatchingStacks().length);
         EntryIngredient entries = EntryIngredients.ofIngredient(getIngredient());
         for(EntryStack<?> entryStack : entries) {
             ((ItemStack)entryStack.getValue()).setCount(amount);
