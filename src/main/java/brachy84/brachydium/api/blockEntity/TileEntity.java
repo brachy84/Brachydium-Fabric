@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
@@ -9,7 +8,9 @@ import brachy84.brachydium.api.cover.CoverableApi;
 import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
-import brachy84.brachydium.api.handlers.storage.*;
+import brachy84.brachydium.api.handlers.storage.FluidInventoryStorage;
+import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.handlers.storage.ItemInventory;
 import brachy84.brachydium.gui.api.UIHolder;
 import brachy84.brachydium.gui.internal.Gui;
 import com.google.common.collect.Lists;
@@ -25,7 +26,6 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
@@ -60,8 +60,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return holder.getActiveTileEntity();
     }
 
-    private TileEntityFactory<?> factory;
-    private TileEntityGroup<?> group;
+    private TileEntityGroup group;
+    private int key;
     private BlockEntityHolder holder;
     private final Map<String, TileTrait> traits = new HashMap<>();
     private Direction frontFacing;
@@ -89,36 +89,21 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     @ApiStatus.Internal
-    protected final TileEntityFactory<?> createAndSetFactory() {
-        setFactory(createFactory());
-        return this.factory;
+    protected final TileEntity createCopyInternal() {
+        TileEntity tile = createNewTileEntity();
+        tile.setGroup(group, key);
+        return this;
     }
 
-    @ApiStatus.Internal
-    protected final void setFactory(TileEntityFactory<?> factory) {
-        this.factory = Objects.requireNonNull(factory);
-    }
-
-    /**
-     * This creates a new instance of this tile entity when it's placed
-     * <b>IMPORTANT:</b> override it in <b>EVERY</b> non abstract class to avoid issues
-     * <p> example
-     * {@code return new TileFactory<>(this, tile -> new TileEntity());}
-     *
-     * @return a tile factory
-     */
-    public abstract @NotNull TileEntityFactory<?> createFactory();
-
-    public TileEntityFactory<?> getFactory() {
-        return factory;
-    }
+    @ApiStatus.OverrideOnly
+    public abstract @NotNull TileEntity createNewTileEntity();
 
     public static TileEntity ofStack(ItemStack stack) {
         if (!(stack.getItem() instanceof BlockMachineItem))
             throw new IllegalArgumentException("Item is not BlockMachineItem");
         if (!stack.hasNbt())
             throw new IllegalArgumentException("Can't get TileEntity with a null tag");
-        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getNbt()).getOriginal();
+        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getNbt());
     }
 
     /**
@@ -244,6 +229,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         for (Runnable runnable : onAttachListener) {
             runnable.run();
         }
+        traits.values().forEach(TileTrait::init);
     }
 
     public void onDetach() {
@@ -278,7 +264,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(TileEntityUiFactory.INSTANCE.openUI(this, player)) {
+        if (TileEntityUiFactory.INSTANCE.openUI(this, player)) {
             return ActionResult.SUCCESS;
         }
         return ActionResult.PASS;
@@ -360,7 +346,6 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
 
     public NbtCompound serializeTag() {
         NbtCompound tag = new NbtCompound();
-        Brachydium.LOGGER.info("Saving facing: " + getFrontFace().getId());
         tag.putInt("front", getFrontFace().getId());
 
         NbtCompound traitTag = new NbtCompound();
@@ -449,16 +434,21 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return holder.getGroup().getType();
     }
 
-    public TileEntityGroup<?> getGroup() {
+    public TileEntityGroup getGroup() {
         return group;
     }
 
     @ApiStatus.Internal
-    protected final void setGroup(TileEntityGroup<?> group) {
+    protected final void setGroup(TileEntityGroup group, int key) {
         if (this.group != null) {
             throw new ConcurrentModificationException("The group of TileEntity can only be set once!");
         }
         this.group = group;
+        this.key = key;
+    }
+
+    public int getGroupKey() {
+        return key;
     }
 
     public BlockItem asItem() {
@@ -475,8 +465,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
      */
     public ItemStack asStack(int amount) {
         ItemStack item = new ItemStack(asItem(), amount);
-        if (factory == null) return item;
-        getGroup().writeTileNbt(item.getOrCreateNbt(), factory);
+        if (group == null) return item;
+        getGroup().writeNbt(item.getOrCreateNbt(), key);
         return item;
     }
 }

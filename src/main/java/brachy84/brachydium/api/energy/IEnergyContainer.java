@@ -1,16 +1,17 @@
 package brachy84.brachydium.api.energy;
 
-import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.math.Direction;
 
-public interface IEnergyContainer {
+public interface IEnergyContainer extends IPrimitiveEnergyContainer{
 
-    long getCapacity();
+    long getInputVoltage();
 
-    long getStored();
+    long getOutputVoltage();
 
-    long insert(@Nullable Transaction transaction, long amount);
+    long getInputAmperage();
 
-    long extract(@Nullable Transaction transaction, long amount);
+    long getOutputAmperage();
+
+    long insertEnergyFromNetwork(Direction direction, long voltage, long amperage);
 
 }

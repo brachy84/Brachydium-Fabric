@@ -7,23 +7,46 @@ import brachy84.brachydium.api.gui.GuiTextures;
 import brachy84.brachydium.api.handlers.InventoryHelper;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
 import brachy84.brachydium.api.item.CountableIngredient;
+import brachy84.brachydium.api.recipe.builders.SimpleRecipeBuilder;
 import brachy84.brachydium.gui.api.TextureArea;
+import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
 import brachy84.brachydium.gui.internal.Gui;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 
+import java.lang.constant.Constable;
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 public class RecipeTable<R extends RecipeBuilder<R>> {
 
-    private static final List<RecipeTable<?>> RECIPE_TABLES = new ArrayList<>();
+    private static final Map<String, RecipeTable<?>> RECIPE_TABLES = new HashMap<>();
+
+    public static Builder<SimpleRecipeBuilder> simpleBuilder(String unlocalizedName) {
+        return builder(unlocalizedName, new SimpleRecipeBuilder().duration(100).EUt(8));
+    }
+
+    public static <R extends RecipeBuilder<R>> Builder<R> builder(String unlocalizedName, R sample) {
+        if(unlocalizedName == null)
+            throw new NullPointerException("RecipeTable can not have a null name");
+        if(sample == null)
+            throw new NullPointerException("RecipeTable can not have a null sample");
+        if(RECIPE_TABLES.containsKey(unlocalizedName))
+            throw new IllegalStateException("A RecipeTable with name '" + unlocalizedName + "' already exists!");
+        return new Builder<R>(unlocalizedName, sample);
+    }
 
     public final String unlocalizedName;
 
     private final R recipeBuilderSample;
+
+    private final BiConsumer<TileEntity, Gui.Builder> guiBuilder;
+    private AABB jeiBounds;
+    private float jeiTranslationX = 0F, jeiTranslationY = 0F;
 
     private final int minInputs, maxInputs, minOutputs, maxOutputs;
     private final int minFluidInputs, maxFluidInputs, minFluidOutputs, maxFluidOutputs;
@@ -42,15 +65,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     private TextureArea itemSlotOverlay;
     private TextureArea fluidSlotOverlay;
 
-    public RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
+    private RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
                        int maxOutputs, int minFluidInputs, int maxFluidInputs, int minFluidOutputs, int maxFluidOutputs,
-                       R defaultRecipe) {
-        if (minInputs < 0 || minFluidInputs < 0 || minOutputs < 0 || minFluidOutputs < 0) {
-            throw new IllegalArgumentException("inputs and outputs can't be smaller than 0");
-        }
-        if (minInputs > maxInputs || minOutputs > maxOutputs || minFluidInputs > maxFluidInputs || minFluidOutputs > maxFluidOutputs) {
-            throw new IllegalArgumentException("Max can't be smaller than Min in RecipeTable");
-        }
+                       R defaultRecipe, BiConsumer<TileEntity, Gui.Builder> guiBuilder) {
+
         this.unlocalizedName = unlocalizedName;
 
         this.minInputs = minInputs;
@@ -62,20 +80,19 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         this.maxFluidInputs = maxFluidInputs;
         this.maxOutputs = maxOutputs;
         this.maxFluidOutputs = maxFluidOutputs;
+        this.guiBuilder = guiBuilder;
 
         defaultRecipe.setRecipeTable(this);
         this.recipeBuilderSample = defaultRecipe;
-        RECIPE_TABLES.add(this);
+        RECIPE_TABLES.put(this.unlocalizedName, this);
     }
 
-    public static List<RecipeTable<?>> getRecipeTables() {
-        return Collections.unmodifiableList(RECIPE_TABLES);
+    public static Collection<RecipeTable<?>> getRecipeTables() {
+        return Collections.unmodifiableCollection(RECIPE_TABLES.values());
     }
 
     public static RecipeTable<?> getByName(String unlocalizedName) {
-        return RECIPE_TABLES.stream()
-                .filter(map -> map.unlocalizedName.equals(unlocalizedName))
-                .findFirst().orElse(null);
+        return RECIPE_TABLES.get(unlocalizedName);
     }
 
     public Collection<Recipe> getRecipeList() {
@@ -307,6 +324,78 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             return new TextureArea[]{base, overlay};
         }
         return new TextureArea[]{base};
+    }
+
+    public static class Builder<R extends RecipeBuilder<R>> {
+        private final String unlocalizedName;
+
+        private final R recipeBuilderSample;
+
+        private BiConsumer<TileEntity, Gui.Builder> guiBuilder;
+        private AABB jeiBounds;
+        private float jeiTranslationX = 0F, jeiTranslationY = 0F;
+
+        private int minInputs = 0, maxInputs = 0, minOutputs = 0, maxOutputs = 0;
+        private int minFluidInputs = 0, maxFluidInputs = 0, minFluidOutputs = 0, maxFluidOutputs = 0;
+
+        private Builder(String name, R sample) {
+             this.unlocalizedName = name;
+             this.recipeBuilderSample = sample;
+         }
+
+        public Builder<R> itemInputs(int min, int max) {
+            this.minInputs = min;
+            this.maxInputs = max;
+            return this;
+        }
+
+        public Builder<R> itemOutputs(int min, int max) {
+            this.minOutputs = min;
+            this.maxOutputs = max;
+            return this;
+        }
+
+        public Builder<R> fluidInputs(int min, int max) {
+            this.minFluidInputs = min;
+            this.maxFluidInputs = max;
+            return this;
+        }
+
+        public Builder<R> fluidOutputs(int min, int max) {
+            this.minFluidOutputs = min;
+            this.maxFluidOutputs = max;
+            return this;
+        }
+
+        public Builder<R> setGuiBuilder(BiConsumer<TileEntity, Gui.Builder> builder) {
+            this.guiBuilder = builder;
+            return this;
+        }
+
+        public Builder<R> setJeiBounds(AABB jeiBounds) {
+            this.jeiBounds = jeiBounds;
+            return this;
+        }
+
+        public Builder<R> setJeiTranslation(float x, float y) {
+            this.jeiTranslationX = x;
+            this.jeiTranslationY = y;
+            return this;
+        }
+
+        public RecipeTable<R> build() {
+            if (minInputs < 0 || minFluidInputs < 0 || minOutputs < 0 || minFluidOutputs < 0) {
+                throw new IllegalArgumentException("inputs and outputs can't be smaller than 0");
+            }
+            if (minInputs > maxInputs || minOutputs > maxOutputs || minFluidInputs > maxFluidInputs || minFluidOutputs > maxFluidOutputs) {
+                throw new IllegalArgumentException("Max can't be smaller than Min in RecipeTable");
+            }
+            RecipeTable<R> table = new RecipeTable<>(unlocalizedName, minInputs, maxInputs, minOutputs, maxOutputs, minFluidInputs, maxFluidInputs, minFluidOutputs, maxFluidOutputs, recipeBuilderSample, guiBuilder);
+            table.jeiBounds = jeiBounds;
+            table.jeiTranslationX = jeiTranslationX;
+            table.jeiTranslationY = jeiTranslationY;
+            return table;
+        }
     }
 
     @Override

@@ -3,8 +3,8 @@ package brachy84.brachydium.api.recipe;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.CountableIngredient;
-import brachy84.brachydium.api.material.Material;
-import brachy84.brachydium.api.tag.TagDictionary;
+import brachy84.brachydium.api.unification.material.Material;
+import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.util.CrypticNumber;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
@@ -91,7 +91,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     public R input(TagDictionary.Entry tag, Material material, int amount) {
         Objects.requireNonNull(tag);
         Objects.requireNonNull(material);
-        return input(tag.getStringTag(material), amount);
+        return input("c:" + material + "_" + tag + "s", amount);
     }
 
     public R input(Item item, int amount) {

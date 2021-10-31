@@ -1,8 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.api.blockEntity.group.IntTileEntityGroup;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import net.minecraft.block.Block;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.item.BlockItem;
@@ -11,47 +9,33 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 /**
  * A BlockEntityGroup can hold multiple {@link TileEntity} which are serialized in nbt
- *
- * @param <K> The type of key to set and get a {@link TileEntity}
  */
-public abstract class TileEntityGroup<K> {
+public class TileEntityGroup {
 
     public static final String TILE_KEY = "TileKey";
 
-    public static IntTileEntityGroup createOfArray(Identifier id, TileEntity... tileEntities) {
-        Map<Integer, TileEntity> map = new HashMap<>();
-        for (int i = 0; i < tileEntities.length; i++)
-            map.put(i, tileEntities[i]);
-        return new IntTileEntityGroup(id, map);
-    }
-
-    protected final BiMap<K, TileEntityFactory<?>> blockEntityMap;
+    protected final TileEntity[] tileEntities;
     public final Identifier id;
     public final String tileName;
     private BlockEntityType<BlockEntityHolder> type;
     private BlockItem item;
     private Block block;
 
-    protected TileEntityGroup(Identifier id, Map<K, TileEntity> blockEntityMap) {
+    public TileEntityGroup(Identifier id, TileEntity... tileEntities) {
         if (!Objects.requireNonNull(id).getPath().startsWith("tile/"))
             id = new Identifier(id.getNamespace(), "tile/" + id.getPath());
         this.id = id;
         this.tileName = id.getPath().split("/")[1];
-        Objects.requireNonNull(blockEntityMap);
-        this.blockEntityMap = HashBiMap.create(blockEntityMap.size());
-        for (Map.Entry<K, TileEntity> entry : blockEntityMap.entrySet()) {
-            TileEntity tile = Objects.requireNonNull(entry.getValue());
-            Objects.requireNonNull(entry.getKey());
+        this.tileEntities = tileEntities;
+        for (int i = 0; i < tileEntities.length; i++) {
+            TileEntity tile = Objects.requireNonNull(this.tileEntities[i]);
             if (!isValid(tile))
                 throw new IllegalArgumentException("Tile of type " + tile.getClass().getSimpleName() + " is not valid for " + this.getClass().getSimpleName());
-            this.blockEntityMap.put(entry.getKey(), tile.createAndSetFactory());
-            tile.setGroup(this);
+            tile.setGroup(this, i);
             tile.setUp();
         }
     }
@@ -60,22 +44,26 @@ public abstract class TileEntityGroup<K> {
         return true;
     }
 
-    public TileEntityFactory<?> getBlockEntity(NbtCompound tag) {
+    public TileEntity getBlockEntity(NbtCompound tag) {
         if (tag == null)
             throw new IllegalStateException("Tag can't be null");//return (TileEntity) blockEntityMap.values().toArray()[0];
         if (!tag.contains(TILE_KEY)) {
             throw new IllegalStateException("Tag does not contain " + TILE_KEY);
         }
-        return blockEntityMap.get(readKey(tag));
+        return tileEntities[readKey(tag)];
     }
 
-    public abstract void writeNbt(NbtCompound tag, K k);
+    public void writeNbt(NbtCompound tag, Integer key) {
+        tag.putInt(TILE_KEY, key);
+    }
 
-    public abstract K readKey(NbtCompound tag);
+    public int readKey(NbtCompound tag) {
+        return tag.getInt(TILE_KEY);
+    }
 
     @ApiStatus.Internal
-    public void writeTileNbt(NbtCompound tag, TileEntityFactory<?> tile) {
-        writeNbt(tag, blockEntityMap.inverse().get(tile));
+    public void writeTileNbt(NbtCompound tag, TileEntity tile) {
+        writeNbt(tag, tile.getGroupKey());
     }
 
     public BlockEntityType<BlockEntityHolder> getType() {
@@ -105,7 +93,7 @@ public abstract class TileEntityGroup<K> {
         this.block = block;
     }
 
-    public Collection<TileEntityFactory<?>> getTileEntities() {
-        return blockEntityMap.values();
+    public Collection<TileEntity> getTileEntities() {
+        return Lists.newArrayList(tileEntities);
     }
 }

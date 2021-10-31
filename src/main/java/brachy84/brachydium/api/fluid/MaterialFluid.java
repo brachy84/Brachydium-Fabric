@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.fluid;
 
-import brachy84.brachydium.api.material.Material;
+import brachy84.brachydium.api.unification.material.Material;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.fluid.Fluid;

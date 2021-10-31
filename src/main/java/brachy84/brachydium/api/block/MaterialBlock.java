@@ -1,8 +1,8 @@
 package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.material.Material;
-import brachy84.brachydium.api.tag.TagDictionary;
+import brachy84.brachydium.api.unification.material.Material;
+import brachy84.brachydium.api.unification.ore.TagDictionary;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Block;
 import net.minecraft.text.MutableText;
@@ -29,12 +29,12 @@ public class MaterialBlock extends Block {
     }
 
     public Identifier makeId() {
-        return Brachydium.id(String.format("material/%s.%s", tag.getName(), material.getRegistryName()));
+        return Brachydium.id(String.format("material/%s.%s", tag.name(), material.toString()));
     }
 
     @Override
     public String getTranslationKey() {
-        return "component." + tag.getName();
+        return "component." + tag.name();
     }
 
     @Override

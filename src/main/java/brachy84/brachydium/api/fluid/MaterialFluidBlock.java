@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.fluid;
 
-import brachy84.brachydium.api.material.Material;
+import brachy84.brachydium.api.unification.material.Material;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.FluidBlock;

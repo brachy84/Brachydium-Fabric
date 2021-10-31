@@ -72,6 +72,12 @@ public class TileEntityRenderer extends TileTrait {
         return this;
     }
 
+    public TileEntityRenderer addSideOverlay(IRenderable texture) {
+        addOverlay(Face.LEFT, texture);
+        addOverlay(Face.RIGHT, texture);
+        return this;
+    }
+
     public TileEntityRenderer addFrontOverlay(IRenderable texture) {
         return addOverlay(Face.FRONT, texture);
     }

@@ -107,7 +107,7 @@ public class FluidStack {
     }
 
     public boolean isEqual(FluidStack fluidStack) {
-        return this.fluid == fluidStack.fluid && amount == fluidStack.amount;
+        return this.fluid == fluidStack.fluid && amount == fluidStack.amount && matchesNbt(this, fluidStack);
     }
 
     public FluidStack copy() {
@@ -268,6 +268,6 @@ public class FluidStack {
 
     @Override
     public int hashCode() {
-        return Objects.hash(amount, fluid, nbt, id);
+        return Objects.hash(fluid, nbt);
     }
 }

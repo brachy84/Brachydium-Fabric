@@ -3,7 +3,7 @@ package brachy84.brachydium.api.blockEntity.trait;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.ITiered;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.energy.IEnergyContainer2;
+import brachy84.brachydium.api.energy.IEnergyContainer;
 import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import net.minecraft.block.entity.BlockEntityType;
@@ -12,9 +12,9 @@ import java.util.function.Supplier;
 
 public class RecipeEnergyLogic extends AbstractRecipeLogic {
 
-    Supplier<IEnergyContainer2> energyContainer;
+    Supplier<IEnergyContainer> energyContainer;
 
-    public RecipeEnergyLogic(TileEntity tile, RecipeTable<?> recipeTable, Supplier<IEnergyContainer2> energyContainer) {
+    public RecipeEnergyLogic(TileEntity tile, RecipeTable<?> recipeTable, Supplier<IEnergyContainer> energyContainer) {
         super(tile, recipeTable);
         this.energyContainer = energyContainer;
     }

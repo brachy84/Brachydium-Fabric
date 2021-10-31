@@ -1,12 +1,9 @@
 package brachy84.testmod;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TieredWorkableTile;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.blockEntity.TileEntityFactory;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
-import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.CycableTexture;
 import brachy84.brachydium.api.render.Textures;
@@ -29,8 +26,8 @@ public class SimpleMachine extends TieredWorkableTile {
     }
 
     @Override
-    public @NotNull TileEntityFactory<?> createFactory() {
-        return new TileEntityFactory<>(this, tile -> new SimpleMachine(tile.getRecipeTable(), tile.getTier()));
+    public @NotNull TileEntity createNewTileEntity() {
+        return new SimpleMachine(getRecipeTable(), getTier());
     }
 
     @Override
@@ -38,9 +35,4 @@ public class SimpleMachine extends TieredWorkableTile {
         return TileEntityRenderer.create(this, Textures.MACHINECASING[getTier()])
                 .addFrontOverlay(CycableTexture.createWorkableTexture(this::isActive, "front", Brachydium.id("block/machines/" + getRecipeTable().unlocalizedName)));
     }
-
-    /*@Override
-    public TileEntity createCopy(BlockEntityHolder holder) {
-        return new SimpleMachine(getRecipeTable(), getTier());
-    }*/
 }

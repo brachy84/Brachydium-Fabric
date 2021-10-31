@@ -1,12 +1,15 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.tag.TagDictionary;
+import brachy84.brachydium.api.item.MaterialItem;
+import brachy84.brachydium.api.unification.material.Material;
+import brachy84.brachydium.api.unification.ore.TagDictionary;
 import net.devtech.arrp.json.blockstate.JBlockModel;
 import net.devtech.arrp.json.blockstate.JState;
 import net.devtech.arrp.json.blockstate.JWhen;
 import net.devtech.arrp.json.models.JModel;
 import net.devtech.arrp.json.models.JTextures;
+import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
@@ -15,7 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static brachy84.brachydium.Brachydium.MOD_ID;
 import static brachy84.brachydium.Brachydium.RESOURCE_PACK;
 import static net.devtech.arrp.json.blockstate.JState.*;
 import static net.devtech.arrp.json.loot.JLootTable.*;
@@ -45,6 +47,15 @@ public class RRPHelper {
             otherResources.put("recipes/" + id + ".json", recipe.getBytes());
     }
 
+    public static void addBasicMaterialItemModel(Material material, TagDictionary.Entry tag, boolean withOverlay) {
+        Identifier path = Brachydium.id("item/material/" + tag.lowerCaseName + "." + material);
+        String texture = MaterialItem.getTexturePath(material, tag);
+        JTextures textures = new JTextures().layer0(texture);
+        if(withOverlay)
+            textures.layer1(texture + "_overlay");
+        RESOURCE_PACK.addModel(model().parent("item/generated").textures(textures), path);
+    }
+
     public static void addBasicMaterialItemModel(String material, String component) {
         //itemModels.put("material/" + material + "." + component, model().parent("item/generated").textures(new JTextures().layer0("mechtech:item/component/" + component)));
         RESOURCE_PACK.addModel(model().parent("item/generated").textures(new JTextures().layer0("brachydium:item/materials/" + component)), mtId("item/material/" + component + "." + material));
@@ -59,14 +70,10 @@ public class RRPHelper {
         RESOURCE_PACK.addModel(model().parent("brachydium:block/component/" + component), mtId("item/material/" + material + "." + component));
     }
 
-    public static void addSimpleMaterialItemTag(String material, String component) {
-        //itemTags.put("c:items/" + material + "_" + component + "s", tag().add(new MTIdentifier("material/" + material + "." + component)));
-        RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + component + "s"), tag().add(mtId("material/" + material + "." + component)));
-    }
-
-    public static void addSimpleMaterialItemTag(String material, TagDictionary.Entry tag) {
-        //itemTags.put("c:items/" + material + "_" + component + "s", tag().add(new MTIdentifier("material/" + material + "." + component)));
-        RESOURCE_PACK.addTag(new Identifier("c", "items/" + material + "_" + tag.getTagName()), tag().add(mtId("material/" + tag.getName() + "." + material)));
+    public static void addSimpleMaterialItemTag(Material material, TagDictionary.Entry tag) {
+        Identifier path = new Identifier("c", "items/" + material + "_" + tag.lowerCaseName + "s");
+        Identifier item = Brachydium.id(MaterialItem.createItemId(material, tag));
+        RESOURCE_PACK.addTag(path, tag().add(item));
     }
 
     public static void addSimpleLootTable(String block) {

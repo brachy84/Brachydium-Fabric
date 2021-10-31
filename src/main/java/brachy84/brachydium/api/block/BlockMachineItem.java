@@ -2,7 +2,6 @@ package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.ItemGroups;
 import brachy84.brachydium.api.blockEntity.TileEntityGroup;
-import brachy84.brachydium.api.blockEntity.group.IntTileEntityGroup;
 import brachy84.brachydium.api.energy.Voltage;
 import net.minecraft.block.Block;
 import net.minecraft.client.item.TooltipContext;
@@ -19,23 +18,23 @@ import java.util.List;
 
 public class BlockMachineItem extends BlockItem {
 
-    private final TileEntityGroup<?> group;
+    private final TileEntityGroup group;
     private final String translationKey;
 
-    public BlockMachineItem(Block block, TileEntityGroup<?> group) {
+    public BlockMachineItem(Block block, TileEntityGroup group) {
         super(block, new Settings().group(ItemGroups.GENERAL));
         this.group = group;
         this.translationKey = group.id.getNamespace() + ".tile." + group.tileName;
     }
 
-    public TileEntityGroup<?> getTileGroup() {
+    public TileEntityGroup getTileGroup() {
         return group;
     }
 
     @Override
     public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
         super.appendTooltip(stack, world, tooltip, context);
-        if(context.isAdvanced() && stack.hasNbt()) {
+        if (context.isAdvanced() && stack.hasNbt()) {
             Object o = group.readKey(stack.getNbt());
             tooltip.add(new LiteralText("TileKey: " + o.toString()).formatted(Formatting.DARK_GRAY));
         }
@@ -43,10 +42,10 @@ public class BlockMachineItem extends BlockItem {
 
     @Override
     public Text getName(ItemStack stack) {
-        if(group instanceof IntTileEntityGroup && stack.hasNbt()) {
-            int tier = ((IntTileEntityGroup) group).readKey(stack.getNbt());
-            if(tier < Voltage.VALUES.length)
-                return new TranslatableText(translationKey, Voltage.VALUES[tier].shortName);
+        if (stack.hasNbt()) {
+            int tier = group.readKey(stack.getNbt());
+            if (tier < Voltage.VALUES.length)
+                return new TranslatableText(translationKey, Voltage.VALUES[tier].shortName.toUpperCase());
         }
         return super.getName(stack);
     }

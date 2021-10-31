@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * A simple energy container similar to what forge uses
  */
-public interface IPrimitiveEnergyContainer extends Participant<Long> {
+public interface IPrimitiveEnergyContainer {
 
     /**
      * @return if energy can be extracted (generator)
@@ -24,22 +24,7 @@ public interface IPrimitiveEnergyContainer extends Participant<Long> {
      * @param dif amount of energy to change
      * @return amount of changed energy
      */
-    default long changeEnergy(long dif) {
-        if(getStoredEnergy() + dif > getEnergyCapacity()) {
-            long oldAmount = getStoredEnergy();
-            setStoredEnergy(getEnergyCapacity());
-            return getEnergyCapacity() - oldAmount;
-        }
-
-        if(getStoredEnergy() + dif < 0) {
-            long oldAmount = getStoredEnergy();
-            setStoredEnergy(0);
-            return oldAmount;
-        }
-
-        setStoredEnergy(getStoredEnergy() + dif);
-        return dif;
-    }
+    long changeEnergy(long dif);
 
     /**
      * removes stored energy by the given amount
@@ -63,11 +48,6 @@ public interface IPrimitiveEnergyContainer extends Participant<Long> {
      * @return amount of currently stored energy
      */
     long getStoredEnergy();
-
-    /**
-     * @param amount the new amount of this container
-     */
-    void setStoredEnergy(long amount);
 
     /**
      * @return maximum amount of storeable energy

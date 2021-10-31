@@ -5,12 +5,16 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+@ApiStatus.Experimental
+@Deprecated
+@ApiStatus.NonExtendable
 public class FluidInventoryStorage extends CombinedStorage<FluidVariant, SingleSlotStorage<FluidVariant>> {
 
     private static final Map<IFluidHandler, FluidInventoryStorage> WRAPPERS = new MapMaker().weakValues().makeMap();

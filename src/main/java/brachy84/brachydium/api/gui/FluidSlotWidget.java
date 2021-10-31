@@ -4,6 +4,7 @@ import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
 import brachy84.brachydium.gui.api.IDrawable;
 import brachy84.brachydium.gui.api.IGuiHelper;
+import brachy84.brachydium.gui.api.ITexture;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.math.Size;
@@ -22,6 +23,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.text.Text;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -95,7 +97,7 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     }
 
     @Override
-    public IDrawable getFallbackTexture() {
+    public ITexture getFallbackTexture() {
         return GuiTextures.FLUID_SLOT;
     }
 
@@ -169,7 +171,8 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     }*/
 
     @Override
-    public void getReiWidgets(List<Widget> widgets, AABB bounds, Pos2d reiPos) {
+    public List<Widget> getReiWidgets(AABB bounds, Pos2d reiPos) {
+        List<Widget> widgets = new ArrayList<>();
         me.shedaniel.rei.api.client.gui.widgets.Slot slot = Widgets.createSlot(reiPos.add(new Pos2d(1, 1)).asReiPoint());
         slot.backgroundEnabled(false);
         slot.setNoticeMark(mark);
@@ -177,7 +180,7 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
         me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
             GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));
             if (getTextures().size() > 0) {
-                for (IDrawable drawable : getTextures()) {
+                for (ITexture drawable : getTextures()) {
                     guiHelper.drawTexture(matrices, drawable, reiPos, getSize());
                 }
             } else {
@@ -185,5 +188,6 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
             }
         }));
         widgets.add(render);
+        return widgets;
     }
 }

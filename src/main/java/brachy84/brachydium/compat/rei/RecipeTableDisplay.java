@@ -49,7 +49,7 @@ public class RecipeTableDisplay implements Display {
     }
 
     public Stream<EntryIngredient> getItemInputs() {
-        Brachydium.LOGGER.info("Get item inputs with size {}", recipe.getInputs().size());
+        //Brachydium.LOGGER.info("Get item inputs with size {}", recipe.getInputs().size());
         return recipe.getInputs().stream().map(CountableIngredient::toEntryStack);
     }
 

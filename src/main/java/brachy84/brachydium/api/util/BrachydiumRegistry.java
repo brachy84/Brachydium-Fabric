@@ -1,14 +1,16 @@
 package brachy84.brachydium.api.util;
 
 import brachy84.brachydium.Brachydium;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public class BrachydiumRegistry<K, V>  {
+public class BrachydiumRegistry<K, V> implements Iterable<V> {
 
     private final Map<K, V> registries = new HashMap<>();
     private final Map<V, K> keyMap = new HashMap<>();
@@ -24,7 +26,7 @@ public class BrachydiumRegistry<K, V>  {
     }
 
     public V register(K k, V v) {
-        if(isFrozen()) {
+        if (isFrozen()) {
             throw new IllegalStateException("Can't register when registry is frozen");
         }
         Objects.requireNonNull(k);
@@ -36,7 +38,7 @@ public class BrachydiumRegistry<K, V>  {
 
     public V getEntry(K k) {
         V v = registries.get(k);
-        if(v == null) {
+        if (v == null) {
             throw new NullPointerException("No entry found for key " + k);
         }
         return v;
@@ -44,7 +46,7 @@ public class BrachydiumRegistry<K, V>  {
 
     public K getKey(V v) {
         K k = keyMap.get(v);
-        if(k == null) {
+        if (k == null) {
             throw new NullPointerException("No entry found for key " + v);
         }
         return k;
@@ -70,17 +72,26 @@ public class BrachydiumRegistry<K, V>  {
         }
     }
 
-    public void foreach(Consumer<V> consumer) {
-        for(V v : registries.values()) {
-            consumer.accept(v);
-        }
-    }
-
     public void freeze() {
         this.frozen = true;
     }
 
     public boolean isFrozen() {
         return frozen;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<V> iterator() {
+        return registries.values().iterator();
+    }
+
+    public Iterable<Map.Entry<K, V>> getEntryIterable() {
+        return this::getEntryIterator;
+    }
+
+    @NotNull
+    public Iterator<Map.Entry<K, V>> getEntryIterator() {
+        return registries.entrySet().iterator();
     }
 }

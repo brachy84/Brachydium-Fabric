@@ -5,6 +5,7 @@ import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.handlers.ApiHolder;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Objects;
 
@@ -32,6 +33,9 @@ public abstract class TileTrait extends ApiHolder {
     //@Deprecated
     //public BlockApiHolder<?, ?>[] getApis() { return null; }
 
+    @ApiStatus.OverrideOnly
+    public void init() {
+    }
 
     @Override
     public void registerApis() {
@@ -42,6 +46,7 @@ public abstract class TileTrait extends ApiHolder {
     /**
      * Gets called every tick
      */
+    @ApiStatus.OverrideOnly
     public void tick() {
     }
 

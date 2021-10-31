@@ -3,14 +3,14 @@ package brachy84.testmod.recipes;
 import brachy84.brachydium.api.recipe.RecipeTables;
 import net.minecraft.item.Items;
 
-import static brachy84.brachydium.api.material.TagDictionary.*;
-import static brachy84.testmod.Materials.*;
+import static brachy84.brachydium.api.unification.material.Materials.*;
+import static brachy84.brachydium.api.unification.ore.TagDictionary.*;
 
 public class TestRecipes {
 
     public static void init() {
         RecipeTables.ALLOYER_RECIPES.recipeBuilder("test")
-                .input(Ingot, Aluminium, 1)
+                .input(ingot, Aluminium, 1)
                 .input(Items.IRON_INGOT, 2)
                 .output(Items.NETHER_STAR, 1)
                 .duration(100)

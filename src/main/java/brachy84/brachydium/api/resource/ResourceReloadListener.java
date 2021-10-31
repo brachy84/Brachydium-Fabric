@@ -3,14 +3,10 @@ package brachy84.brachydium.api.resource;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.JsonRecipe;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
-import brachy84.brachydium.api.tag.LoadableTag;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.tag.RequiredTagList;
 import net.minecraft.util.Identifier;
 
 import java.io.ByteArrayOutputStream;

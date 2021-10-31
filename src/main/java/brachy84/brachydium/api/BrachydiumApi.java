@@ -5,9 +5,9 @@ import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.*;
 import brachy84.brachydium.api.fluid.MaterialFluid;
 import brachy84.brachydium.api.fluid.MaterialFluidBlock;
-import brachy84.brachydium.api.material.Material;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.resource.RRPHelper;
+import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
@@ -26,9 +26,9 @@ import java.util.Set;
 
 public class BrachydiumApi {
 
-    public static final BrachydiumRegistry<Identifier, TileEntityGroup<?>> BLOCK_ENTITY_GROUP_REGISTRY = new BrachydiumRegistry<>();
+    public static final BrachydiumRegistry<Identifier, TileEntityGroup> BLOCK_ENTITY_GROUP_REGISTRY = new BrachydiumRegistry<>();
 
-    public static <T extends TileEntityGroup<?>> T registerTileEntityGroup(T group) {
+    public static <T extends TileEntityGroup> T registerTileEntityGroup(T group) {
         if(group == null || group.id == null) {
             throw new NullPointerException("Can't register null BlockEntity or BlockEntity with null Identifier");
         }
@@ -41,8 +41,7 @@ public class BrachydiumApi {
         BLOCK_ENTITY_GROUP_REGISTRY.register(id, group);
         // register Apis
         Set<BlockApiLookup<Object, Object>> apis = new HashSet<>();
-        for(TileEntityFactory<?> factory : group.getTileEntities()) {
-            TileEntity tile = factory.getOriginal();
+        for(TileEntity tile : group.getTileEntities()) {
             if(tile instanceof WorkableTileEntity) {
                 RecipeTable<?> recipeTable = ((WorkableTileEntity) tile).getRecipeTable();
                 if(recipeTable != null)
@@ -76,7 +75,7 @@ public class BrachydiumApi {
     }
 
     public static MaterialFluid.Still registerFluid(String mod, String fluidPrefix, Material material) {
-        String fluidName = String.format("%s_%s", fluidPrefix, material.getRegistryName());
+        String fluidName = String.format("%s_%s", fluidPrefix, material.toString());
         MaterialFluid.Still still = Registry.register(Registry.FLUID, new Identifier(mod, fluidName), new MaterialFluid.Still(material));
         MaterialFluid.Flowing flowing = Registry.register(Registry.FLUID, new Identifier(mod, fluidName + "_flowing"), new MaterialFluid.Flowing(material));
         BucketItem item = registerItem(new Identifier(mod, fluidName + "_bucket"), new BucketItem(still, new Item.Settings().recipeRemainder(Items.BUCKET)));
