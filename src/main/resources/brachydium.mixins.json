@@ -8,7 +8,7 @@
   ],
   "client": [
     "ItemStackMixin",
-    "JsonUnbakedModelMixin"
+    "SpriteAtlasTextureMixin"
   ],
   "injectors": {
     "defaultRequire": 1
