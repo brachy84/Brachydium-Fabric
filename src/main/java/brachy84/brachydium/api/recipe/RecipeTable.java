@@ -5,21 +5,23 @@ import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.gui.FluidSlotWidget;
 import brachy84.brachydium.api.gui.GuiTextures;
 import brachy84.brachydium.api.handlers.InventoryHelper;
+import brachy84.brachydium.api.handlers.storage.FluidInventory;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.handlers.storage.ItemInventory;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.recipe.builders.SimpleRecipeBuilder;
 import brachy84.brachydium.gui.api.TextureArea;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
+import brachy84.brachydium.gui.api.math.Size;
 import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
+import brachy84.brachydium.gui.api.widgets.ProgressBarWidget;
 import brachy84.brachydium.gui.internal.Gui;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 
-import java.lang.constant.Constable;
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 
 public class RecipeTable<R extends RecipeBuilder<R>> {
@@ -210,6 +212,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
 
     // = Gui Generation =============================================
 
+
+    public BiConsumer<TileEntity, Gui.Builder> getGuiBuilder() {
+        return guiBuilder;
+    }
+
     public RecipeTable<R> setItemSlotOverlay(TextureArea textureArea) {
         this.itemSlotOverlay = textureArea;
         return this;
@@ -224,6 +231,21 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return createUITemplate(progress, builder, tile.getImportInventory(), tile.getExportInventory(), tile.getImportFluidHandler(), tile.getExportFluidHandler());
     }
 
+    private float simulateProgress = 0f;
+
+    private double jeiProgressBar() {
+        if ((simulateProgress += 0.002f) > 1.0f)
+            simulateProgress = 0.0f;
+        return simulateProgress;
+    }
+
+    public Gui.Builder createJeiUiTemplate(Gui.Builder builder) {
+        return createUITemplate(this::jeiProgressBar, builder, ItemInventory.importInventory(getMaxInputs()),
+                ItemInventory.exportInventory(getMaxOutputs()),
+                FluidInventory.importInventory(getMaxFluidInputs(), 64 * 81000),
+                FluidInventory.exportInventory(getMaxFluidOutputs(), 64 * 81000));
+    }
+
     public Gui.Builder createUITemplate(DoubleSupplier progress, Gui.Builder builder,
                                         Inventory importItems,
                                         Inventory exportItems,
@@ -232,7 +254,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         if (builder == null || importItems == null || exportItems == null || importFluids == null || exportFluids == null) {
             throw new NullPointerException("Item and Fluid handlers must not be null!");
         }
-        //builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW, AABB.of(new Size(18, 18), new Pos2d(builder.getBounds().width / 2 - 9, 22)), MoveDirection.RIGHT).name("Duration bar"));
+        builder.widget(new ProgressBarWidget(progress, GuiTextures.ARROW).setSize(new Size(20, 20)).setPos(new Pos2d(78, 22)));
         addInventorySlotGroup(builder, importItems, importFluids, false);
         addInventorySlotGroup(builder, exportItems, exportFluids, true);
         return builder;

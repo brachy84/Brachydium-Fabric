@@ -64,44 +64,13 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
     public @NotNull List<Widget> setupDisplay(RecipeTableDisplay recipeDisplay, Rectangle rect) {
 
         Gui.Builder builder = Gui.defaultBuilder(MinecraftClient.getInstance().player);
-        recipeTable.createUITemplate(() -> 0, builder, ItemInventory.importInventory(recipeTable.getMaxInputs()),
-                ItemInventory.exportInventory(recipeTable.getMaxOutputs()),
-                FluidInventory.importInventory(recipeTable.getMaxFluidInputs(), 64 * 81000),
-                FluidInventory.exportInventory(recipeTable.getMaxFluidOutputs(), 64 * 81000));
+        recipeTable.createJeiUiTemplate(builder);
         Gui gui = builder.build();
         ReiGui reiGui = new ReiGui(gui, rect, widget -> widget instanceof FluidSlotWidget);
         List<Widget> widgets = reiGui.getWidgets();
         Pos2d origin = AABB.ofReiRectangle(rect).getTopLeft();
-        /*AABB bounds = AABB.of(rect);
-        Pos2d origin = bounds.getTopLeft();
-        Gui gui = recipeTable.createUITemplate(() -> 0, Gui.defaultBuilder(MinecraftClient.getInstance().player),
-                ItemInventory.importInventory(recipeTable.getMaxInputs()),
-                ItemInventory.exportInventory(recipeTable.getMaxOutputs()),
-                FluidTankList.importTanks(recipeTable.getMaxFluidInputs()),
-                FluidTankList.exportTanks(recipeTable.getMaxFluidOutputs())
-        ).build();*/
-        /*AtomicReference<Float> lowestY = new AtomicReference<>(0f);
-        List<ResourceSlotWidget<?>> brachydiumSlots = new ArrayList<>();
-        List<Slot> reiSlots = new ArrayList<>();
-        widgets.add(Widgets.createRecipeBase(rect));
-        gui.forEachWidget(child -> {
-            List<Widget> innerWidgets = new ArrayList<>();
-            child.getReiWidgets(innerWidgets, origin);
-            for (Widget widget : innerWidgets) {
-                if (widget instanceof Slot && child instanceof ResourceSlotWidget) {
-                    Brachydium.LOGGER.info("Adding resource slot to rei");
-                    brachydiumSlots.add((ResourceSlotWidget<?>) child);
-                    reiSlots.add((Slot) widget);
-                }
-                widgets.add(widget);
-            }
-            if (innerWidgets.size() > 0) {
-                lowestY.set(Math.max(lowestY.get(), child.getRelativPos().getY() + child.getSize().height()));
-            }
-        });
-        setEntries(recipeDisplay, brachydiumSlots, reiSlots);*/
         setEntries(recipeDisplay, reiGui.getItemSlots(), reiGui.getFluidSlots());
-        Pos2d point = origin.add(4, 60);
+        Pos2d point = origin.add(0, 60);
         widgets.add(simpleLabel(point, new TranslatableText("brachydium.text.eu_t", recipeDisplay.getEUt())));
         widgets.add(simpleLabel(point.add(0, 10), new TranslatableText("brachydium.text.duration_sec", recipeDisplay.getDuration() / 20f)));
         widgets.add(simpleLabel(point.add(0, 20), new TranslatableText("brachydium.text.total_eu", recipeDisplay.getDuration() * recipeDisplay.getEUt())));
@@ -142,38 +111,6 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
             }
         }
     }
-
-    /*private void setEntries(RecipeTableDisplay display, List<ResourceSlotWidget<?>> slots, List<Slot> reiSlots) {
-        Iterator<EntryIngredient> inputItems = display.getItemInputs().iterator();
-        Iterator<EntryIngredient> inputFluids = display.getFluidInputs().iterator();
-        Iterator<EntryIngredient> outputItems = display.getItemOutputs().iterator();
-        Iterator<EntryIngredient> outputFluids = display.getFluidOutputs().iterator();
-        for (int i = 0; i < reiSlots.size(); i++) {
-            ResourceSlotWidget<?> slot = slots.get(i);
-            Slot reiSlot = reiSlots.get(i);
-            if (slot instanceof ItemSlotWidget) {
-                if (reiSlot.getNoticeMark() == 1) {
-                    if (!inputItems.hasNext()) continue;
-                    Brachydium.LOGGER.info(" - inputItem");
-                    reiSlot.entries(inputItems.next());
-                } else if (reiSlot.getNoticeMark() == 2) {
-                    if (!outputItems.hasNext()) continue;
-                    Brachydium.LOGGER.info(" - outputItem");
-                    reiSlot.entries(outputItems.next());
-                }
-            } else if (slot instanceof FluidSlotWidget) {
-                if (reiSlot.getNoticeMark() == 1) {
-                    if (!inputFluids.hasNext()) continue;
-                    Brachydium.LOGGER.info(" - inputFluid");
-                    reiSlot.entries(inputFluids.next());
-                } else if (reiSlot.getNoticeMark() == 2) {
-                    if (!outputFluids.hasNext()) continue;
-                    Brachydium.LOGGER.info(" - outputFluid");
-                    reiSlot.entries(outputFluids.next());
-                }
-            }
-        }
-    }*/
 
     @Override
     public int getDisplayHeight() {

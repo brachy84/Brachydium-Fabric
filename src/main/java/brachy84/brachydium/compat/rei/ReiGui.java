@@ -1,20 +1,25 @@
 package brachy84.brachydium.compat.rei;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
+import brachy84.brachydium.gui.api.widgets.ProgressBarWidget;
 import brachy84.brachydium.gui.internal.Gui;
+import brachy84.brachydium.gui.internal.GuiHelper;
 import com.google.common.util.concurrent.AtomicDouble;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
 import me.shedaniel.rei.api.client.gui.widgets.Widget;
+import me.shedaniel.rei.api.client.gui.widgets.Widgets;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+@Environment(EnvType.CLIENT)
 public class ReiGui {
 
     private final List<Slot> itemSlots = new ArrayList<>();
@@ -38,12 +43,25 @@ public class ReiGui {
         final AtomicDouble x0 = new AtomicDouble(0), x1 = new AtomicDouble(0), y0 = new AtomicDouble(0), y1 = new AtomicDouble(0);
         gui.init();
         AABB finalBounds = bounds == null ? gui.getBounds() : bounds;
-        Brachydium.LOGGER.info("Recipe bounds: {}", recipeBounds);
+        //Brachydium.LOGGER.info("Recipe bounds: {}", recipeBounds);
         gui.forEachWidget(widget -> {
             AABB widgetBounds = widget.getBounds();
             if (finalBounds.covers(widgetBounds)) {
-                Pos2d transform = widget.getPos().subtract(new Pos2d(recipeBounds.x, recipeBounds.y));
+                Pos2d transform = widget.getParent().getPos().add(-recipeBounds.x, -recipeBounds.y);//widget.getPos().subtract(new Pos2d(recipeBounds.x, recipeBounds.y));
+                float x = transform.x, y = transform.y;
+                x += 7;
+                if (x < 0) x = -x;
+                if (y < 0) y = -y;
+                transform = new Pos2d(x, y);
                 List<Widget> widgets = widget.getReiWidgets(finalBounds, widget.getPos().subtract(transform)/*.subtract(new Pos2d(recipeBounds.x, recipeBounds.y))*/);
+                if (widget instanceof ProgressBarWidget) {
+                    widget.setAbsolutePos(widget.getPos().subtract(transform));
+                    me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
+                        GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));
+                        widget.render(guiHelper, matrices, delta);
+                    }));
+                    widgets.add(render);
+                }
                 if (widget instanceof ItemSlotWidget) {
                     for (Widget widget1 : widgets) {
                         if (widget1 instanceof Slot)
