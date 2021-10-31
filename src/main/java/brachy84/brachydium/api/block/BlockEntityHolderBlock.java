@@ -3,7 +3,6 @@ package brachy84.brachydium.api.block;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.blockEntity.TileEntityFactory;
 import brachy84.brachydium.api.blockEntity.TileEntityGroup;
 import brachy84.brachydium.api.cover.Cover;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
@@ -32,9 +31,9 @@ import java.util.Objects;
 
 public class BlockEntityHolderBlock extends Block implements BlockEntityProvider {
 
-    private final TileEntityGroup<?> group;
+    private final TileEntityGroup group;
 
-    public BlockEntityHolderBlock(TileEntityGroup<?> group) {
+    public BlockEntityHolderBlock(TileEntityGroup group) {
         super(FabricBlockSettings.of(Material.METAL).strength(3, 3));
         this.group = Objects.requireNonNull(group);
     }
@@ -51,8 +50,8 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
 
     @Override
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> list) {
-        for (TileEntityFactory<?> tile : this.group.getTileEntities()) {
-            list.add(tile.getOriginal().asStack());
+        for (TileEntity tile : this.group.getTileEntities()) {
+            list.add(tile.asStack());
         }
     }
 
@@ -69,7 +68,7 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
         Brachydium.LOGGER.info("BlockEntity placed!");
         //TODO: test this on server. If crashes, insert !isClient and sync facing
         if (stack.getItem() instanceof BlockMachineItem && stack.hasNbt()) {
-            TileEntityFactory<?> tile = group.getBlockEntity(stack.getNbt());
+            TileEntity tile = group.getBlockEntity(stack.getNbt());
             if (tile != null) {
                 BlockEntity blockEntity = world.getBlockEntity(pos);
                 if (blockEntity instanceof BlockEntityHolder) {

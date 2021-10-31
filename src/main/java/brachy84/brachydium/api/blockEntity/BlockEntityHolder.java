@@ -31,13 +31,12 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         return null;
     }
 
-    private final TileEntityGroup<?> group;
+    private final TileEntityGroup group;
     public final Identifier id;
     @Nullable
     private TileEntity currentTile;
-    private TileEntityFactory<?> currentFactory;
 
-    public BlockEntityHolder(TileEntityGroup<?> group, BlockPos pos, BlockState state) {
+    public BlockEntityHolder(TileEntityGroup group, BlockPos pos, BlockState state) {
         super(group.getType(), pos, state);
         this.group = group;
         this.id = group.id;
@@ -58,7 +57,7 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         tag.putString("ID", group.id.toString());
         if (currentTile != null) {
             tag.put("Tile", currentTile.serializeTag());
-            group.writeTileNbt(tag, currentFactory);
+            group.writeNbt(tag, currentTile.getGroupKey());
             tag.putInt("dir", currentTile.getFrontFace().getId());
         }
         return tag;
@@ -73,13 +72,12 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         currentTile.deserializeTag(tag.getCompound("Tile"));
     }
 
-    public void setActiveTileEntity(TileEntityFactory<?> factory, Direction front) {
+    public void setActiveTileEntity(TileEntity tile, Direction front) {
         if (this.currentTile != null) {
             this.currentTile.onDetach();
             this.currentTile.setHolder(null);
         }
-        this.currentFactory = factory;
-        this.currentTile = factory.create();
+        this.currentTile = tile.createCopyInternal();
         this.currentTile.setHolder(this);
         this.currentTile.setFrontFace(front);
         this.currentTile.onAttach();
@@ -89,7 +87,7 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
         return currentTile;
     }
 
-    public TileEntityGroup<?> getGroup() {
+    public TileEntityGroup getGroup() {
         return group;
     }
 
@@ -127,7 +125,7 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
     @Override
     public NbtCompound toClientTag(NbtCompound tag) {
         if (currentTile == null) return tag;
-        group.writeTileNbt(tag, currentFactory);
+        group.writeNbt(tag, currentTile.getGroupKey());
         tag.putInt("dir", currentTile.getFrontFace().getId());
         return tag;
     }

@@ -63,7 +63,6 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
         this.recipeTable = recipeTable;
         possibleRecipes = recipeTable.getRecipeList();
         state = State.IDLING;
-        //tile.appendInitialiseListener(this::addListeners);
     }
 
     @Override
@@ -73,6 +72,11 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
                 onRecipeTick();
             }
         }
+    }
+
+    @Override
+    public void init() {
+        addListeners();
     }
 
     private void addListeners() {
