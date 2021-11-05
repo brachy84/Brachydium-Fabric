@@ -2,10 +2,12 @@ package brachy84.brachydium.api.recipe;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.item.BrachydiumItem;
 import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.util.CrypticNumber;
+import brachy84.brachydium.api.util.ValidationResult;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -21,26 +23,32 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     private RecipeTable<R> recipeTable;
 
-    private String name;
-
     private final List<CountableIngredient> inputs = new ArrayList<>();
     private final List<ItemStack> outputs = new ArrayList<>();
     private final List<FluidStack> fluidInputs = new ArrayList<>();
     private final List<FluidStack> fluidOutputs = new ArrayList<>();
+    protected final List<Recipe.ChanceEntry> chancedOutputs = new ArrayList<>();
 
     private int duration, EUt;
     private boolean hidden = false;
+
+    protected ValidationResult.State recipeStatus = ValidationResult.State.VALID;
 
     protected RecipeBuilder() {
     }
 
     protected RecipeBuilder(Recipe recipe, RecipeTable<R> recipeTable) {
         this.recipeTable = recipeTable;
+        this.inputs.clear();
         this.inputs.addAll(recipe.getInputs());
+        this.outputs.clear();
         this.outputs.addAll(recipe.getOutputs());
-
+        this.fluidInputs.clear();
         this.fluidInputs.addAll(recipe.getFluidInputs());
+        this.fluidOutputs.clear();
         this.fluidOutputs.addAll(recipe.getFluidOutputs());
+        this.chancedOutputs.clear();
+        this.chancedOutputs.addAll(recipe.getChancedOutputs());
 
         this.duration = recipe.getDuration();
         this.EUt = recipe.getEUt();
@@ -50,10 +58,15 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     @SuppressWarnings("all")
     protected RecipeBuilder(RecipeBuilder<R> recipeBuilder) {
         this.recipeTable = recipeBuilder.recipeTable;
+        this.inputs.clear();
         this.inputs.addAll(recipeBuilder.inputs);
+        this.outputs.clear();
         this.outputs.addAll(recipeBuilder.outputs);
-
+        this.chancedOutputs.clear();
+        this.chancedOutputs.addAll(recipeBuilder.chancedOutputs);
+        this.fluidInputs.clear();
         this.fluidInputs.addAll(recipeBuilder.fluidInputs);
+        this.fluidOutputs.clear();
         this.fluidOutputs.addAll(recipeBuilder.fluidOutputs);
         this.EUt = recipeBuilder.EUt;
         this.duration = recipeBuilder.duration;
@@ -106,6 +119,30 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return inputs(new CountableIngredient(input, amount));
     }
 
+    public R notConsumable(ItemStack itemStack) {
+        return inputs(new CountableIngredient(itemStack, 0));
+    }
+
+    public R notConsumable(TagDictionary.Entry prefix, Material material) {
+        return input(prefix, material, 0);
+    }
+
+    public R notConsumable(Ingredient ingredient) {
+        return inputs(new CountableIngredient(ingredient, 0));
+    }
+
+    public R notConsumable(BrachydiumItem.Definition item) {
+        return inputs(new CountableIngredient(item.asStack(), 0));
+    }
+
+    public R notConsumable(Fluid fluid) {
+        return fluidInputs(new FluidStack(fluid, 0));
+    }
+
+    public R notConsumable(FluidStack fluidStack) {
+        return fluidInputs(fluidStack.copyWith(0));
+    }
+
     public R output(Item item, int amount) {
         return outputs(new ItemStack(item, amount));
     }
@@ -132,6 +169,41 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
+    public R chancedOutput(ItemStack stack, int chance, int tierChanceBoost) {
+        if (stack == null || stack.isEmpty()) {
+            return (R) this;
+        }
+        if (0 >= chance || chance > Recipe.getMaxChancedValue()) {
+            Brachydium.LOGGER.error("Chance cannot be less or equal to 0 or more than {}. Actual: {}.", Recipe.getMaxChancedValue(), chance);
+            Brachydium.LOGGER.error("Stacktrace:", new IllegalArgumentException());
+            //recipeStatus = EnumValidationResult.INVALID;
+            return (R) this;
+        }
+        this.chancedOutputs.add(new Recipe.ChanceEntry(stack.copy(), chance, tierChanceBoost));
+        return (R) this;
+    }
+
+    /*public R chancedOutput(TagDictionary.Entry tag, Material material, int count, int chance, int tierChanceBoost) {
+        return chancedOutput(OreDictUnifier.get(tag, material, count), chance, tierChanceBoost);
+    }
+
+    public R chancedOutput(TagDictionary.Entry prefix, Material material, int chance, int tierChanceBoost) {
+        return chancedOutput(prefix, material, 1, chance, tierChanceBoost);
+    }
+
+    public R chancedOutput(MetaItem<?>.MetaValueItem item, int count, int chance, int tierChanceBoost) {
+        return chancedOutput(item.getStackForm(count), chance, tierChanceBoost);
+    }
+
+    public R chancedOutput(MetaItem<?>.MetaValueItem item, int chance, int tierChanceBoost) {
+        return chancedOutput(item, 1, chance, tierChanceBoost);
+    }*/
+
+    public R chancedOutputs(List<Recipe.ChanceEntry> chancedOutputs) {
+        chancedOutputs.stream().map(Recipe.ChanceEntry::copy).forEach(this.chancedOutputs::add);
+        return (R) this;
+    }
+
     @SuppressWarnings("unchecked")
     public R duration(int duration) {
         this.duration = duration;
@@ -141,12 +213,6 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     @SuppressWarnings("unchecked")
     public R EUt(int EUt) {
         this.EUt = EUt;
-        return (R) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public R name(String name) {
-        this.name = name;
         return (R) this;
     }
 
@@ -165,48 +231,32 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public Recipe buildAndRegister() {
-        if(validate()) {
-            if(name == null || name.trim().equals("")) {
-                String output = "";
-                if(outputs.size() > 0) {
-                    output = outputs.get(0).toString().split(" ")[1];
-                } else if(fluidOutputs.size() > 0){
-                    output = fluidOutputs.get(0).toString().split(" ")[0];
-                }
-                name = String.format("%s_%s_%s", recipeTable.unlocalizedName, output, nameGenerator.next());
-            }
-            Recipe recipe = new Recipe(name, inputs, outputs, fluidInputs, fluidOutputs, EUt, duration, hidden);
-            recipeTable.addRecipe(recipe);
-            Brachydium.LOGGER.info("Registering recipe ({}) for {}", recipe.getName(), recipeTable.unlocalizedName);
-            return recipe;
-        }
-        return null;
+        Recipe recipe = new Recipe(inputs, outputs, fluidInputs, fluidOutputs, chancedOutputs, EUt, duration, hidden);
+        ValidationResult<Recipe> validationResult = build(recipe);
+        recipeTable.addRecipe(validationResult);
+        Brachydium.LOGGER.info("Registering recipe for {}", recipeTable.unlocalizedName);
+        return recipe;
     }
 
     public abstract R copy();
 
-    public R copyWithName(String name) {
-        R builder = copy();
-        builder.setName(name);
-        return builder;
+    public ValidationResult<Recipe> build(Recipe recipe) {
+        return new ValidationResult<>(validate(), recipe);
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    protected boolean validate() {
-        boolean matches;
-        matches = inputs.size() >= recipeTable.getMinInputs() && inputs.size() <= recipeTable.getMaxInputs();
-        if(!matches) return false;
-        matches = outputs.size() >= recipeTable.getMinOutputs() && outputs.size() <= recipeTable.getMaxOutputs();
-        if(!matches) return false;
-        matches = fluidInputs.size() >= recipeTable.getMinFluidInputs() && fluidInputs.size() <= recipeTable.getMaxFluidInputs();
-        if(!matches) return false;
-        matches = fluidOutputs.size() >= recipeTable.getMinFluidOutputs() && fluidOutputs.size() <= recipeTable.getMaxFluidOutputs();
-        if(!matches) return false;
-
-        return EUt != 0 && duration > 0;
+    protected ValidationResult.State validate() {
+        if (EUt == 0) {
+            Brachydium.LOGGER.error("EU/t cannot be equal to 0", new IllegalArgumentException());
+            recipeStatus = ValidationResult.State.INVALID;
+        }
+        if (duration <= 0) {
+            Brachydium.LOGGER.error("Duration cannot be less or equal to 0", new IllegalArgumentException());
+            recipeStatus = ValidationResult.State.INVALID;
+        }
+        if (recipeStatus == ValidationResult.State.INVALID) {
+            Brachydium.LOGGER.error("Invalid recipe, read the errors above: {}", this);
+        }
+        return recipeStatus;
     }
 
     public void setRecipeTable(RecipeTable<R> recipeTable) {

@@ -13,7 +13,7 @@ public interface IFluidHandler extends Clearable {
         return FluidInventoryStorage.of(this);
     }
 
-    int getSlots();
+    int getTanks();
 
     FluidStack getStackAt(int slot);
 
@@ -37,7 +37,8 @@ public interface IFluidHandler extends Clearable {
 
     void setStack(int slot, FluidStack stack);
 
-    void markDirty();
+    default void markDirty() {
+    }
 
     /**
      * Returns whether the given stack is a valid for the indicated slot position.
@@ -52,7 +53,7 @@ public interface IFluidHandler extends Clearable {
      */
     default long count(FluidStack stack) {
         long i = 0;
-        for (int j = 0; j < this.getSlots(); ++j) {
+        for (int j = 0; j < this.getTanks(); ++j) {
             FluidStack fluidStack = this.getStackAt(j);
             if (FluidStack.matchesStack(fluidStack, stack)) {
                 i += fluidStack.getAmount();
@@ -67,7 +68,7 @@ public interface IFluidHandler extends Clearable {
      * Ignores amount
      */
     default boolean containsAny(Set<FluidStack> fluids) {
-        for (int i = 0; i < this.getSlots(); ++i) {
+        for (int i = 0; i < this.getTanks(); ++i) {
             FluidStack fluidStack = this.getStackAt(i);
             if (!fluidStack.isEmpty() && fluids.contains(fluidStack)) {
                 return true;
@@ -79,14 +80,17 @@ public interface IFluidHandler extends Clearable {
 
     @Override
     default void clear() {
-        for (int i = 0; i < getSlots(); i++) {
+        for (int i = 0; i < getTanks(); i++) {
             setStack(i, FluidStack.EMPTY);
         }
     }
 
+    default void onChange() {
+    }
+
     public static IFluidHandler EMPTY = new IFluidHandler() {
         @Override
-        public int getSlots() {
+        public int getTanks() {
             return 0;
         }
 

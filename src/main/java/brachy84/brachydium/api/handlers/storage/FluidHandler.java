@@ -21,7 +21,7 @@ public class FluidHandler implements IFluidHandler {
     }
 
     @Override
-    public int getSlots() {
+    public int getTanks() {
         return fluids.size();
     }
 
@@ -37,7 +37,7 @@ public class FluidHandler implements IFluidHandler {
 
     @Override
     public boolean isEmpty() {
-        for (int i = 0; i < getSlots(); i++) {
+        for (int i = 0; i < getTanks(); i++) {
             if(!getStackAt(i).isEmpty())
                 return false;
         }

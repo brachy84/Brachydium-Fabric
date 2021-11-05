@@ -1,16 +1,10 @@
 package brachy84.brachydium.api.handlers;
 
-import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.energy.IEnergyContainer;
-import io.github.astrarre.transfer.v0.api.Insertable;
-import io.github.astrarre.transfer.v0.api.transaction.Transaction;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.Direction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class EnergyContainerHandler extends TileTrait implements IEnergyContainer {
 
@@ -81,27 +75,20 @@ public class EnergyContainerHandler extends TileTrait implements IEnergyContaine
         return 0;
     }
 
-    /*@Override
-    public BlockApiHolder<?, ?>[] getApis() {
-        return new BlockApiHolder[] {
-                new BlockApiHolder(MechTechHandlers.ENERGY, (tile, direction) -> this)
-        };
-    }*/
-
     @Override
-    public void addApis(BlockEntityType<BlockEntityHolder> type) {
-
+    public void registerApis() {
+        registerApi(BrachydiumLookups.ENERGY_CONTAINER, this);
     }
 
     @Override
-    public NbtCompound serializeTag() {
+    public NbtCompound serializeNbt() {
         NbtCompound tag = new NbtCompound();
         tag.putLong("EnergyStored", stored);
         return tag;
     }
 
     @Override
-    public void deserializeTag(NbtCompound tag) {
+    public void deserializeNbt(NbtCompound tag) {
         stored = tag.getLong("EnergyStored");
     }
 

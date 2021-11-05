@@ -10,10 +10,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
-
-import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public class ReiCompat implements REIClientPlugin {
@@ -37,7 +34,7 @@ public class ReiCompat implements REIClientPlugin {
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         for(RecipeTable<?> recipeTable : RecipeTable.getRecipeTables()) {
-            for(Recipe recipe : recipeTable.getRecipeList()) {
+            for(Recipe recipe : recipeTable.getRecipes()) {
                 registry.add(new RecipeTableDisplay(recipe, category(recipeTable)));
             }
         }

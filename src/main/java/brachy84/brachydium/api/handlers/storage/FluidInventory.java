@@ -1,18 +1,21 @@
 package brachy84.brachydium.api.handlers.storage;
 
 import brachy84.brachydium.api.blockEntity.InventoryListener;
+import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.handlers.INotifiableHandler;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FluidInventory implements IFluidHandler, InventoryListener {
+public class FluidInventory implements IFluidHandler, InventoryListener, INotifiableHandler {
 
     private final long capacity;
     private final DefaultedList<FluidStack> fluids;
     private final List<Runnable> listeners = new ArrayList<>();
     private final boolean extractable, insertable;
+    private TileEntity notifiable;
 
     public FluidInventory(int size, long capacityPerTank) {
         this(size, capacityPerTank, true, true);
@@ -41,7 +44,7 @@ public class FluidInventory implements IFluidHandler, InventoryListener {
     }
 
     @Override
-    public int getSlots() {
+    public int getTanks() {
         return fluids.size();
     }
 
@@ -91,7 +94,7 @@ public class FluidInventory implements IFluidHandler, InventoryListener {
 
     @Override
     public void markDirty() {
-
+        addToNotifiedList(notifiable, this, extractable && !insertable);
     }
 
     @Override
@@ -99,7 +102,14 @@ public class FluidInventory implements IFluidHandler, InventoryListener {
         listeners.add(runnable);
     }
 
+    @Override
     public void onChange() {
         listeners.forEach(Runnable::run);
+        markDirty();
+    }
+
+    @Override
+    public void setNotifiableMetaTileEntity(TileEntity metaTileEntity) {
+        this.notifiable = metaTileEntity;
     }
 }

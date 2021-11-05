@@ -17,8 +17,6 @@ public class JsonRecipe {
             Brachydium.LOGGER.error("JsonRecipe does not have required field 'table'");
         }
         String table = json.get("table").getAsString();
-        String[] parts = id.getPath().split("/");
-        String name = parts[parts.length-1].split("\\.")[0];
         JsonArray inputs = null;
         JsonArray outputs = null;
         int eut = 0;
@@ -37,7 +35,7 @@ public class JsonRecipe {
         }
         RecipeTable<?> table1 = RecipeTable.getByName(table);
         if(table1 != null) {
-            RecipeBuilder<?> builder = table1.recipeBuilder(name);
+            RecipeBuilder<?> builder = table1.recipeBuilder();
             if(inputs != null) processArray(builder, inputs, true);
             if(outputs != null) processArray(builder, outputs, false);
             builder.EUt(eut).duration(dur).buildAndRegister();

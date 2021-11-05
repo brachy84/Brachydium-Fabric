@@ -15,7 +15,7 @@ public class FluidTank implements IFluidHandler {
     }
 
     @Override
-    public int getSlots() {
+    public int getTanks() {
         return 1;
     }
 

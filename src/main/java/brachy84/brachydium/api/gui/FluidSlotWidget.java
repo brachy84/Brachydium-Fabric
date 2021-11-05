@@ -2,22 +2,15 @@ package brachy84.brachydium.api.gui;
 
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
-import brachy84.brachydium.gui.api.IDrawable;
-import brachy84.brachydium.gui.api.IGuiHelper;
+import brachy84.brachydium.gui.api.GuiHelper;
 import brachy84.brachydium.gui.api.ITexture;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.math.Size;
 import brachy84.brachydium.gui.api.widgets.ResourceSlotWidget;
-import brachy84.brachydium.gui.internal.GuiHelper;
 import com.google.common.collect.Lists;
 import me.shedaniel.rei.api.client.gui.widgets.Widget;
 import me.shedaniel.rei.api.client.gui.widgets.Widgets;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
@@ -42,23 +35,24 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
     }
 
     @Override
-    public void readData(PacketByteBuf data) {
+    public void renderResource(MatrixStack matrices, Pos2d mousePos) {
+        GuiHelper.drawFluid(matrices, getResource().getFluid(), getResource().getAmount() + "mb", getPos().add(new Pos2d(1, 1)), new Size(16, 16));
+
+    }
+
+    @Override
+    public void renderTooltip(MatrixStack matrices, Pos2d mousePos, float delta) {
+        GuiHelper.drawTooltip(matrices, Lists.transform(getResource().getTooltipLines(), Text::asOrderedText), mousePos);
+    }
+
+    @Override
+    public void readData(boolean fromServer, PacketByteBuf data) {
         setResource(FluidStack.readData(data));
     }
 
     @Override
-    public void writeData(PacketByteBuf data) {
+    public void writeData(boolean fromServer, PacketByteBuf data) {
         getResource().writeData(data);
-    }
-
-    @Override
-    public void renderResource(IGuiHelper helper, MatrixStack matrices) {
-        helper.drawFluid(matrices, getResource().getFluid(), getResource().getAmount() + "mb", getPos().add(new Pos2d(1, 1)), new Size(16, 16));
-    }
-
-    @Override
-    public void renderTooltip(IGuiHelper helper, MatrixStack matrices, float delta) {
-        helper.drawTooltip(matrices, Lists.transform(getResource().getTooltipLines(), Text::asOrderedText), helper.getMousePos());
     }
 
     @Override
@@ -178,13 +172,12 @@ public class FluidSlotWidget extends ResourceSlotWidget<FluidStack> {
         slot.setNoticeMark(mark);
         widgets.add(slot);
         me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
-            GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));
             if (getTextures().size() > 0) {
                 for (ITexture drawable : getTextures()) {
-                    guiHelper.drawTexture(matrices, drawable, reiPos, getSize());
+                    GuiHelper.drawTexture(matrices, drawable, reiPos, getSize());
                 }
             } else {
-                guiHelper.drawTexture(matrices, getFallbackTexture(), reiPos, getSize());
+                GuiHelper.drawTexture(matrices, getFallbackTexture(), reiPos, getSize());
             }
         }));
         widgets.add(render);

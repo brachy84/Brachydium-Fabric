@@ -10,11 +10,7 @@ public class CrypticNumber {
 
     public CrypticNumber(int length) {
         this.length = length;
-        StringBuilder builder = new StringBuilder();
-        for(int i = 0; i < length; i++) {
-            builder.append("0");
-        }
-        this.current = builder.toString();
+        this.current = "0".repeat(Math.max(0, length));
     }
 
     public String next() {

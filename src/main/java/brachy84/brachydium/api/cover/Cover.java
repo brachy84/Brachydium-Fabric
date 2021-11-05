@@ -1,16 +1,21 @@
 package brachy84.brachydium.api.cover;
 
+import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.item.BrachydiumItem;
 import brachy84.brachydium.api.render.Texture;
 import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public abstract class Cover {
 
@@ -66,6 +71,19 @@ public abstract class Cover {
     }
 
     public void tick() {
+    }
+
+    public final void syncCustomData(int id, Consumer<PacketByteBuf> consumer) {
+        if(coverHolder instanceof TileEntity tile) {
+            tile.syncCoverData(this, id, consumer);
+        } else {
+            // TODO
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    @Environment(EnvType.CLIENT)
+    public void readCustomData(int id, PacketByteBuf buf) {
     }
 
     /**

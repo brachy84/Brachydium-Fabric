@@ -1,12 +1,13 @@
 package brachy84.brachydium.api.energy;
 
 import brachy84.brachydium.Brachydium;
+import org.lwjgl.system.CallbackI;
 
 public class Voltage {
 
     //public static final Voltage ZERO = new Voltage(Integer.MIN_VALUE, 0, "ZERO");
 
-    public static final Voltage ELV = new Voltage(0, 2L, "ELV");
+    //public static final Voltage ELV = new Voltage(0, 2L, "ELV");
     public static final Voltage ULV = new Voltage(1, 8L, "ULV");
     public static final Voltage LV = new Voltage(2, 32L, "LV");
     public static final Voltage MV = new Voltage(3, 128L, "MV");
@@ -41,8 +42,26 @@ public class Voltage {
     // 9.223.372.036.854.775.807                       cum     CV      max 64 bit int
 
     public static final Voltage[] VALUES = {
-            ELV, ULV, LV, MV, HV, EV, IV, LuV, UV, GV, GMV, GHV, GEV, GIV, UGV, UXGV
+            ULV, LV, MV, HV, EV, IV, LuV, UV, GV, GMV, GHV, GEV, GIV, UGV, UXGV
     };
+
+    public static Voltage getVoltage(int tier) {
+        return VALUES[tier];
+    }
+
+    public static long get(int tier) {
+        return getVoltage(tier).voltage;
+    }
+
+    public static Voltage getByVoltage(long voltage) {
+        voltage = Math.min(UXGV.voltage, voltage);
+        Voltage v = ULV;
+        int i = 0;
+        while (v.voltage < voltage) {
+            v = VALUES[++i];
+        }
+        return VALUES[Math.min(VALUES.length-1, ++i)];
+    }
 
     public final int tier;
     public final String shortName;

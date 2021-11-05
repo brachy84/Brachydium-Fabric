@@ -95,19 +95,15 @@ public class TileEntityRenderer extends TileTrait {
     }
 
     @Override
-    public final void addApis(BlockEntityType<BlockEntityHolder> type) {
-    }
-
-    @Override
     public final void tick() {
     }
 
     @Override
-    public final NbtCompound serializeTag() {
+    public final NbtCompound serializeNbt() {
         return null;
     }
 
     @Override
-    public final void deserializeTag(NbtCompound tag) {
+    public final void deserializeNbt(NbtCompound tag) {
     }
 }

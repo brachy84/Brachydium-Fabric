@@ -2,8 +2,8 @@ package brachy84.brachydium.client;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
+import brachy84.brachydium.api.blockEntity.SyncedBlockEntity;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.network.Channels;
 import brachy84.brachydium.api.resource.ModelProvider;
 import brachy84.brachydium.api.resource.ResourceProvider;
@@ -28,22 +28,29 @@ public class BrachydiumClient implements ClientModInitializer {
         ModelLoadingRegistry.INSTANCE.registerResourceProvider(ResourceProvider::new);
         ModelLoadingRegistry.INSTANCE.registerVariantProvider(VariantProvider::new);
 
-        ClientPlayNetworking.registerGlobalReceiver(Channels.UPDATE_WORKING_STATE, ((client, handler, buf, responseSender) -> {
-            BlockPos pos = buf.readBlockPos();
-            if (client.world != null) {
-                BlockEntity blockEntity = client.world.getBlockEntity(pos);
-                if (blockEntity instanceof BlockEntityHolder) {
-                    TileEntity tile = ((BlockEntityHolder) blockEntity).getActiveTileEntity();
-                    if (tile != null) {
-                        AbstractRecipeLogic recipeLogic = tile.getTrait(AbstractRecipeLogic.class);
-                        if (recipeLogic != null) {
-                            String state = buf.readString();
-                            Brachydium.LOGGER.info("Setting state to {} at {} on Client", state, pos);
-                            recipeLogic.setState(AbstractRecipeLogic.State.valueOf(state));
-                            tile.scheduleRenderUpdate();
-                        }
-                    }
+        ClientPlayNetworking.registerGlobalReceiver(Channels.SYNC_TILE_CUSTOM, ((client, handler, buf, responseSender) -> {
+            if(client.world != null) {
+                BlockEntity blockEntity = client.world.getBlockEntity(buf.readBlockPos());
+                if(blockEntity instanceof SyncedBlockEntity synced) {
+                    synced.readCustomData(buf.readVarInt(), buf);
+                } else {
+                    Brachydium.LOGGER.error("Failed to sync custom data");
                 }
+            } else {
+                Brachydium.LOGGER.error("Failed to sync custom data");
+            }
+        }));
+
+        ClientPlayNetworking.registerGlobalReceiver(Channels.SYNC_TILE_INIT, ((client, handler, buf, responseSender) -> {
+            if(client.world != null) {
+                BlockEntity blockEntity = client.world.getBlockEntity(buf.readBlockPos());
+                if(blockEntity instanceof SyncedBlockEntity synced) {
+                    synced.receiveInitialData(buf);
+                } else {
+                    Brachydium.LOGGER.error("Failed to sync init data");
+                }
+            } else {
+                Brachydium.LOGGER.error("Failed to sync init data");
             }
         }));
     }

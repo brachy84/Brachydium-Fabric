@@ -1,6 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
-public interface IWorkable extends IControllable{
+public interface IWorkable extends IControllable {
 
     int getProgress();
 

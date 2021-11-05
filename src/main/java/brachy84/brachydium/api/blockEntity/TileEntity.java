@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
@@ -8,17 +9,21 @@ import brachy84.brachydium.api.cover.CoverableApi;
 import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
+import brachy84.brachydium.api.handlers.INotifiableHandler;
 import brachy84.brachydium.api.handlers.storage.FluidInventoryStorage;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.handlers.storage.InventoryStorage;
 import brachy84.brachydium.api.handlers.storage.ItemInventory;
+import brachy84.brachydium.api.util.TransferUtil;
 import brachy84.brachydium.gui.api.UIHolder;
 import brachy84.brachydium.gui.internal.Gui;
 import com.google.common.collect.Lists;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
@@ -31,6 +36,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -43,6 +49,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public abstract class TileEntity extends ApiHolder implements UIHolder, IOrientable, ICoverable {
 
@@ -81,6 +88,11 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     private Storage<ItemVariant> itemStorage;
     private Storage<FluidVariant> fluidStorage;
 
+    protected List<Inventory> notifiedItemOutputList = new ArrayList<>();
+    protected List<Inventory> notifiedItemInputList = new ArrayList<>();
+    protected List<IFluidHandler> notifiedFluidInputList = new ArrayList<>();
+    protected List<IFluidHandler> notifiedFluidOutputList = new ArrayList<>();
+
     protected TileEntity() {
         this.frontFacing = Direction.NORTH;
         for (Direction direction : Direction.values()) {
@@ -92,7 +104,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     protected final TileEntity createCopyInternal() {
         TileEntity tile = createNewTileEntity();
         tile.setGroup(group, key);
-        return this;
+        tile.setUp();
+        return tile;
     }
 
     @ApiStatus.OverrideOnly
@@ -121,8 +134,41 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         this.importFluids = createInputFluidHandler();
         this.exportFluids = createOutputFluidHandler();
 
-        this.importItemStorage = InventoryStorage.of(importItems, null);
-        this.exportItemStorage = InventoryStorage.of(exportItems, null);
+        if (importItems instanceof INotifiableHandler notifiable) {
+            notifiable.setNotifiableMetaTileEntity(this);
+        }
+        if (exportItems instanceof INotifiableHandler notifiable) {
+            notifiable.setNotifiableMetaTileEntity(this);
+        }
+        if (importFluids instanceof INotifiableHandler notifiable) {
+            notifiable.setNotifiableMetaTileEntity(this);
+        }
+        if (exportFluids instanceof INotifiableHandler notifiable) {
+            notifiable.setNotifiableMetaTileEntity(this);
+        }
+
+        if (importItems instanceof InventoryListener) {
+            ((InventoryListener) importItems).addListener(() -> {
+                if (!getWorld().isClient()) {
+                    Brachydium.LOGGER.info("Syncing import inventory on server");
+                    syncCustomData(-1000, buf -> TransferUtil.pack(importItems, buf));
+                }
+            });
+        }
+        if (exportItems instanceof InventoryListener) {
+            ((InventoryListener) exportItems).addListener(() -> {
+                if (!getWorld().isClient()) {
+                    Brachydium.LOGGER.info("Syncing export inventory on server");
+                    syncCustomData(-1001, buf -> TransferUtil.pack(exportItems, buf));
+                }
+
+            });
+        }
+
+        //this.importItemStorage = InventoryStorage.of(importItems, null);
+        //this.exportItemStorage = InventoryStorage.of(exportItems, null);
+        this.importItemStorage = new InventoryStorage(importItems);
+        this.exportItemStorage = new InventoryStorage(exportItems);
         this.importFluidStorage = FluidInventoryStorage.of(importFluids);
         this.exportFluidStorage = FluidInventoryStorage.of(exportFluids);
 
@@ -151,7 +197,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
      * see also: {@link TileTrait#getName()}
      */
     @Nullable
-    public TileTrait findTrait(String name) {
+    public TileTrait getTrait(String name) {
         return traits.get(name);
     }
 
@@ -162,12 +208,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
      */
     @Nullable
     public <T extends TileTrait> T getTrait(Class<T> clazz) {
-        for (TileTrait trait : traits.values()) {
-            if (clazz.isAssignableFrom(trait.getClass())) {
-                return (T) trait;
-            }
-        }
-        return null;
+        return (T) traits.get(TileTrait.getTraitName(clazz));
     }
 
     /**
@@ -175,7 +216,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
      * @return if the tile has a trait with name
      */
     public boolean hasTrait(String name) {
-        return findTrait(name) != null;
+        return getTrait(name) != null;
     }
 
     /**
@@ -212,11 +253,32 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         registerApi(CoverableApi.LOOKUP, this);
         registerApi(FluidStorage.SIDED, fluidStorage);
         registerApi(ItemStorage.SIDED, itemStorage);
+        for (TileTrait trait : traits.values()) {
+            trait.registerApis();
+        }
     }
 
-    public void addApis() {
-        for (TileTrait trait : traits.values()) {
-            trait.addApis(getEntityType());
+    public <T> void addNotifiedInput(T input) {
+        if (input instanceof Inventory) {
+            if (!notifiedItemInputList.contains(input)) {
+                this.notifiedItemInputList.add((Inventory) input);
+            }
+        } else if (input instanceof IFluidHandler) {
+            if (!notifiedFluidInputList.contains(input)) {
+                this.notifiedFluidInputList.add((IFluidHandler) input);
+            }
+        }
+    }
+
+    public <T> void addNotifiedOutput(T output) {
+        if (output instanceof Inventory) {
+            if (!notifiedItemOutputList.contains(output)) {
+                this.notifiedItemOutputList.add((Inventory) output);
+            }
+        } else if (output instanceof IFluidHandler) {
+            if (!notifiedFluidOutputList.contains(output)) {
+                this.notifiedFluidOutputList.add((IFluidHandler) output);
+            }
         }
     }
 
@@ -340,8 +402,112 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return fluidStorage;
     }
 
+    public List<IFluidHandler> getNotifiedFluidInputList() {
+        return notifiedFluidInputList;
+    }
+
+    public List<IFluidHandler> getNotifiedFluidOutputList() {
+        return notifiedFluidOutputList;
+    }
+
+    public List<Inventory> getNotifiedItemInputList() {
+        return notifiedItemInputList;
+    }
+
+    public List<Inventory> getNotifiedItemOutputList() {
+        return notifiedItemOutputList;
+    }
+
+    @Environment(EnvType.CLIENT)
     public void scheduleRenderUpdate() {
         holder.scheduleRenderUpdate();
+    }
+
+    public void markDirty() {
+        holder.markDirty();
+    }
+
+    public void syncTraitData(TileTrait trait, int internalId, Consumer<PacketByteBuf> dataWriter) {
+        syncCustomData(-4, buffer -> {
+            buffer.writeString(trait.getName());
+            buffer.writeVarInt(internalId);
+            dataWriter.accept(buffer);
+        });
+    }
+
+    public void syncCoverData(Cover cover, int internalId, Consumer<PacketByteBuf> dataWriter) {
+        syncCustomData(-7, buffer -> {
+            buffer.writeByte(cover.getAttachedSide().getId());
+            buffer.writeVarInt(internalId);
+            dataWriter.accept(buffer);
+        });
+    }
+
+    public void syncCustomData(int id, Consumer<PacketByteBuf> consumer) {
+        holder.syncCustomData(id, consumer);
+    }
+
+    @Environment(EnvType.CLIENT)
+    public void readCustomData(int id, PacketByteBuf buf) {
+        switch (id) {
+            case -4 -> {
+                TileTrait trait = getTrait(buf.readString());
+                trait.readCustomData(buf.readVarInt(), buf);
+            }
+            case -7 -> {
+                Cover cover = getCover(Direction.byId(buf.readByte()));
+                cover.readCustomData(buf.readVarInt(), buf);
+            }
+            case -1000 -> {
+                Brachydium.LOGGER.info("Syncing import inventory on client");
+                TransferUtil.unpack(importItems, buf);
+            }
+            case -1001 -> {
+                Brachydium.LOGGER.info("Syncing export inventory on client");
+                TransferUtil.unpack(exportItems, buf);
+            }
+        }
+    }
+
+    @ApiStatus.OverrideOnly
+    public void writeInitialData(PacketByteBuf buf) {
+        buf.writeByte(frontFacing.getId());
+        // buf.writeInt(this.paintingColor);
+        buf.writeShort(traits.size());
+        for (TileTrait trait : traits.values()) {
+            buf.writeString(trait.getName());
+            trait.writeInitialData(buf);
+        }
+        /*for (EnumFacing coverSide : EnumFacing.VALUES) {
+            CoverBehavior coverBehavior = getCoverAtSide(coverSide);
+            if (coverBehavior != null) {
+                int coverId = CoverDefinition.getNetworkIdForCover(coverBehavior.getCoverDefinition());
+                buf.writeVarInt(coverId);
+                coverBehavior.writeInitialSyncData(buf);
+            } else {
+                buf.writeVarInt(-1);
+            }
+        }*/
+    }
+
+    @ApiStatus.OverrideOnly
+    public void receiveInitialData(PacketByteBuf buf) {
+        this.frontFacing = Direction.byId(buf.readByte());
+        //this.paintingColor = buf.readInt();
+        int amountOfTraits = buf.readShort();
+        for (int i = 0; i < amountOfTraits; i++) {
+            TileTrait trait = getTrait(buf.readString());
+            trait.receiveInitialData(buf);
+        }
+        /*for (EnumFacing coverSide : EnumFacing.VALUES) {
+            int coverId = buf.readVarInt();
+            if (coverId != -1) {
+                CoverDefinition coverDefinition = CoverDefinition.getCoverByNetworkId(coverId);
+                CoverBehavior coverBehavior = coverDefinition.createCoverBehavior(this, coverSide);
+                coverBehavior.readInitialSyncData(buf);
+                this.coverBehaviors[coverSide.getIndex()] = coverBehavior;
+            }
+        }*/
     }
 
     public NbtCompound serializeTag() {
@@ -350,7 +516,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
 
         NbtCompound traitTag = new NbtCompound();
         for (TileTrait trait : traits.values()) {
-            NbtCompound tag1 = trait.serializeTag();
+            NbtCompound tag1 = trait.serializeNbt();
             if (tag1 != null)
                 traitTag.put(trait.getName(), tag1);
         }
@@ -365,12 +531,16 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         setFrontFace(facing);
         NbtCompound traitTag = tag.getCompound("MBETraits");
         for (String key : traitTag.getKeys()) {
-            TileTrait trait = findTrait(key);
+            TileTrait trait = getTrait(key);
             if (trait != null) {
-                trait.deserializeTag(traitTag.getCompound(key));
+                trait.deserializeNbt(traitTag.getCompound(key));
             }
         }
         deserializeCovers(tag.getCompound("Covers"));
+    }
+
+    public boolean isValid() {
+        return getHolder() != null;
     }
 
     @Override

@@ -3,6 +3,7 @@ package brachy84.brachydium.api.recipe.builders;
 import brachy84.brachydium.api.recipe.Recipe;
 import brachy84.brachydium.api.recipe.RecipeBuilder;
 import brachy84.brachydium.api.recipe.RecipeTable;
+import brachy84.brachydium.api.util.ValidationResult;
 
 public class SimpleRecipeBuilder extends RecipeBuilder<SimpleRecipeBuilder> {
 

@@ -7,6 +7,8 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -20,7 +22,7 @@ import java.util.Objects;
  * A BLockEntity which can hold a TileEntity of a BlockEntityGroup
  * see also: {@link TileEntity}, {@link TileEntityGroup}
  */
-public class BlockEntityHolder extends BlockEntity implements BlockEntityClientSerializable {
+public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityClientSerializable {
 
     @Nullable
     public static BlockEntityHolder getOf(World world, BlockPos pos) {
@@ -49,6 +51,24 @@ public class BlockEntityHolder extends BlockEntity implements BlockEntityClientS
     public void tick() {
         if (currentTile != null)
             currentTile.tick();
+    }
+
+    @Override
+    public void readCustomData(int id, PacketByteBuf buf) {
+        if(currentTile != null)
+            currentTile.readCustomData(id, buf);
+    }
+
+    @Override
+    public void writeInitialData(PacketByteBuf buf) {
+        if(currentTile != null)
+            currentTile.writeInitialData(buf);
+    }
+
+    @Override
+    public void receiveInitialData(PacketByteBuf buf) {
+        if(currentTile != null)
+            currentTile.receiveInitialData(buf);
     }
 
     @Override

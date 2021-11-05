@@ -37,7 +37,7 @@ public abstract class ApiHolder {
      * @param <C> context type
      */
     @SuppressWarnings("unchecked")
-    protected final  <A, C> void registerApi(BlockApiLookup<A, C> apiLookup, A api) {
+    protected final <A, C> void registerApi(BlockApiLookup<A, C> apiLookup, A api) {
         API_MAP.put((BlockApiLookup<Object, Object>) apiLookup, (world, pos, state, blockEntity, context) -> api);
     }
 

@@ -29,7 +29,7 @@ public class SlotGroup extends MultiChildWidget {
     }
 
     public SlotGroup(IFluidHandler inventory) {
-        this.size = inventory.getSlots();
+        this.size = inventory.getTanks();
         this.itemInvSize = 0;
         for (int i = 0; i < size; i++) {
             child(new FluidSlotWidget(inventory, i, Pos2d.ZERO));
@@ -38,12 +38,12 @@ public class SlotGroup extends MultiChildWidget {
     }
 
     public SlotGroup(Inventory inventory, IFluidHandler fluidHandler) {
-        this.size = inventory.size() + fluidHandler.getSlots();
+        this.size = inventory.size() + fluidHandler.getTanks();
         this.itemInvSize = inventory.size();
         for (int i = 0; i < itemInvSize; i++) {
             child(new ItemSlotWidget(inventory, i, Pos2d.ZERO));
         }
-        for (int i = 0; i < fluidHandler.getSlots(); i++) {
+        for (int i = 0; i < fluidHandler.getTanks(); i++) {
             child(new FluidSlotWidget(fluidHandler, i, Pos2d.ZERO));
         }
         width = (int) Math.ceil(Math.sqrt(size));

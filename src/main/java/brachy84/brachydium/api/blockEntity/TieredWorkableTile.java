@@ -1,7 +1,7 @@
 package brachy84.brachydium.api.blockEntity;
 
 import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
-import brachy84.brachydium.api.blockEntity.trait.RecipeEnergyLogic;
+import brachy84.brachydium.api.blockEntity.trait.RecipeLogicEnergy;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.energy.IEnergyContainer;
 import brachy84.brachydium.api.handlers.EnergyContainerHandler;
@@ -41,7 +41,7 @@ public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
 
     @Override
     protected @NotNull AbstractRecipeLogic createWorkable(RecipeTable<?> recipeTable) {
-        return new RecipeEnergyLogic(this, recipeTable, () -> energyContainer);
+        return new RecipeLogicEnergy(this, recipeTable, () -> energyContainer);
     }
 
     @Override

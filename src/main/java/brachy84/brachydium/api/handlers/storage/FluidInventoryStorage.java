@@ -52,7 +52,7 @@ public class FluidInventoryStorage extends CombinedStorage<FluidVariant, SingleS
      * Resize slot list to match the current size of the inventory.
      */
     private void resizeSlotList() {
-        int inventorySize = inventory.getSlots();
+        int inventorySize = inventory.getTanks();
 
         // If the public-facing list must change...
         if (inventorySize != parts.size()) {

@@ -1,22 +1,26 @@
 package brachy84.brachydium.api.handlers.storage;
 
 import brachy84.brachydium.api.blockEntity.InventoryListener;
+import brachy84.brachydium.api.blockEntity.TileEntity;
+import brachy84.brachydium.api.handlers.INotifiableHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemInventory implements Inventory, InventoryListener {
+public class ItemInventory implements Inventory, InventoryListener, INotifiableHandler {
 
     private final DefaultedList<ItemStack> items;
     private final boolean extractable, insertable;
     private final List<Runnable> listeners = new ArrayList<>();
+    private TileEntity notifiable;
 
     public ItemInventory(int size) {
         this(size, true, true);
@@ -75,7 +79,7 @@ public class ItemInventory implements Inventory, InventoryListener {
         ItemStack removed = stack.copy();
         removed.setCount(amount);
         if(amount > 0)
-            onChange();
+            markDirty();
         return removed;
     }
 
@@ -84,18 +88,14 @@ public class ItemInventory implements Inventory, InventoryListener {
         ItemStack stack = getStack(slot);
         setStack(slot, ItemStack.EMPTY);
         if(!stack.isEmpty())
-            onChange();
+            markDirty();
         return stack;
     }
 
     @Override
     public void setStack(int slot, ItemStack stack) {
         items.set(slot, stack);
-        onChange();
-    }
-
-    public void onChange() {
-        listeners.forEach(Runnable::run);
+        markDirty();
     }
 
     @Override
@@ -105,7 +105,8 @@ public class ItemInventory implements Inventory, InventoryListener {
 
     @Override
     public void markDirty() {
-
+        addToNotifiedList(notifiable, this, extractable && !insertable);
+        listeners.forEach(Runnable::run);
     }
 
     @Override
@@ -121,5 +122,10 @@ public class ItemInventory implements Inventory, InventoryListener {
     @Override
     public void addListener(Runnable runnable) {
         listeners.add(runnable);
+    }
+
+    @Override
+    public void setNotifiableMetaTileEntity(TileEntity metaTileEntity) {
+        this.notifiable = metaTileEntity;
     }
 }

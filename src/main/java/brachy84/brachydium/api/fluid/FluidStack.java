@@ -70,7 +70,7 @@ public class FluidStack {
     }
 
     public FluidVariant asFluidVariant() {
-        return FluidVariant.of(fluid, nbt);
+        return FluidVariant.of(fluid, nbt == null ? null : nbt.copy());
     }
 
     /*public static FluidStack fromNbt(NbtCompound tag) {
@@ -111,7 +111,7 @@ public class FluidStack {
     }
 
     public FluidStack copy() {
-        return new FluidStack(fluid, amount, nbt);
+        return new FluidStack(fluid, amount, nbt == null ? null : nbt.copy());
     }
 
     public FluidStack copyWith(int amount) {

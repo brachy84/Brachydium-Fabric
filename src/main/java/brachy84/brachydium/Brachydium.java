@@ -66,7 +66,6 @@ public class Brachydium implements ModInitializer {
         for (BrachydiumInitializer plugin : plugins) {
             currentRegisteringMod = plugin.getModId();
             plugin.registerMaterials();
-            plugin.registerRecipes();
             plugin.registerGeneral();
         }
         currentRegisteringMod = MOD_ID;
@@ -82,6 +81,12 @@ public class Brachydium implements ModInitializer {
         RRPHelper.initOtherResources();
         RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
+
+        for (BrachydiumInitializer plugin : plugins) {
+            currentRegisteringMod = plugin.getModId();
+            plugin.registerRecipes();
+        }
+        currentRegisteringMod = MOD_ID;
         System.out.println("-------------- Finished loading Brachydium --------------");
     }
 

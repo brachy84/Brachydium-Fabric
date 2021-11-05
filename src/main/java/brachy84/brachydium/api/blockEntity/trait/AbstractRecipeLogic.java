@@ -1,126 +1,412 @@
 package brachy84.brachydium.api.blockEntity.trait;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.blockEntity.*;
+import brachy84.brachydium.api.ByValues;
+import brachy84.brachydium.api.blockEntity.IWorkable;
+import brachy84.brachydium.api.blockEntity.TileEntity;
+import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.handlers.InventoryHelper;
-import brachy84.brachydium.api.item.CountableIngredient;
-import brachy84.brachydium.api.network.Channels;
+import brachy84.brachydium.api.handlers.BrachydiumLookups;
+import brachy84.brachydium.api.handlers.storage.IFluidHandler;
+import brachy84.brachydium.api.recipe.MatchingMode;
 import brachy84.brachydium.api.recipe.Recipe;
 import brachy84.brachydium.api.recipe.RecipeTable;
-import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import brachy84.brachydium.api.util.TransferUtil;
+import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
+import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.function.LongSupplier;
 
-/**
- * This class handles finding and running recipes consuming inputs and energy and inserting outputs
- * Energy can be any form of energy like normal "Redstone Flux", but also something like steam or mana
- */
 public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable {
+
+    private static final String ALLOW_OVERCLOCKING = "AllowOverclocking";
+    private static final String OVERCLOCK_VOLTAGE = "OverclockVoltage";
 
     public final RecipeTable<?> recipeTable;
 
-    protected Recipe lastRecipe;
+    protected Recipe previousRecipe;
+    protected boolean allowOverclocking = false;
+    private long overclockVoltage = 0;
+    private LongSupplier overclockPolicy = this::getMaxVoltage;
 
-    /**
-     * currently running recipe
-     */
-    private Recipe currentRecipe;
-
-    /**
-     * This is the recipe that gets stored when the ingredients are found but the output is blocked
-     */
-    private Recipe storedRecipe;
-
-    /**
-     * A collection of recipes which has items that are currently in the inventory
-     */
-    protected Collection<Recipe> possibleRecipes;
-    protected boolean allowOverclocking = true;
-    protected int progress, duration, recipeEUt;
-
+    protected int progressTime;
+    protected int maxProgressTime;
+    protected int recipeEUt;
+    protected List<FluidStack> fluidOutputs;
+    protected List<ItemStack> itemOutputs;
     protected final Random random = new Random();
 
+    protected boolean isActive;
     protected boolean workingEnabled = true;
+    protected boolean hasNotEnoughEnergy;
+    protected boolean wasActiveAndNeedsUpdate;
+    protected boolean isOutputsFull;
+    protected boolean invalidInputsForRecipes;
 
-    private State state;
+    protected boolean hasPerfectOC = false;
 
-    public AbstractRecipeLogic(TileEntity tile, RecipeTable<?> recipeTable) {
-        super(tile);
+    public AbstractRecipeLogic(TileEntity tileEntity, RecipeTable<?> recipeTable) {
+        super(tileEntity);
         this.recipeTable = recipeTable;
-        possibleRecipes = recipeTable.getRecipeList();
-        state = State.IDLING;
+    }
+
+    public AbstractRecipeLogic(TileEntity tileEntity, RecipeTable<?> recipeTable, boolean hasPerfectOC) {
+        super(tileEntity);
+        this.recipeTable = recipeTable;
+        this.hasPerfectOC = hasPerfectOC;
+    }
+
+    protected abstract long getEnergyStored();
+
+    protected abstract long getEnergyCapacity();
+
+    protected abstract boolean drawEnergy(int recipeEUt);
+
+    protected abstract long getMaxVoltage();
+
+    protected Storage<ItemVariant> getInputInventory() {
+        return tile.getImportItemStorage();
+    }
+
+    protected Storage<ItemVariant> getOutputInventory() {
+        return tile.getExportItemStorage();
+    }
+
+    protected Storage<FluidVariant> getInputTank() {
+        return tile.getImportFluidStorage();
+    }
+
+    protected Storage<FluidVariant> getOutputTank() {
+        return tile.getExportFluidStorage();
     }
 
     @Override
     public void tick() {
-        if (!tile.isClient()) {
-            if (isActive()) {
-                onRecipeTick();
+        World world = tile.getWorld();
+        if (world != null) {
+            if(!world.isClient) {
+                if (workingEnabled) {
+                    if (progressTime > 0) {
+                        updateRecipeProgress();
+                    }
+                    //check everything that would make a recipe never start here.
+                    if (progressTime == 0 && shouldSearchForRecipes()) {
+                        Brachydium.LOGGER.info("Searching new recipe");
+                        trySearchNewRecipe();
+                    }
+                }
+                if (wasActiveAndNeedsUpdate) {
+                    this.wasActiveAndNeedsUpdate = false;
+                    setActive(false);
+                }
+            } else {
+
             }
         }
     }
 
     @Override
-    public void init() {
-        addListeners();
+    public void registerApis() {
+        registerApi(BrachydiumLookups.WORKABLE, this);
+        registerApi(BrachydiumLookups.CONTROLLABLE, this);
     }
 
-    private void addListeners() {
-        if (tile.getImportFluidHandler() instanceof InventoryListener) {
-            ((InventoryListener) tile.getImportFluidHandler()).addListener(this::onInventoryUpdate);
+    protected boolean shouldSearchForRecipes() {
+        return canWorkWithInputs() && canFitNewOutputs();
+    }
+
+    protected boolean hasNotifiedInputs() {
+        return (tile.getNotifiedItemInputList().size() > 0 ||
+                tile.getNotifiedFluidInputList().size() > 0);
+    }
+
+    protected boolean hasNotifiedOutputs() {
+        return (tile.getNotifiedItemOutputList().size() > 0 ||
+                tile.getNotifiedFluidOutputList().size() > 0);
+    }
+
+    protected boolean canFitNewOutputs() {
+        // if the output is full check if the output changed so we can process recipes results again.
+        if (this.isOutputsFull && !hasNotifiedOutputs()) return false;
+        else {
+            this.isOutputsFull = false;
+            tile.getNotifiedItemOutputList().clear();
+            tile.getNotifiedFluidOutputList().clear();
         }
-        if (tile.getImportInventory() instanceof InventoryListener) {
-            ((InventoryListener) tile.getImportInventory()).addListener(this::onInventoryUpdate);
+        return true;
+    }
+
+    protected boolean canWorkWithInputs() {
+        // if the inputs were bad last time, check if they've changed before trying to find a new recipe.
+        if (this.invalidInputsForRecipes && !hasNotifiedInputs())
+            return false;
+        else {
+            this.invalidInputsForRecipes = false;
         }
-        if (tile.getExportInventory() instanceof InventoryListener) {
-            ((InventoryListener) tile.getExportInventory()).addListener(this::onOutputChanged);
-        }
-        if (tile.getExportFluidHandler() instanceof InventoryListener) {
-            ((InventoryListener) tile.getExportFluidHandler()).addListener(this::onOutputChanged);
+        return true;
+    }
+
+    protected void updateRecipeProgress() {
+        boolean drawEnergy = drawEnergy(recipeEUt);
+        if (drawEnergy || (recipeEUt < 0)) {
+            //as recipe starts with progress on 1 this has to be > only not => to compensate for it
+            if (++progressTime > maxProgressTime) {
+                Brachydium.LOGGER.info("Recipe done");
+                completeRecipe();
+            }
+        } else if (recipeEUt > 0) {
+            //only set hasNotEnoughEnergy if this recipe is consuming recipe
+            //generators always have enough energy
+            this.hasNotEnoughEnergy = true;
+            //if current progress value is greater than 2, decrement it by 2
+            if (progressTime >= 2) {
+                if (false/*TODO ConfigHolder.insufficientEnergySupplyWipesRecipeProgress*/) {
+                    this.progressTime = 1;
+                } else {
+                    this.progressTime = Math.max(1, progressTime - 2);
+                }
+            }
         }
     }
 
-    protected void onRecipeTick() {
-        if (!drawEnergy(recipeEUt)) {
-            setState(State.NOT_ENOUGH_POWER);
-            return;
+    protected void trySearchNewRecipe() {
+        long maxVoltage = getMaxVoltage();
+        Recipe currentRecipe = null;
+        Storage<ItemVariant> importInventory = getInputInventory();
+        Storage<FluidVariant> importFluids = getInputTank();
+
+        // see if the last recipe we used still works
+        if (this.previousRecipe != null && canTakeInputs(previousRecipe, true))//this.previousRecipe.matches(false, importInventory, importFluids))
+            currentRecipe = this.previousRecipe;
+            // If there is no active recipe, then we need to find one.
+        else {
+            currentRecipe = findRecipe(maxVoltage, importInventory, importFluids, MatchingMode.DEFAULT);
         }
-        if (state == State.NOT_ENOUGH_POWER) {
-            setState(State.RUNNING);
+        // If a recipe was found, then inputs were valid. Cache found recipe.
+        if (currentRecipe != null) {
+            this.previousRecipe = currentRecipe;
         }
-        if (++progress > duration) {
-            recipeCompleted();
+        this.invalidInputsForRecipes = (currentRecipe == null);
+
+        // proceed if we have a usable recipe.
+        if (currentRecipe != null && setupAndConsumeRecipeInputs(currentRecipe, importInventory)) {
+            Brachydium.LOGGER.info(" - found recipe");
+            setupRecipe(currentRecipe);
+        }
+        // Inputs have been inspected.
+        tile.getNotifiedItemInputList().clear();
+        tile.getNotifiedFluidInputList().clear();
+    }
+
+    protected static int getMinTankCapacity(IFluidHandler tanks) {
+        if (tanks.getTanks() == 0) {
+            return 0;
+        }
+        int result = Integer.MAX_VALUE;
+        for (int i = 0; i < tanks.getTanks(); i++) {
+            result = (int) Math.min(tanks.getCapacityAt(i), result);
+        }
+        return result;
+    }
+
+    protected Recipe findRecipe(long maxVoltage, Storage<ItemVariant> inputs, Storage<FluidVariant> fluidInputs, MatchingMode mode) {
+        return recipeTable.findRecipe(maxVoltage, inputs, fluidInputs, getMinTankCapacity(tile.getExportFluidHandler()), mode);
+    }
+
+    protected static boolean areItemStacksEqual(ItemStack stackA, ItemStack stackB) {
+        return (stackA.isEmpty() && stackB.isEmpty()) ||
+                (ItemStack.areItemsEqual(stackA, stackB) &&
+                        ItemStack.areNbtEqual(stackA, stackB));
+    }
+
+    /**
+     * Determines if the provided recipe is possible to run from the provided inventory, or if there is anything preventing
+     * the Recipe from being completed.
+     * <p>
+     * Will consume the inputs of the Recipe if it is possible to run.
+     *
+     * @param recipe          - The Recipe that will be consumed from the inputs and ran in the machine
+     * @param importInventory - The inventory that the recipe should be consumed from.
+     *                        Used mainly for Distinct bus implementation for multiblocks to specify
+     *                        a specific bus
+     * @return - true if the recipe is successful, false if the recipe is not successful
+     */
+    protected boolean setupAndConsumeRecipeInputs(Recipe recipe, Storage<ItemVariant> importInventory) {
+        int[] resultOverclock = calculateOverclock(recipe.getEUt(), recipe.getDuration());
+        int totalEUt = resultOverclock[0] * resultOverclock[1];
+        Storage<ItemVariant> exportInventory = getOutputInventory();
+        Storage<FluidVariant> importFluids = getInputTank();
+        Storage<FluidVariant> exportFluids = getOutputTank();
+        long energyStored = getEnergyStored();
+        long capacity = getEnergyCapacity();
+        if (!(totalEUt >= 0 ? energyStored >= (totalEUt > capacity / 2 ? resultOverclock[0] : totalEUt) :
+                (energyStored - resultOverclock[0] <= capacity))) {
+            return false;
+        }
+        if (!TransferUtil.putItems(exportInventory, recipe.getAllItemOutputs(tile.getExportInventory().size()), true, true)) {
+            this.isOutputsFull = true;
+            return false;
+        }
+        if (!TransferUtil.putFluids(exportFluids, recipe.getFluidOutputs(), true, true)) {
+            this.isOutputsFull = true;
+            return false;
+        }
+        this.isOutputsFull = false;
+        return canTakeInputs(recipe, false);//recipe.matches(true, importInventory, importFluids);
+    }
+
+    protected boolean canTakeInputs(Recipe recipe, boolean simulate) {
+        if(recipe.getInputs().size() > 0) {
+            Storage<ItemVariant> itemStorage = getInputInventory();
+            if(!TransferUtil.takeItems(itemStorage, recipe.getInputs(), simulate))
+                return false;
+        }
+        if(recipe.getFluidInputs().size() > 0) {
+            Storage<FluidVariant> fluidStorage = getInputTank();
+            return TransferUtil.takeFluids(fluidStorage, recipe.getFluidInputs(), simulate);
+        }
+        return true;
+    }
+
+    protected int[] calculateOverclock(int EUt, int duration) {
+        return calculateOverclock(EUt, this.overclockPolicy.getAsLong(), duration);
+    }
+
+    protected int[] calculateOverclock(int EUt, long voltage, int duration) {
+        if (!allowOverclocking) {
+            return new int[]{EUt, duration};
+        }
+        boolean negativeEU = EUt < 0;
+        int tier = getOverclockingTier(voltage);
+
+        // Cannot overclock
+        if (ByValues.V[tier] <= EUt || tier == 0)
+            return new int[]{EUt, duration};
+
+        if (negativeEU)
+            EUt = -EUt;
+
+        int resultEUt = EUt;
+        double resultDuration = duration;
+        double divisor = hasPerfectOC ? 4.0 : 2.5; //TODO ConfigHolder.U.overclockDivisor;
+        int maxOverclocks = tier - 1; // exclude ULV overclocking
+
+        //do not overclock further if duration is already too small
+        while (resultDuration >= 3 && resultEUt <= ByValues.V[tier - 1] && maxOverclocks != 0) {
+            resultEUt *= 4;
+            resultDuration /= divisor;
+            maxOverclocks--;
+        }
+        return new int[]{negativeEU ? -resultEUt : resultEUt, (int) Math.ceil(resultDuration)};
+    }
+
+    protected int getOverclockingTier(long voltage) {
+        return Voltage.getByVoltage(voltage).tier;
+    }
+
+    protected long getVoltageByTier(final int tier) {
+        return ByValues.V[tier];
+    }
+
+    public String[] getAvailableOverclockingTiers() {
+        final int maxTier = getOverclockingTier(getMaxVoltage());
+        final String[] result = new String[maxTier + 1];
+        result[0] = "gregtech.gui.overclock.off";
+        if (maxTier >= 0) System.arraycopy(ByValues.VN, 1, result, 1, maxTier);
+        return result;
+    }
+
+    protected void setupRecipe(Recipe recipe) {
+        int[] resultOverclock = calculateOverclock(recipe.getEUt(), recipe.getDuration());
+        this.progressTime = 1;
+        setMaxProgress(resultOverclock[1]);
+        this.recipeEUt = resultOverclock[0];
+        this.fluidOutputs = TransferUtil.copyFluidList(recipe.getFluidOutputs());
+        int tier = getMachineTierForRecipe(recipe);
+        this.itemOutputs = TransferUtil.copyStackList(recipe.getResultItemOutputs(tile.getExportInventory().size(), random, tier));
+        if (this.wasActiveAndNeedsUpdate) {
+            this.wasActiveAndNeedsUpdate = false;
+        } else {
+            this.setActive(true);
         }
     }
 
-    protected void recipeCompleted() {
-        Brachydium.LOGGER.info("Completing recipe");
-        Transaction transaction = Transaction.openOuter();
-        if (!tryInsertOutput(transaction, currentRecipe)) {
-            Brachydium.LOGGER.error("Failed to insert recipe outputs");
+    protected int getMachineTierForRecipe(Recipe recipe) {
+        return Voltage.getByVoltage(getMaxVoltage()).tier;
+    }
+
+    protected void completeRecipe() {
+        TransferUtil.putItems(getOutputInventory(), itemOutputs, false, false);
+        TransferUtil.putFluids(getOutputTank(), fluidOutputs, false, false);
+        this.progressTime = 0;
+        setMaxProgress(0);
+        this.recipeEUt = 0;
+        this.fluidOutputs = null;
+        this.itemOutputs = null;
+        this.hasNotEnoughEnergy = false;
+        this.wasActiveAndNeedsUpdate = true;
+    }
+
+    public double getProgressPercent() {
+        return getDuration() == 0 ? 0.0 : getProgress() / (getDuration() * 1.0);
+    }
+
+    public int getTicksTimeLeft() {
+        return maxProgressTime == 0 ? 0 : (maxProgressTime - progressTime);
+    }
+
+    @Override
+    public int getProgress() {
+        return progressTime;
+    }
+
+    @Override
+    public int getDuration() {
+        return maxProgressTime;
+    }
+
+    public int getRecipeEUt() {
+        return recipeEUt;
+    }
+
+    public void setMaxProgress(int maxProgress) {
+        this.maxProgressTime = maxProgress;
+        tile.markDirty();
+    }
+
+    protected void setActive(boolean active) {
+        this.isActive = active;
+        tile.markDirty();
+        World world = tile.getWorld();
+        if (world != null && !world.isClient) {
+            syncCustomData(1, buf -> buf.writeBoolean(active));
         }
-        transaction.commit();
-        lastRecipe = currentRecipe;
-        currentRecipe = null;
-        duration = 0;
-        progress = 0;
-        recipeEUt = 0;
-        setState(State.IDLING);
-        trySearchNewRecipe();
+    }
+
+    @Override
+    public void setWorkingEnabled(boolean workingEnabled) {
+        this.workingEnabled = workingEnabled;
+        tile.markDirty();
+    }
+
+    public void setAllowOverclocking(boolean allowOverclocking) {
+        this.allowOverclocking = allowOverclocking;
+        this.overclockVoltage = allowOverclocking ? getMaxVoltage() : 0;
+        tile.markDirty();
+    }
+
+    public boolean isHasNotEnoughEnergy() {
+        return hasNotEnoughEnergy;
     }
 
     @Override
@@ -129,239 +415,123 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
     }
 
     @Override
-    public void setWorkingEnabled(boolean workingEnabled) {
-        this.workingEnabled = workingEnabled;
-        if (workingEnabled)
-            setState(State.IDLING); // FIXME: this might cause issues
-        else
-            setState(State.DISABLED);
-    }
-
-    @Override
-    public int getProgress() {
-        return progress;
-    }
-
-    @Override
-    public int getDuration() {
-        return duration;
-    }
-
-    @Override
     public boolean isActive() {
-        return state == State.RUNNING;
+        return isActive;
     }
 
-    protected abstract long getEnergyStored();
-
-    protected abstract long getEnergyCapacity();
-
-    protected abstract boolean drawEnergy(long amount);
-
-    protected abstract long getMachineVoltage();
-
-    public void setState(State state) {
-        this.state = state;
-        if (!tile.isClient()) {
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeBlockPos(tile.getPos());
-            buf.writeString(state.toString());
-            for (PlayerEntity player : tile.getWorld().getPlayers()) {
-                BlockPos pos = tile.getPos();
-                if (player instanceof ServerPlayerEntity && tile.getWorld().isPlayerInRange(pos.getX(), pos.getY(), pos.getZ(), 64)) {
-                    ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.UPDATE_WORKING_STATE, buf);
-                }
-            }
-        }
+    public boolean isAllowOverclocking() {
+        return allowOverclocking;
     }
 
-    public void setState(String state) {
-        setState(State.valueOf(state));
+    public long getOverclockVoltage() {
+        return overclockVoltage;
     }
 
-    public State getState() {
-        return state;
+    public void setOverclockVoltage(final long overclockVoltage) {
+        this.overclockPolicy = this::getOverclockVoltage;
+        this.overclockVoltage = overclockVoltage;
+        this.allowOverclocking = (overclockVoltage != 0);
+        tile.markDirty();
     }
 
     /**
-     * @return a double between 0 and 1
+     * Sets the overclocking policy to use getOverclockVoltage() instead of getMaxVoltage()
+     * and initialises the overclock voltage to max voltage.
+     * The actual value will come from the saved tag when the tile is loaded for pre-existing machines.
+     * <p>
+     * NOTE: This should only be used directly after construction of the workable.
+     * Use setOverclockVoltage() or setOverclockTier() for a more dynamic use case.
      */
-    public double getProgressPercent() {
-        if (!isActive()) return 0;
-        return progress / (double) duration;
+    public void enableOverclockVoltage() {
+        setOverclockVoltage(getMaxVoltage());
     }
 
-    protected void trySearchNewRecipe() {
-        Brachydium.LOGGER.info("searching recipe");
-        List<ItemStack> items = new ArrayList<>();
-        for(int i = 0; i < tile.getImportInventory().size(); i++) {
-            items.add(tile.getImportInventory().getStack(i));
+    public int getOverclockTier() {
+        if (this.overclockVoltage == 0) {
+            return 0;
         }
-        List<FluidStack> fluids = new ArrayList<>();
-        for(int i = 0; i < tile.getImportFluidHandler().getSlots(); i++) {
-            fluids.add(tile.getImportFluidHandler().getStackAt(i));
-        }
-        if (lastRecipe != null && tryRecipe(lastRecipe, items, fluids)) {
+        return getOverclockingTier(this.overclockVoltage);
+    }
+
+    public void setOverclockTier(final int tier) {
+        if (tier == 0) {
+            setOverclockVoltage(0);
             return;
         }
-        for (Recipe recipe : possibleRecipes) {
-            if (tryRecipe(recipe, items, fluids)) {
-                return;
-            }
-        }
+        setOverclockVoltage(getVoltageByTier(tier));
     }
-
-    protected void setupRecipe(Recipe recipe) {
-        Brachydium.LOGGER.info("Setting up recipe " + recipe.getName());
-        currentRecipe = recipe;
-        setState(State.RUNNING);
-        progress = 0;
-        duration = recipe.getDuration();
-        recipeEUt = recipe.getEUt();
-
-    }
-
-    private void onInventoryUpdate() {
-        Brachydium.LOGGER.info("Inventory updated");
-        if (isNotState(State.DISABLED, State.RUNNING, State.OUTPUT_BLOCKED)) {
-            trySearchNewRecipe();
-        }
-    }
-
-    private void onOutputChanged() {
-        Brachydium.LOGGER.info("Output updated");
-        if (isState(State.OUTPUT_BLOCKED)) {
-            Brachydium.LOGGER.info("Trying recipe after output unblocked");
-            setState(State.IDLING);
-            List<ItemStack> items = new ArrayList<>();
-            for(int i = 0; i < tile.getImportInventory().size(); i++) {
-                items.add(tile.getImportInventory().getStack(i));
-            }
-            List<FluidStack> fluids = new ArrayList<>();
-            for(int i = 0; i < tile.getImportFluidHandler().getSlots(); i++) {
-                fluids.add(tile.getImportFluidHandler().getStackAt(i));
-            }
-            tryRecipe(storedRecipe, items, fluids);
-        }
-    }
-
-    /**
-     * tries to start the recipe
-     *
-     * @param recipe to try
-     * @return true if the ingredients are found, otherwise false
-     */
-    public boolean tryRecipe(Recipe recipe, List<ItemStack> items, List<FluidStack> fluids) {
-        //FIXME: when output is full and then emptied, the recipe output will be inserted immediately
-        Brachydium.LOGGER.info("Trying recipe " + recipe.getName());
-        if (recipeTable.tryRecipe(recipe, items, fluids, getMachineVoltage())) {
-            try (Transaction transaction = Transaction.openOuter()) {
-                if (!tryInsertOutput(transaction, recipe)) {
-                    Brachydium.LOGGER.info("output blocked");
-                    setState(State.OUTPUT_BLOCKED);
-                    storedRecipe = recipe;
-                    transaction.abort();
-                    return true;
-                }
-                transaction.abort();
-            }
-            setupRecipe(recipe);
-            return true;
-        }
-        return false;
-    }
-
-    public boolean tryInsertOutput(Transaction transaction, Recipe recipe) {
-        try (Transaction transaction1 = transaction.openNested()) {
-            for (ItemStack stack : recipe.getOutputs()) {
-                long inserted = tile.getExportItemStorage().insert(ItemVariant.of(stack), stack.getCount(), transaction1);
-                if (inserted != stack.getCount()) {
-                    transaction1.abort();
-                    return false;
-                }
-            }
-            for (FluidStack stack : recipe.getFluidOutputs()) {
-                long inserted = tile.getExportFluidStorage().insert(stack.asFluidVariant(), stack.getAmount(), transaction1);
-                if (inserted != stack.getAmount()) {
-                    transaction1.abort();
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    /*public boolean canConsume(Transaction transaction, Recipe recipe, Participant<ItemKey> itemHandler, Participant<Fluid> fluidHandler) {
-        for (CountableIngredient ci : recipe.getInputs()) {
-            if (!InventoryHelper.extractIngredient(itemHandler, transaction, ci)) {
-                transaction.abort();
-                return false;
-            }
-        }
-        for (FluidStack stack : recipe.getFluidInputs()) {
-            if (fluidHandler.extract(transaction, stack.getFluid(), stack.getAmount()) != stack.getAmount()) {
-                transaction.abort();
-                return false;
-            }
-        }
-        return true;
-    }*/
 
     @Override
-    public NbtCompound serializeTag() {
-        NbtCompound tag = new NbtCompound();
-        tag.putString("state", state.toString());
-        if (currentRecipe == null) {
-            tag.putString("recipe", "null");
+    public void readCustomData(int id, PacketByteBuf buf) {
+        if (id == 1) {
+            this.isActive = buf.readBoolean();
+            tile.scheduleRenderUpdate();
+        }
+    }
+
+    @Override
+    public void writeInitialData(PacketByteBuf buf) {
+        buf.writeBoolean(this.isActive);
+    }
+
+    @Override
+    public void receiveInitialData(PacketByteBuf buf) {
+        this.isActive = buf.readBoolean();
+    }
+
+    @Override
+    public NbtCompound serializeNbt() {
+        NbtCompound compound = new NbtCompound();
+        compound.putBoolean("WorkEnabled", workingEnabled);
+        compound.putBoolean(ALLOW_OVERCLOCKING, allowOverclocking);
+        compound.putLong(OVERCLOCK_VOLTAGE, this.overclockVoltage);
+        if (progressTime > 0) {
+            compound.putInt("Progress", progressTime);
+            compound.putInt("MaxProgress", maxProgressTime);
+            compound.putInt("RecipeEUt", this.recipeEUt);
+            NbtList itemOutputsList = new NbtList();
+            for (ItemStack itemOutput : itemOutputs) {
+                itemOutputsList.add(itemOutput.writeNbt(new NbtCompound()));
+            }
+            NbtList fluidOutputsList = new NbtList();
+            for (FluidStack fluidOutput : fluidOutputs) {
+                fluidOutputsList.add(fluidOutput.writeNbt(new NbtCompound()));
+            }
+            compound.put("ItemOutputs", itemOutputsList);
+            compound.put("FluidOutputs", fluidOutputsList);
+        }
+        return compound;
+    }
+
+    @Override
+    public void deserializeNbt(NbtCompound compound) {
+        this.workingEnabled = compound.getBoolean("WorkEnabled");
+        this.progressTime = compound.getInt("Progress");
+        if (compound.contains(ALLOW_OVERCLOCKING)) {
+            this.allowOverclocking = compound.getBoolean(ALLOW_OVERCLOCKING);
+        }
+        if (compound.contains(OVERCLOCK_VOLTAGE)) {
+            this.overclockVoltage = compound.getLong(OVERCLOCK_VOLTAGE);
         } else {
-            tag.putString("recipe", currentRecipe.getName());
-            tag.putInt("progress", progress);
+            // Calculate overclock voltage based on old allow flag
+            this.overclockVoltage = this.allowOverclocking ? getMaxVoltage() : 0;
         }
-        return tag;
-    }
-
-    @Override
-    public void deserializeTag(NbtCompound tag) {
-        state = State.valueOf(tag.getString("state"));
-        String recipe = tag.getString("recipe");
-        if (!recipe.equals("null")) {
-            currentRecipe = recipeTable.findRecipe(recipe);
-            duration = currentRecipe.getDuration();
-            recipeEUt = currentRecipe.getEUt();
-            progress = tag.getInt("progress");
-        }
-    }
-
-    /**
-     * @param states to chek
-     * @return if any of the given states is the current state
-     */
-    public boolean isState(State... states) {
-        for (State state : states) {
-            if (isState(state)) {
-                return true;
+        this.isActive = false;
+        if (progressTime > 0) {
+            this.isActive = true;
+            this.maxProgressTime = compound.getInt("MaxProgress");
+            this.recipeEUt = compound.getInt("RecipeEUt");
+            NbtList itemOutputsList = compound.getList("ItemOutputs", NbtElement.COMPOUND_TYPE);
+            this.itemOutputs = new ArrayList<>();
+            for (int i = 0; i < itemOutputsList.size(); i++) {
+                this.itemOutputs.add(ItemStack.fromNbt(itemOutputsList.getCompound(i)));
+            }
+            NbtList fluidOutputsList = compound.getList("FluidOutputs", NbtElement.COMPOUND_TYPE);
+            this.fluidOutputs = new ArrayList<>();
+            for (int i = 0; i < fluidOutputsList.size(); i++) {
+                this.fluidOutputs.add(FluidStack.fromNbt(fluidOutputsList.getCompound(i)));
             }
         }
-        return false;
     }
 
-    public boolean isState(State state) {
-        return this.state == state;
-    }
-
-    /**
-     * @param states to check
-     * @return if all of the given states are NOT the current state
-     */
-    public boolean isNotState(State... states) {
-        return !isState(states);
-    }
-
-    public enum State {
-        OUTPUT_BLOCKED,
-        NOT_ENOUGH_POWER,
-        RUNNING,
-        DISABLED,
-        IDLING;
-    }
 }

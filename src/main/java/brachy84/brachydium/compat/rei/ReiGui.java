@@ -3,14 +3,11 @@ package brachy84.brachydium.compat.rei;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
-import brachy84.brachydium.gui.api.widgets.ProgressBarWidget;
 import brachy84.brachydium.gui.internal.Gui;
-import brachy84.brachydium.gui.internal.GuiHelper;
 import com.google.common.util.concurrent.AtomicDouble;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.widgets.Slot;
 import me.shedaniel.rei.api.client.gui.widgets.Widget;
-import me.shedaniel.rei.api.client.gui.widgets.Widgets;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.Nullable;
@@ -54,14 +51,14 @@ public class ReiGui {
                 if (y < 0) y = -y;
                 transform = new Pos2d(x, y);
                 List<Widget> widgets = widget.getReiWidgets(finalBounds, widget.getPos().subtract(transform)/*.subtract(new Pos2d(recipeBounds.x, recipeBounds.y))*/);
-                if (widget instanceof ProgressBarWidget) {
+                /*if (widget instanceof ProgressBarWidget) {
                     widget.setAbsolutePos(widget.getPos().subtract(transform));
                     me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
                         GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));
                         widget.render(guiHelper, matrices, delta);
                     }));
                     widgets.add(render);
-                }
+                }*/
                 if (widget instanceof ItemSlotWidget) {
                     for (Widget widget1 : widgets) {
                         if (widget1 instanceof Slot)

@@ -31,8 +31,12 @@ public class CountableIngredient implements Predicate<ItemStack> {
     }
 
     public CountableIngredient(ItemStack itemStack) {
+        this(itemStack, itemStack.getCount());
+    }
+
+    public CountableIngredient(ItemStack itemStack, int count) {
         this.ingredient = Ingredient.ofStacks(itemStack);
-        this.amount = itemStack.getCount();
+        this.amount = count;
     }
 
     public static CountableIngredient of(Identifier tagId, int amount) {
@@ -106,5 +110,15 @@ public class CountableIngredient implements Predicate<ItemStack> {
     @Override
     public boolean test(ItemStack stack) {
         return getIngredient().test(stack);
+    }
+
+    @Override
+    public String toString() {
+        ItemStack[] stacks = getMatchingStacks();
+        String item = "EMPTY";
+        if(stacks.length > 0) {
+            item = stacks[0].getName().asString();
+        }
+        return "CountableIngredient{ " + item + " * " + amount + "}";
     }
 }
