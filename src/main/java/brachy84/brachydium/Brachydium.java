@@ -2,6 +2,7 @@ package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
+import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.render.Textures;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.ResourceReloadListener;
@@ -36,8 +37,6 @@ public class Brachydium implements ModInitializer {
 
     private static String currentRegisteringMod = MOD_ID;
 
-    private static boolean tagsLoaded = false;
-
     public static Identifier id(String path) {
         return new Identifier(MOD_ID, path);
     }
@@ -48,15 +47,16 @@ public class Brachydium implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        /*ServerPlayNetworking.registerGlobalReceiver(ResourceReloadListener.RELOAD_CHANNEL, ((server, player, handler, buf, responseSender) -> {
-            Brachydium.LOGGER.info("reloading tags server");
-            Brachydium.setTagsLoaded();
-            LoadableTag.loadAll();
-        }));*/
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
+        RecipeLoadEvent.EVENT.register(() -> {
+            for (BrachydiumInitializer plugin : plugins) {
+                currentRegisteringMod = plugin.getModId();
+                plugin.registerRecipes();
+            }
+            currentRegisteringMod = MOD_ID;
+        });
         Textures.init();
         UIFactory.register(TileEntityUiFactory.INSTANCE);
-        //RecipeLoadEvent.EVENT.register(Material::runProcessors);
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
         System.out.println("-------------- Loading Brachydium --------------");
         Registry.register(Registry.ITEM, id("void"), VOID_ITEM);
@@ -82,11 +82,6 @@ public class Brachydium implements ModInitializer {
         RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
 
-        for (BrachydiumInitializer plugin : plugins) {
-            currentRegisteringMod = plugin.getModId();
-            plugin.registerRecipes();
-        }
-        currentRegisteringMod = MOD_ID;
         System.out.println("-------------- Finished loading Brachydium --------------");
     }
 
@@ -97,14 +92,4 @@ public class Brachydium implements ModInitializer {
     public static String getCurrentPlugin() {
         return currentPluginIsNone() ? "" : currentRegisteringMod;
     }
-
-    @ApiStatus.Internal
-    public static void setTagsLoaded() {
-        tagsLoaded = true;
-    }
-
-    public static boolean areTagsLoaded() {
-        return tagsLoaded;
-    }
-
 }

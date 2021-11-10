@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.network.Channels;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -34,7 +33,6 @@ public class SyncedBlockEntity extends BlockEntity {
         buf.writeBlockPos(pos);
         buf.writeVarInt(id);
         consumer.accept(buf);
-        Brachydium.LOGGER.info("Syncing to {} players", players.size());
         players.forEach(player -> ServerPlayNetworking.send(player, Channels.SYNC_TILE_CUSTOM, buf));
     }
 

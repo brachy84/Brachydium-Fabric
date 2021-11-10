@@ -1,21 +1,17 @@
 package brachy84.brachydium.api.handlers.storage;
 
-import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.api.handlers.INotifiableHandler;
 import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemInventory implements Inventory, InventoryListener, INotifiableHandler {
+public class ItemInventory implements IItemHandler {
 
     private final DefaultedList<ItemStack> items;
     private final boolean extractable, insertable;
@@ -57,8 +53,8 @@ public class ItemInventory implements Inventory, InventoryListener, INotifiableH
 
     @Override
     public boolean isEmpty() {
-        for(ItemStack stack : items) {
-            if(!stack.isEmpty())
+        for (ItemStack stack : items) {
+            if (!stack.isEmpty())
                 return false;
         }
         return true;
@@ -74,11 +70,11 @@ public class ItemInventory implements Inventory, InventoryListener, INotifiableH
         ItemStack stack = getStack(slot);
         amount = Math.min(stack.getCount(), amount);
         stack.decrement(amount);
-        if(stack.getCount() == 0)
+        if (stack.getCount() == 0)
             return ItemStack.EMPTY;
         ItemStack removed = stack.copy();
         removed.setCount(amount);
-        if(amount > 0)
+        if (amount > 0)
             markDirty();
         return removed;
     }
@@ -87,7 +83,7 @@ public class ItemInventory implements Inventory, InventoryListener, INotifiableH
     public ItemStack removeStack(int slot) {
         ItemStack stack = getStack(slot);
         setStack(slot, ItemStack.EMPTY);
-        if(!stack.isEmpty())
+        if (!stack.isEmpty())
             markDirty();
         return stack;
     }
@@ -96,11 +92,6 @@ public class ItemInventory implements Inventory, InventoryListener, INotifiableH
     public void setStack(int slot, ItemStack stack) {
         items.set(slot, stack);
         markDirty();
-    }
-
-    @Override
-    public boolean isValid(int slot, ItemStack stack) {
-        return Inventory.super.isValid(slot, stack);
     }
 
     @Override

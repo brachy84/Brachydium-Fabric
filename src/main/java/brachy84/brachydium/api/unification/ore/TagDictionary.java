@@ -13,6 +13,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
@@ -478,6 +479,10 @@ public class TagDictionary {
 
         public String name() {
             return this.name;
+        }
+
+        public Identifier createTagId(Material material) {
+            return new Identifier("c", material.toString() + "_" + lowerCaseName + "s");
         }
 
         /*@Nullable

@@ -2,7 +2,6 @@ package brachy84.brachydium.api.recipe;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.item.CountableIngredient;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -95,8 +94,9 @@ public class JsonRecipe {
             else
                 builder.outputs(stack);
         } else if(isInput && type.equals("tag")) {
-            if(item.split(":").length == 1) id = new Identifier("c", item);
-            builder.inputs(CountableIngredient.of(item, amount));
+            if(item.split(":").length == 1)
+                id = new Identifier("c", item);
+            builder.inputs(RecipeItem.ofTagId(id, amount, 1f));
         } else if(type.equals("fluid")) {
             if(item.split(":").length == 1) {
                 //TODO: implement material fluid

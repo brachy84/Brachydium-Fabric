@@ -2,7 +2,6 @@ package brachy84.brachydium.api.recipe;
 
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
-import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.util.ItemStackHashStrategy;
 import brachy84.brachydium.api.util.TransferUtil;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
@@ -25,11 +24,12 @@ public class Recipe {
         return 10000;
     }
 
-    private final List<CountableIngredient> inputs;
+    private String name;
+    private final List<RecipeItem> inputs;
     private final List<ItemStack> outputs;
     private final List<FluidStack> fluidInputs;
     private final List<FluidStack> fluidOutputs;
-    private List<ChanceEntry> chancedOutputs;
+    private final List<ChanceEntry> chancedOutputs;
     private List<ChanceEntry> chancedInputs;
 
     private final int EUt, duration;
@@ -41,7 +41,8 @@ public class Recipe {
 
     private final int hashCode;
 
-    protected Recipe(List<CountableIngredient> inputs, List<ItemStack> outputs, List<FluidStack> fluidInputs, List<FluidStack> fluidOutputs, List<ChanceEntry> chancedOutputs, int eUt, int duration, boolean hidden) {
+    protected Recipe(String name, List<RecipeItem> inputs, List<ItemStack> outputs, List<FluidStack> fluidInputs, List<FluidStack> fluidOutputs, List<ChanceEntry> chancedOutputs, int eUt, int duration, boolean hidden) {
+        this.name = name;
         this.inputs = inputs;
         this.outputs = outputs;
         this.fluidInputs = fluidInputs;
@@ -51,9 +52,20 @@ public class Recipe {
         this.duration = duration;
         this.hidden = hidden;
         this.hashCode = makeHashCode();
+        if(this.name == null || this.name.isEmpty()) {
+            this.name = String.valueOf(hashCode);
+        }
     }
 
-    public List<CountableIngredient> getInputs() {
+    public String getName() {
+        return name;
+    }
+
+    public boolean hasName() {
+        return name != null && !name.isEmpty();
+    }
+
+    public List<RecipeItem> getInputs() {
         return Collections.unmodifiableList(inputs);
     }
 
@@ -168,7 +180,7 @@ public class Recipe {
             itemAmountInSlot[i] = itemInSlot.isEmpty() ? 0 : itemInSlot.getCount();
         }
 
-        for (CountableIngredient ingredient : this.inputs) {
+        for (RecipeItem ingredient : this.inputs) {
             int ingredientAmount = ingredient.getAmount();
             boolean isNotConsumed = false;
             if (ingredientAmount == 0) {
@@ -177,7 +189,7 @@ public class Recipe {
             }
             for (int i = 0; i < inputs.size(); i++) {
                 ItemStack inputStack = inputs.get(i);
-                if (inputStack.isEmpty() || !ingredient.getIngredient().test(inputStack))
+                if (inputStack.isEmpty() || !ingredient.test(inputStack))
                     continue;
                 int itemAmountToConsume = Math.min(itemAmountInSlot[i], ingredientAmount);
                 ingredientAmount -= itemAmountToConsume;
@@ -254,8 +266,8 @@ public class Recipe {
 
     private int hashInputs() {
         int hash = 0;
-        for (CountableIngredient countableIngredient : this.inputs) {
-            for (ItemStack is : countableIngredient.getIngredient().getMatchingStacks()) {
+        for (RecipeItem countableIngredient : this.inputs) {
+            for (ItemStack is : countableIngredient.getAllValid()) {
                 hash += ItemStackHashStrategy.comparingAllButCount().hashCode(is);
                 hash += countableIngredient.getAmount();
             }
@@ -266,9 +278,9 @@ public class Recipe {
     private boolean hasSameInputs(Recipe otherRecipe) {
         if (this.inputs.size() != otherRecipe.inputs.size()) return false;
         for (int i = 0; i < inputs.size(); i++) {
-            for (int j = 0; j < this.inputs.get(i).getIngredient().getMatchingStacks().length; j++) {
-                if (!hashStrategy.equals(this.inputs.get(i).getIngredient().getMatchingStacks()[j],
-                        otherRecipe.inputs.get(i).getIngredient().getMatchingStacks()[j])) {
+            for (int j = 0; j < this.inputs.get(i).getAllValid().size(); j++) {
+                if (!hashStrategy.equals(this.inputs.get(i).getAllValid().get(j),
+                        otherRecipe.inputs.get(i).getAllValid().get(j))) {
                     return false;
                 }
             }
@@ -358,6 +370,7 @@ public class Recipe {
     @Override
     public String toString() {
         return new ToStringBuilder(this)
+                .append("name", name)
                 .append("inputs", inputs)
                 .append("outputs", outputs)
                 .append("chancedOutputs", chancedOutputs)
@@ -417,9 +430,9 @@ public class Recipe {
                 return fluidInputs.get(fluidInputs.indexOf(stack)).getAmount() == 0;
             } else return false;
         } else if (stack instanceof ItemStack) {
-            for (CountableIngredient ing : inputs) {
+            for (RecipeItem ing : inputs) {
                 if (ing.getAmount() != 0) continue;
-                for (ItemStack inputStack : ing.getIngredient().getMatchingStacks()) {
+                for (ItemStack inputStack : ing.getAllValid()) {
                     if (inputStack.getItem() == ((ItemStack) stack).getItem()
                             //&& inputStack.getItemDamage() == ((ItemStack) stack).getItemDamage()
                             && Objects.equals(inputStack.getNbt(), ((ItemStack) stack).getNbt())) {
@@ -433,9 +446,9 @@ public class Recipe {
 
     public boolean hasValidInputsForDisplay() {
         boolean hasValidInputs = true;
-        for (CountableIngredient ingredient : inputs) {
-            ItemStack[] matchingItems = ingredient.getIngredient().getMatchingStacks();
-            hasValidInputs &= Arrays.stream(matchingItems).anyMatch(s -> !s.isEmpty());
+        for (RecipeItem ingredient : inputs) {
+            List<ItemStack> matchingItems = ingredient.getAllValid();
+            hasValidInputs &= matchingItems.stream().anyMatch(s -> !s.isEmpty());
         }
         return hasValidInputs;
     }

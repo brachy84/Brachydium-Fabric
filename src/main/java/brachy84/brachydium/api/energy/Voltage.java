@@ -1,7 +1,6 @@
 package brachy84.brachydium.api.energy;
 
 import brachy84.brachydium.Brachydium;
-import org.lwjgl.system.CallbackI;
 
 public class Voltage {
 
@@ -60,7 +59,7 @@ public class Voltage {
         while (v.voltage < voltage) {
             v = VALUES[++i];
         }
-        return VALUES[Math.min(VALUES.length-1, ++i)];
+        return VALUES[Math.min(VALUES.length - 1, ++i)];
     }
 
     public final int tier;

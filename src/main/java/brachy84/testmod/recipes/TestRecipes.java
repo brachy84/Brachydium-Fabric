@@ -18,7 +18,7 @@ public class TestRecipes {
                 .duration(100)
                 .EUt(20)
                 .buildAndRegister();
-        RecipeTables.ALLOYER_RECIPES.recipeBuilder()
+        RecipeTables.ALLOYER_RECIPES.recipeBuilder("test_iron")
                 .input(ingot, Materials.Aluminium, 1)
                 .input(dust, Materials.Copper, 1)
                 .output(Items.IRON_INGOT, 2)

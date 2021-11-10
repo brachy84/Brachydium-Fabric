@@ -1,13 +1,15 @@
 package brachy84.brachydium.api.handlers.storage;
 
+import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.handlers.INotifiableHandler;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.util.Clearable;
 
 import java.util.Set;
 
-public interface IFluidHandler extends Clearable {
+public interface IFluidHandler extends Clearable, InventoryListener, INotifiableHandler {
 
     default Storage<FluidVariant> asStorage() {
         return FluidInventoryStorage.of(this);
@@ -85,10 +87,11 @@ public interface IFluidHandler extends Clearable {
         }
     }
 
-    default void onChange() {
-    }
-
     public static IFluidHandler EMPTY = new IFluidHandler() {
+        @Override
+        public void addListener(Runnable runnable) {
+        }
+
         @Override
         public int getTanks() {
             return 0;

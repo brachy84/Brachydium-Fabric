@@ -3,6 +3,7 @@ package brachy84.brachydium.api.resource;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.recipe.JsonRecipe;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
+import brachy84.brachydium.api.unification.LoadableTag;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
@@ -28,12 +29,9 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
 
     @Override
     public void reload(ResourceManager manager) {
-        /*Brachydium.LOGGER.info("reloading tags");
-        Brachydium.setTagsLoaded();
-        LoadableTag.loadAll();*/
-        //ClientPlayNetworking.send(RELOAD_CHANNEL, PacketByteBufs.create());
+        LoadableTag.loadTags();
         RecipeLoadEvent.EVENT.invoker().load();
-        for(Identifier id : manager.findResources("brachydium", path -> path.endsWith(".json"))) {
+        /*for(Identifier id : manager.findResources("brachydium", path -> path.endsWith(".json"))) {
             if(id.getPath().contains("/recipes/")) {
                 try(InputStream stream = manager.getResource(id).getInputStream()) {
                     JsonRecipe.loadFromJson(id, toJsonElement(stream).getAsJsonObject());
@@ -48,8 +46,8 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
                 } catch (IOException e) {
                     Brachydium.LOGGER.error("Could not load material {}", id);
                 }
-            }*/
-        }
+            }
+        }*/
     }
 
     public static JsonElement toJsonElement(InputStream stream) throws IOException {

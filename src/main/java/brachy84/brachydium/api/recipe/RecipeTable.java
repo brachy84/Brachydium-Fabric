@@ -5,11 +5,9 @@ import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.gui.FluidSlotWidget;
 import brachy84.brachydium.api.gui.GuiTextures;
-import brachy84.brachydium.api.handlers.InventoryHelper;
 import brachy84.brachydium.api.handlers.storage.FluidInventory;
 import brachy84.brachydium.api.handlers.storage.IFluidHandler;
 import brachy84.brachydium.api.handlers.storage.ItemInventory;
-import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.recipe.builders.SimpleRecipeBuilder;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
@@ -27,13 +25,7 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.fabricmc.fabric.impl.transfer.fluid.FluidVariantCache;
-import net.fabricmc.fabric.impl.transfer.item.ItemVariantCache;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,6 +86,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                     .thenComparingInt(Recipe::getEUt);
 
     private final Set<Recipe> recipeSet = new HashSet<>();
+    private final Map<String, Recipe> recipeMap = new HashMap<>();
 
     private TextureArea itemSlotOverlay;
     private TextureArea fluidSlotOverlay;
@@ -147,6 +140,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return null;
     }
 
+    @Nullable
+    public Recipe getRecipeByName(String name) {
+        return recipeMap.get(name);
+    }
+
     public void addRecipe(ValidationResult<Recipe> validationResult) {
         validationResult = postValidateRecipe(validationResult);
         if(validationResult.doSkip())
@@ -157,8 +155,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         }
         Recipe recipe = validationResult.getResult();
         if (recipeSet.add(recipe)) {
-            for (CountableIngredient countableIngredient : recipe.getInputs()) {
-                ItemStack[] stacks = countableIngredient.getIngredient().getMatchingStacks();
+            if(recipe.hasName() && !recipeMap.containsKey(recipe.getName())) {
+                recipeMap.put(recipe.getName(), recipe);
+            }
+            for (RecipeItem countableIngredient : recipe.getInputs()) {
+                List<ItemStack> stacks = countableIngredient.getAllValid();
                 for (ItemStack itemStack : stacks) {
                     ItemVariant stackKey = KeySharedStack.getRegisteredStack(itemStack);
                     recipeItemMap.computeIfPresent(stackKey, (k, v) -> {
@@ -226,6 +227,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return recipeBuilderSample.copy();
     }
 
+    public R recipeBuilder(String name) {
+        return recipeBuilder().name(name);
+    }
+
     public void addTileItem(ItemStack item) {
         tileItems.add(item);
     }
@@ -266,7 +271,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return maxFluidOutputs;
     }
 
-    public Recipe findRecipe(Inventory inventory, IFluidHandler fluidHandler, long voltage) {
+    /*public Recipe findRecipe(Inventory inventory, IFluidHandler fluidHandler, long voltage) {
         List<ItemStack> items = new ArrayList<>();
         for(int i = 0; i < inventory.size(); i++) {
             items.add(inventory.getStack(i));
@@ -290,7 +295,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         if(recipe.getEUt() > voltage)
             return false;
         if(maxInputs > 0) {
-            for(CountableIngredient ci : recipe.getInputs()) {
+            for(RecipeItem ci : recipe.getInputs()) {
                 if(!InventoryHelper.containsIngredient(items, ci))
                     return false;
             }
@@ -302,7 +307,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             }
         }
         return true;
-    }
+    }*/
 
 
     @Nullable

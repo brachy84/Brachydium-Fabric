@@ -3,7 +3,6 @@ package brachy84.brachydium.api.recipe;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
 import brachy84.brachydium.api.item.BrachydiumItem;
-import brachy84.brachydium.api.item.CountableIngredient;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.util.CrypticNumber;
@@ -13,6 +12,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.tag.Tag;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,7 +23,8 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     private RecipeTable<R> recipeTable;
 
-    private final List<CountableIngredient> inputs = new ArrayList<>();
+    private String name;
+    private final List<RecipeItem> inputs = new ArrayList<>();
     private final List<ItemStack> outputs = new ArrayList<>();
     private final List<FluidStack> fluidInputs = new ArrayList<>();
     private final List<FluidStack> fluidOutputs = new ArrayList<>();
@@ -39,6 +40,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
 
     protected RecipeBuilder(Recipe recipe, RecipeTable<R> recipeTable) {
         this.recipeTable = recipeTable;
+        this.name = recipe.getName();
         this.inputs.clear();
         this.inputs.addAll(recipe.getInputs());
         this.outputs.clear();
@@ -58,6 +60,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     @SuppressWarnings("all")
     protected RecipeBuilder(RecipeBuilder<R> recipeBuilder) {
         this.recipeTable = recipeBuilder.recipeTable;
+        this.name = recipeBuilder.name;
         this.inputs.clear();
         this.inputs.addAll(recipeBuilder.inputs);
         this.outputs.clear();
@@ -74,8 +77,14 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     @SuppressWarnings("unchecked")
-    public R inputs(Collection<CountableIngredient> inputs) {
-        for (CountableIngredient ci : inputs) {
+    public R name(String name) {
+        this.name = name;
+        return (R) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public R inputs(Collection<RecipeItem> inputs) {
+        for (RecipeItem ci : inputs) {
             if (ci != null) {
                 this.inputs.add(ci);
             } else {
@@ -85,26 +94,26 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return (R) this;
     }
 
-    public R inputs(CountableIngredient... inputs) {
+    public R inputs(RecipeItem... inputs) {
         return inputs(Arrays.asList(inputs));
     }
 
-    public R input(CountableIngredient ingredient) {
+    public R input(RecipeItem ingredient) {
         return inputs(ingredient);
     }
 
     public R input(String tag, int amount) {
-        return inputs(CountableIngredient.of(tag, amount));
+        return inputs(RecipeItem.ofTagId(new Identifier(tag), amount, 1f));
     }
 
     public R input(Tag<Item> tag, int amount) {
-        return inputs(new CountableIngredient(Ingredient.fromTag(tag), amount));
+        return inputs(new RecipeItem(amount, 1f, tag));
     }
 
     public R input(TagDictionary.Entry tag, Material material, int amount) {
         Objects.requireNonNull(tag);
         Objects.requireNonNull(material);
-        return input("c:" + material + "_" + tag + "s", amount);
+        return input(RecipeItem.ofTagId(tag.createTagId(material), amount, 1f));
     }
 
     public R input(Item item, int amount) {
@@ -112,15 +121,15 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public R input(ItemStack... inputs) {
-        return inputs(Arrays.stream(inputs).map(CountableIngredient::new).collect(Collectors.toList()));
+        return inputs(Arrays.stream(inputs).map(RecipeItem::new).collect(Collectors.toList()));
     }
 
     public R input(Ingredient input, int amount) {
-        return inputs(new CountableIngredient(input, amount));
+        return inputs(RecipeItem.of(input, amount, 1f));
     }
 
     public R notConsumable(ItemStack itemStack) {
-        return inputs(new CountableIngredient(itemStack, 0));
+        return inputs(new RecipeItem(itemStack, 0f));
     }
 
     public R notConsumable(TagDictionary.Entry prefix, Material material) {
@@ -128,11 +137,11 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public R notConsumable(Ingredient ingredient) {
-        return inputs(new CountableIngredient(ingredient, 0));
+        return inputs(RecipeItem.of(ingredient, 1, 0f));
     }
 
     public R notConsumable(BrachydiumItem.Definition item) {
-        return inputs(new CountableIngredient(item.asStack(), 0));
+        return inputs(new RecipeItem(1, 0f, item.asStack()));
     }
 
     public R notConsumable(Fluid fluid) {
@@ -231,7 +240,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public Recipe buildAndRegister() {
-        Recipe recipe = new Recipe(inputs, outputs, fluidInputs, fluidOutputs, chancedOutputs, EUt, duration, hidden);
+        Recipe recipe = new Recipe(name, inputs, outputs, fluidInputs, fluidOutputs, chancedOutputs, EUt, duration, hidden);
         ValidationResult<Recipe> validationResult = build(recipe);
         recipeTable.addRecipe(validationResult);
         Brachydium.LOGGER.info("Registering recipe for {}", recipeTable.unlocalizedName);

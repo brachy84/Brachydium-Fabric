@@ -1,15 +1,13 @@
 package brachy84.brachydium.api.handlers.storage;
 
-import brachy84.brachydium.api.blockEntity.InventoryListener;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.handlers.INotifiableHandler;
 import net.minecraft.util.collection.DefaultedList;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class FluidInventory implements IFluidHandler, InventoryListener, INotifiableHandler {
+public class FluidInventory implements IFluidHandler {
 
     private final long capacity;
     private final DefaultedList<FluidStack> fluids;
@@ -60,8 +58,8 @@ public class FluidInventory implements IFluidHandler, InventoryListener, INotifi
 
     @Override
     public boolean isEmpty() {
-        for(FluidStack stack : fluids)  {
-            if(!stack.isEmpty())
+        for (FluidStack stack : fluids) {
+            if (!stack.isEmpty())
                 return false;
         }
         return true;
@@ -72,8 +70,8 @@ public class FluidInventory implements IFluidHandler, InventoryListener, INotifi
         FluidStack stack = getStackAt(slot);
         amount = Math.min(amount, stack.getAmount());
         stack.decrement(amount);
-        if(amount > 0)
-            onChange();
+        if (amount > 0)
+            markDirty();
         return stack.copyWith(amount);
     }
 
@@ -81,31 +79,26 @@ public class FluidInventory implements IFluidHandler, InventoryListener, INotifi
     public FluidStack removeStack(int slot) {
         FluidStack stack = getStackAt(slot);
         setStack(slot, FluidStack.EMPTY);
-        if(!stack.isEmpty())
-            onChange();
+        if (!stack.isEmpty())
+            markDirty();
         return stack;
     }
 
     @Override
     public void setStack(int slot, FluidStack stack) {
         fluids.set(slot, stack);
-        onChange();
+        markDirty();
     }
 
     @Override
     public void markDirty() {
         addToNotifiedList(notifiable, this, extractable && !insertable);
+        listeners.forEach(Runnable::run);
     }
 
     @Override
     public void addListener(Runnable runnable) {
         listeners.add(runnable);
-    }
-
-    @Override
-    public void onChange() {
-        listeners.forEach(Runnable::run);
-        markDirty();
     }
 
     @Override
