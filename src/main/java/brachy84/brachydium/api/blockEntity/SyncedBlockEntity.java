@@ -23,6 +23,8 @@ import java.util.stream.Collectors;
 
 public class SyncedBlockEntity extends BlockEntity {
 
+    private boolean didSyncInitial = false;
+
     public SyncedBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -47,14 +49,6 @@ public class SyncedBlockEntity extends BlockEntity {
 
     public List<PlayerEntity> getPlayersInRange(double range) {
         return world.getPlayers().stream().filter(player -> Math.sqrt(player.getBlockPos().getSquaredDistance(pos)) <= range).collect(Collectors.toList());
-        /*List<PlayerEntity> players = new ArrayList<>();
-        for(PlayerEntity player : world.getPlayers()) {
-            if(Math.sqrt(player.getBlockPos().getSquaredDistance(pos)) <= range) {
-                players.add(player);
-            }
-        }
-
-        return players;*/
     }
 
     @Environment(EnvType.CLIENT)
@@ -69,15 +63,24 @@ public class SyncedBlockEntity extends BlockEntity {
     public void receiveInitialData(PacketByteBuf buf) {
     }
 
-    @Override
-    public void setWorld(World world) {
-        super.setWorld(world);
-        if (!world.isClient) {
+    public void syncInitialData() {
+        if (world != null && !world.isClient && !didSyncInitial) {
             PacketByteBuf buf = PacketByteBufs.create();
             buf.writeBlockPos(pos);
             writeInitialData(buf);
             getPlayersInRange(64)
                     .forEach(player -> ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.SYNC_TILE_INIT, buf));
+            didSyncInitial = true;
         }
+    }
+
+    @Override
+    public void setWorld(World world) {
+        super.setWorld(world);
+        syncInitialData();
+    }
+
+    public boolean didSyncInitial() {
+        return didSyncInitial;
     }
 }

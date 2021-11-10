@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
@@ -9,11 +8,7 @@ import brachy84.brachydium.api.cover.CoverableApi;
 import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
-import brachy84.brachydium.api.handlers.INotifiableHandler;
-import brachy84.brachydium.api.handlers.storage.FluidInventoryStorage;
-import brachy84.brachydium.api.handlers.storage.IFluidHandler;
-import brachy84.brachydium.api.handlers.storage.InventoryStorage;
-import brachy84.brachydium.api.handlers.storage.ItemInventory;
+import brachy84.brachydium.api.handlers.storage.*;
 import brachy84.brachydium.api.util.TransferUtil;
 import brachy84.brachydium.gui.api.UIHolder;
 import brachy84.brachydium.gui.internal.Gui;
@@ -32,7 +27,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventory;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
@@ -43,6 +37,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -61,7 +56,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     @Nullable
-    public static TileEntity getOf(World world, BlockPos pos) {
+    public static TileEntity getOf(BlockView world, BlockPos pos) {
         BlockEntityHolder holder = BlockEntityHolder.getOf(world, pos);
         if (holder == null) return null;
         return holder.getActiveTileEntity();
@@ -75,8 +70,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     private final List<Runnable> onAttachListener = new ArrayList<>();
     private final List<TileEntityRenderer> tileEntityRenderers = new ArrayList<>();
     private final EnumMap<Direction, Cover> coverMap = new EnumMap<>(Direction.class);
-    private Inventory importItems;
-    private Inventory exportItems;
+    private IItemHandler importItems;
+    private IItemHandler exportItems;
     private IFluidHandler importFluids;
     private IFluidHandler exportFluids;
 
@@ -88,8 +83,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     private Storage<ItemVariant> itemStorage;
     private Storage<FluidVariant> fluidStorage;
 
-    protected List<Inventory> notifiedItemOutputList = new ArrayList<>();
-    protected List<Inventory> notifiedItemInputList = new ArrayList<>();
+    protected List<IItemHandler> notifiedItemOutputList = new ArrayList<>();
+    protected List<IItemHandler> notifiedItemInputList = new ArrayList<>();
     protected List<IFluidHandler> notifiedFluidInputList = new ArrayList<>();
     protected List<IFluidHandler> notifiedFluidOutputList = new ArrayList<>();
 
@@ -134,39 +129,33 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         this.importFluids = createInputFluidHandler();
         this.exportFluids = createOutputFluidHandler();
 
-        if (importItems instanceof INotifiableHandler notifiable) {
-            notifiable.setNotifiableMetaTileEntity(this);
-        }
-        if (exportItems instanceof INotifiableHandler notifiable) {
-            notifiable.setNotifiableMetaTileEntity(this);
-        }
-        if (importFluids instanceof INotifiableHandler notifiable) {
-            notifiable.setNotifiableMetaTileEntity(this);
-        }
-        if (exportFluids instanceof INotifiableHandler notifiable) {
-            notifiable.setNotifiableMetaTileEntity(this);
-        }
+        importItems.setNotifiableMetaTileEntity(this);
+        exportItems.setNotifiableMetaTileEntity(this);
+        importFluids.setNotifiableMetaTileEntity(this);
+        exportFluids.setNotifiableMetaTileEntity(this);
 
-        if (importItems instanceof InventoryListener) {
-            ((InventoryListener) importItems).addListener(() -> {
-                if (!getWorld().isClient()) {
-                    Brachydium.LOGGER.info("Syncing import inventory on server");
-                    syncCustomData(-1000, buf -> TransferUtil.pack(importItems, buf));
-                }
-            });
-        }
-        if (exportItems instanceof InventoryListener) {
-            ((InventoryListener) exportItems).addListener(() -> {
-                if (!getWorld().isClient()) {
-                    Brachydium.LOGGER.info("Syncing export inventory on server");
-                    syncCustomData(-1001, buf -> TransferUtil.pack(exportItems, buf));
-                }
+        importItems.addListener(() -> {
+            if (!getWorld().isClient()) {
+                syncCustomData(-1000, buf -> TransferUtil.pack(importItems, buf));
+            }
+        });
+        exportItems.addListener(() -> {
+            if (!getWorld().isClient()) {
+                syncCustomData(-1001, buf -> TransferUtil.pack(exportItems, buf));
+            }
+        });
 
-            });
-        }
+        importFluids.addListener(() -> {
+            if (!getWorld().isClient()) {
+                syncCustomData(-1002, buf -> TransferUtil.pack(importFluids, buf));
+            }
+        });
+        exportFluids.addListener(() -> {
+            if (!getWorld().isClient()) {
+                syncCustomData(-1003, buf -> TransferUtil.pack(exportFluids, buf));
+            }
+        });
 
-        //this.importItemStorage = InventoryStorage.of(importItems, null);
-        //this.exportItemStorage = InventoryStorage.of(exportItems, null);
         this.importItemStorage = new InventoryStorage(importItems);
         this.exportItemStorage = new InventoryStorage(exportItems);
         this.importFluidStorage = FluidInventoryStorage.of(importFluids);
@@ -259,9 +248,9 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public <T> void addNotifiedInput(T input) {
-        if (input instanceof Inventory) {
+        if (input instanceof IItemHandler) {
             if (!notifiedItemInputList.contains(input)) {
-                this.notifiedItemInputList.add((Inventory) input);
+                this.notifiedItemInputList.add((IItemHandler) input);
             }
         } else if (input instanceof IFluidHandler) {
             if (!notifiedFluidInputList.contains(input)) {
@@ -271,9 +260,9 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public <T> void addNotifiedOutput(T output) {
-        if (output instanceof Inventory) {
+        if (output instanceof IItemHandler) {
             if (!notifiedItemOutputList.contains(output)) {
-                this.notifiedItemOutputList.add((Inventory) output);
+                this.notifiedItemOutputList.add((IItemHandler) output);
             }
         } else if (output instanceof IFluidHandler) {
             if (!notifiedFluidOutputList.contains(output)) {
@@ -346,18 +335,22 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return Gui.defaultBuilder(player).build();
     }
 
-    public Inventory createInputItemHandler() {
+    @NotNull
+    public IItemHandler createInputItemHandler() {
         return new ItemInventory(0);
     }
 
-    public Inventory createOutputItemHandler() {
+    @NotNull
+    public IItemHandler createOutputItemHandler() {
         return new ItemInventory(0);
     }
 
+    @NotNull
     public IFluidHandler createInputFluidHandler() {
         return IFluidHandler.EMPTY;
     }
 
+    @NotNull
     public IFluidHandler createOutputFluidHandler() {
         return IFluidHandler.EMPTY;
     }
@@ -370,11 +363,11 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return importFluids;
     }
 
-    public Inventory getExportInventory() {
+    public IItemHandler getExportInventory() {
         return exportItems;
     }
 
-    public Inventory getImportInventory() {
+    public IItemHandler getImportInventory() {
         return importItems;
     }
 
@@ -410,11 +403,11 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return notifiedFluidOutputList;
     }
 
-    public List<Inventory> getNotifiedItemInputList() {
+    public List<IItemHandler> getNotifiedItemInputList() {
         return notifiedItemInputList;
     }
 
-    public List<Inventory> getNotifiedItemOutputList() {
+    public List<IItemHandler> getNotifiedItemOutputList() {
         return notifiedItemOutputList;
     }
 
@@ -458,14 +451,10 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
                 Cover cover = getCover(Direction.byId(buf.readByte()));
                 cover.readCustomData(buf.readVarInt(), buf);
             }
-            case -1000 -> {
-                Brachydium.LOGGER.info("Syncing import inventory on client");
-                TransferUtil.unpack(importItems, buf);
-            }
-            case -1001 -> {
-                Brachydium.LOGGER.info("Syncing export inventory on client");
-                TransferUtil.unpack(exportItems, buf);
-            }
+            case -1000 -> TransferUtil.unpack(importItems, buf);
+            case -1001 -> TransferUtil.unpack(exportItems, buf);
+            case -1002 -> TransferUtil.unpack(importFluids, buf);
+            case -1003 -> TransferUtil.unpack(exportFluids, buf);
         }
     }
 

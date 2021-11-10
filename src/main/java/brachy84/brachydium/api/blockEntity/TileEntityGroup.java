@@ -30,6 +30,8 @@ public class TileEntityGroup {
             id = new Identifier(id.getNamespace(), "tile/" + id.getPath());
         this.id = id;
         this.tileName = id.getPath().split("/")[1];
+        if(tileEntities.length == 0)
+            throw new IllegalArgumentException("There must be at least one TileEntity in a group");
         this.tileEntities = tileEntities;
         for (int i = 0; i < tileEntities.length; i++) {
             TileEntity tile = Objects.requireNonNull(this.tileEntities[i]);
@@ -95,5 +97,9 @@ public class TileEntityGroup {
 
     public Collection<TileEntity> getTileEntities() {
         return Lists.newArrayList(tileEntities);
+    }
+
+    public TileEntity getFallbackTile() {
+        return tileEntities[0];
     }
 }

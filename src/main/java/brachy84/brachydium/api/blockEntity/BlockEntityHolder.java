@@ -8,10 +8,10 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +25,7 @@ import java.util.Objects;
 public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityClientSerializable {
 
     @Nullable
-    public static BlockEntityHolder getOf(World world, BlockPos pos) {
+    public static BlockEntityHolder getOf(BlockView world, BlockPos pos) {
         if (world == null || pos == null) return null;
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof BlockEntityHolder)
@@ -55,20 +55,28 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
 
     @Override
     public void readCustomData(int id, PacketByteBuf buf) {
-        if(currentTile != null)
+        if (currentTile != null)
             currentTile.readCustomData(id, buf);
     }
 
     @Override
     public void writeInitialData(PacketByteBuf buf) {
-        if(currentTile != null)
+        if (currentTile != null)
             currentTile.writeInitialData(buf);
     }
 
     @Override
     public void receiveInitialData(PacketByteBuf buf) {
-        if(currentTile != null)
+        if (currentTile != null)
             currentTile.receiveInitialData(buf);
+    }
+
+    @Override
+    public void setWorld(World world) {
+        this.world = world;
+        if (currentTile != null) {
+            syncInitialData();
+        }
     }
 
     @Override
@@ -101,6 +109,7 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
         this.currentTile.setHolder(this);
         this.currentTile.setFrontFace(front);
         this.currentTile.onAttach();
+        syncInitialData();
     }
 
     public TileEntity getActiveTileEntity() {
@@ -116,7 +125,7 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
     }
 
     public void scheduleRenderUpdate() {
-        if(world instanceof ClientWorld) {
+        if (world instanceof ClientWorld) {
             ((ClientWorld) world).scheduleBlockRenders(pos.getX(), pos.getY(), pos.getZ());
         }
     }
