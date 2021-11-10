@@ -22,7 +22,7 @@ public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
     private final List<Tag<Item>> tags;
     private final List<ItemStack> allValid = new ArrayList<>();
     private final int amount;
-    private float chance;
+    private final float chance;
 
     private boolean loadedLoadables;
 

@@ -19,7 +19,7 @@ public class RecipeFluid implements Predicate<FluidStack>, Iterable<FluidStack> 
     private final List<Tag<Fluid>> tags;
     private final List<FluidStack> allValid = new ArrayList<>();
     private final int amount;
-    private float chance;
+    private final float chance;
 
     private boolean loadedLoadables;
 
@@ -27,6 +27,7 @@ public class RecipeFluid implements Predicate<FluidStack>, Iterable<FluidStack> 
         this.values = Objects.requireNonNull(values);
         this.tags = Objects.requireNonNull(tags);
         this.amount = amount;
+        this.chance = chance;
         if(values.size() == 0 && tags.size() == 0) {
             throw new IllegalArgumentException("Ingredient can't be empty");
         }

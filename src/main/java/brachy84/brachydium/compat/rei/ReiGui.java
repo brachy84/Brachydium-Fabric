@@ -40,25 +40,15 @@ public class ReiGui {
         final AtomicDouble x0 = new AtomicDouble(0), x1 = new AtomicDouble(0), y0 = new AtomicDouble(0), y1 = new AtomicDouble(0);
         gui.init();
         AABB finalBounds = bounds == null ? gui.getBounds() : bounds;
-        //Brachydium.LOGGER.info("Recipe bounds: {}", recipeBounds);
         gui.forEachWidget(widget -> {
             AABB widgetBounds = widget.getBounds();
             if (finalBounds.covers(widgetBounds)) {
                 Pos2d transform = widget.getParent().getPos().add(-recipeBounds.x, -recipeBounds.y);//widget.getPos().subtract(new Pos2d(recipeBounds.x, recipeBounds.y));
                 float x = transform.x, y = transform.y;
-                x += 7;
-                if (x < 0) x = -x;
-                if (y < 0) y = -y;
+                x += 20;
+                y += 2;
                 transform = new Pos2d(x, y);
                 List<Widget> widgets = widget.getReiWidgets(finalBounds, widget.getPos().subtract(transform)/*.subtract(new Pos2d(recipeBounds.x, recipeBounds.y))*/);
-                /*if (widget instanceof ProgressBarWidget) {
-                    widget.setAbsolutePos(widget.getPos().subtract(transform));
-                    me.shedaniel.rei.api.client.gui.widgets.Widget render = Widgets.createDrawableWidget(((helper, matrices, mouseX, mouseY, delta) -> {
-                        GuiHelper guiHelper = GuiHelper.create(0, new Pos2d(mouseX, mouseY));
-                        widget.render(guiHelper, matrices, delta);
-                    }));
-                    widgets.add(render);
-                }*/
                 if (widget instanceof ItemSlotWidget) {
                     for (Widget widget1 : widgets) {
                         if (widget1 instanceof Slot)

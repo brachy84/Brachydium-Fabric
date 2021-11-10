@@ -1,16 +1,9 @@
 package brachy84.brachydium.compat.rei;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.gui.FluidSlotWidget;
-import brachy84.brachydium.api.handlers.oldAstrarre.FluidTankList;
-import brachy84.brachydium.api.handlers.storage.FluidInventory;
-import brachy84.brachydium.api.handlers.storage.ItemInventory;
 import brachy84.brachydium.api.recipe.RecipeTable;
-//import brachy84.brachydium.gui.api.ReiGui;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
-import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
-import brachy84.brachydium.gui.api.widgets.ResourceSlotWidget;
 import brachy84.brachydium.gui.internal.Gui;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.Renderer;
@@ -25,14 +18,13 @@ import me.shedaniel.rei.api.common.util.EntryStacks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.text.LiteralText;
 import net.minecraft.text.Text;
 import net.minecraft.text.TranslatableText;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> {
 
@@ -74,6 +66,9 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
         widgets.add(simpleLabel(point, new TranslatableText("brachydium.text.eu_t", recipeDisplay.getEUt())));
         widgets.add(simpleLabel(point.add(0, 10), new TranslatableText("brachydium.text.duration_sec", recipeDisplay.getDuration() / 20f)));
         widgets.add(simpleLabel(point.add(0, 20), new TranslatableText("brachydium.text.total_eu", recipeDisplay.getDuration() * recipeDisplay.getEUt())));
+        if (MinecraftClient.getInstance().options.advancedItemTooltips) {
+            widgets.add(simpleLabel(point.add(0, 30), new LiteralText("Recipe Name: " + recipeDisplay.getRecipe().getName())));
+        }
         return widgets;
     }
 
@@ -88,23 +83,23 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
         Iterator<EntryIngredient> inputFluids = display.getFluidInputs().iterator();
         Iterator<EntryIngredient> outputItems = display.getItemOutputs().iterator();
         Iterator<EntryIngredient> outputFluids = display.getFluidOutputs().iterator();
-        for(Slot itemSlot : itemSlots) {
-            if(itemSlot.getNoticeMark() == 1) {
+        for (Slot itemSlot : itemSlots) {
+            if (itemSlot.getNoticeMark() == 1) {
                 if (!inputItems.hasNext()) continue;
                 //Brachydium.LOGGER.info(" - inputItem");
                 itemSlot.entries(inputItems.next());
-            } else if(itemSlot.getNoticeMark() == 2) {
+            } else if (itemSlot.getNoticeMark() == 2) {
                 if (!outputItems.hasNext()) continue;
                 //Brachydium.LOGGER.info(" - outputItem");
                 itemSlot.entries(outputItems.next());
             }
         }
-        for(Slot fluidSlot : fluidSlots) {
-            if(fluidSlot.getNoticeMark() == 1) {
+        for (Slot fluidSlot : fluidSlots) {
+            if (fluidSlot.getNoticeMark() == 1) {
                 if (!inputItems.hasNext()) continue;
                 //Brachydium.LOGGER.info(" - inputFluid");
                 fluidSlot.entries(inputFluids.next());
-            } else if(fluidSlot.getNoticeMark() == 2) {
+            } else if (fluidSlot.getNoticeMark() == 2) {
                 if (!outputItems.hasNext()) continue;
                 //Brachydium.LOGGER.info(" - outputFluid");
                 fluidSlot.entries(outputFluids.next());

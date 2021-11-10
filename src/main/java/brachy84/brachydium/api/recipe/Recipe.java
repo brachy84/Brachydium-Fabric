@@ -12,11 +12,14 @@ import net.minecraft.item.ItemStack;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
- *  Has to extend vanilla recipe for REI
+ * Has to extend vanilla recipe for REI
  */
 public class Recipe {
 
@@ -52,17 +55,28 @@ public class Recipe {
         this.duration = duration;
         this.hidden = hidden;
         this.hashCode = makeHashCode();
-        if(this.name == null || this.name.isEmpty()) {
-            this.name = String.valueOf(hashCode);
+        if (this.name == null || this.name.isEmpty()) {
+            this.name = makeName();
         }
+    }
+
+    private String makeName() {
+        StringBuilder builder = new StringBuilder();
+        for (ItemStack stack : outputs) {
+            String[] parts = stack.getItem().getTranslationKey(stack).split("\\.");
+            builder.append(parts[parts.length - 1], 0, 2);
+        }
+        for (FluidStack stack : fluidOutputs) {
+            String[] parts = stack.getFluid().getDefaultState().getBlockState().getBlock().getTranslationKey().split("\\.");
+            builder.append(parts[parts.length - 1], 0, 2);
+        }
+        builder.append(EUt)
+                .append(duration);
+        return builder.toString();
     }
 
     public String getName() {
         return name;
-    }
-
-    public boolean hasName() {
-        return name != null && !name.isEmpty();
     }
 
     public List<RecipeItem> getInputs() {
@@ -238,14 +252,14 @@ public class Recipe {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Recipe recipe = (Recipe) o;
-        return  this.EUt == recipe.EUt &&
+        return this.EUt == recipe.EUt &&
                 this.duration == recipe.duration &&
                 hasSameInputs(recipe) &&
                 hasSameOutputs(recipe) &&
                 hasSameChancedOutputs(recipe) &&
                 hasSameFluidInputs(recipe) &&
                 hasSameFluidOutputs(recipe);// &&
-                //hasSameRecipeProperties(recipe);
+        //hasSameRecipeProperties(recipe);
     }
 
     private int makeHashCode() {

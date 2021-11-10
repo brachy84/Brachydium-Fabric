@@ -155,9 +155,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         }
         Recipe recipe = validationResult.getResult();
         if (recipeSet.add(recipe)) {
-            if(recipe.hasName() && !recipeMap.containsKey(recipe.getName())) {
-                recipeMap.put(recipe.getName(), recipe);
+            if(recipeMap.containsKey(recipe.getName())) {
+                throw new IllegalStateException("A recipe with name " + recipe.getName() + " is already registered in " + this);
             }
+            recipeMap.put(recipe.getName(), recipe);
             for (RecipeItem countableIngredient : recipe.getInputs()) {
                 List<ItemStack> stacks = countableIngredient.getAllValid();
                 for (ItemStack itemStack : stacks) {

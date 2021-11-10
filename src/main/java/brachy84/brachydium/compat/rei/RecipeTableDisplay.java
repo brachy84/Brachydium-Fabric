@@ -1,15 +1,13 @@
 package brachy84.brachydium.compat.rei;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
-import brachy84.brachydium.api.item.CountableIngredient;
+import brachy84.brachydium.api.recipe.RecipeItem;
 import brachy84.brachydium.api.recipe.Recipe;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -50,7 +48,7 @@ public class RecipeTableDisplay implements Display {
 
     public Stream<EntryIngredient> getItemInputs() {
         //Brachydium.LOGGER.info("Get item inputs with size {}", recipe.getInputs().size());
-        return recipe.getInputs().stream().map(CountableIngredient::toEntryStack);
+        return recipe.getInputs().stream().map(RecipeItem::toEntryStack);
     }
 
     public Stream<EntryIngredient> getFluidInputs() {
@@ -75,5 +73,9 @@ public class RecipeTableDisplay implements Display {
 
     public int getDuration() {
         return recipe.getDuration();
+    }
+
+    public Recipe getRecipe() {
+        return recipe;
     }
 }
