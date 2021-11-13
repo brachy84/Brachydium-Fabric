@@ -4,15 +4,14 @@ import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.resource.CraftingRecipe;
 import brachy84.brachydium.api.unification.material.Material;
-import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.material.properties.PropertyKey;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 
 public class IngotProcessor {
 
     public static void init() {
-        TagDictionary.ingot.addProcessingHandler(IngotProcessor::processIngot);
-        TagDictionary.plate.addProcessingHandler(IngotProcessor::processPlate);
+        TagDictionary.ingot.setDefaultProcessingHandler(IngotProcessor::processIngot);
+        TagDictionary.plate.setDefaultProcessingHandler(IngotProcessor::processPlate);
     }
 
     private static void processIngot(TagDictionary.Entry tag, Material material) {

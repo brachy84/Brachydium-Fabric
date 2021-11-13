@@ -23,15 +23,18 @@ public class BrachydiumItems {
     public static void init() {
         hammer = ToolItem.create("hammer")
                 .setRecipeSymbol('H')
-                .setCraftingRecipe(material -> CraftingRecipe.shaped("tool/hammer." + material.toString())
-                        .pattern("III", "III")
+                .setRecipeProcessor(material -> CraftingRecipe.shaped("tool/hammer." + material.toString())
+                        .pattern("III", "III", " S ")
                         .tag('I', getPreferredItemId(material, TagDictionary.ingot))
+                        .tag('S', "c:sticks")
                         .result(hammer, hammer.getResultData(material)).end())
                 .setTextures("handle", 1);
         file = ToolItem.create("file")
-                .setRecipeSymbol('F').setCraftingRecipe(material -> CraftingRecipe.shaped("tool/file." + material.toString())
-                        .pattern("P", "P")
+                .setRecipeSymbol('F')
+                .setRecipeProcessor(material -> CraftingRecipe.shaped("tool/file." + material.toString())
+                        .pattern("P", "P", "S")
                         .tag('P', getPreferredItemId(material, TagDictionary.plate))
+                        .tag('S', "c:sticks")
                         .result(file, file.getResultData(material)).end())
                 .setTextures("handle_file", 1);
         saw = ToolItem.create("saw")

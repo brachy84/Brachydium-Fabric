@@ -110,7 +110,7 @@ public class MaterialItem extends BrachydiumItem implements IMaterialItem {
         tooltip.add(new LiteralText(material.getChemicalFormula()).formatted(Formatting.YELLOW));
         String mod = material.getModName();
         if (mod != null && !mod.equals(Brachydium.NAME)) {
-            tooltip.add(new LiteralText("Added by " + mod));
+            tooltip.add(new LiteralText(mod).formatted(Formatting.GREEN));
         }
     }
 }

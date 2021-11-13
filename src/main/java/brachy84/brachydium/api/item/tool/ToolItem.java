@@ -61,8 +61,8 @@ public class ToolItem extends BrachydiumItem implements IToolItem, IMaterialItem
                 i++;
                 for (ToolItem tool : TOOLS.values()) {
                     tool.materials.add(material);
-                    if (tool.craftingRecipe != null)
-                        tool.craftingRecipe.accept(material);
+                    if (tool.recipeProcessor != null)
+                        tool.recipeProcessor.accept(material);
                 }
             }
         }
@@ -89,7 +89,7 @@ public class ToolItem extends BrachydiumItem implements IToolItem, IMaterialItem
 
     private int dmgPerCraft = 1;
     private char recipeSymbol;
-    private Consumer<Material> craftingRecipe;
+    private Consumer<Material> recipeProcessor;
     private final String name;
 
     protected ToolItem(Identifier id, String tag) {
@@ -144,8 +144,8 @@ public class ToolItem extends BrachydiumItem implements IToolItem, IMaterialItem
         return this;
     }
 
-    public ToolItem setCraftingRecipe(Consumer<Material> craftingRecipe) {
-        this.craftingRecipe = craftingRecipe;
+    public ToolItem setRecipeProcessor(Consumer<Material> recipeProcessor) {
+        this.recipeProcessor = recipeProcessor;
         return this;
     }
 

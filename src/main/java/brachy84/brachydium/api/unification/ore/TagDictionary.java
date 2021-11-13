@@ -443,7 +443,7 @@ public class TagDictionary {
         public @Nullable
         Material materialType;
 
-        private final List<IOreRegistrationHandler> oreProcessingHandlers = new ArrayList<>();
+        private final Map<String, IOreRegistrationHandler> oreProcessingHandlers = new HashMap<>();
         private final Set<Material> ignoredMaterials = new HashSet<>();
         private final Set<Material> generatedMaterials = new HashSet<>();
         private boolean isMarkerPrefix = false;
@@ -535,14 +535,24 @@ public class TagDictionary {
             generationCondition = in;
         }
 
-        public boolean addProcessingHandler(IOreRegistrationHandler... processingHandler) {
-            Preconditions.checkNotNull(processingHandler);
-            Validate.noNullElements(processingHandler);
-            return oreProcessingHandlers.addAll(Arrays.asList(processingHandler));
+        public void setDefaultProcessingHandler(IOreRegistrationHandler processingHandler) {
+            addProcessingHandler("default", processingHandler);
         }
 
-        public <T extends IMaterialProperty<T>> void addProcessingHandler(PropertyKey<T> propertyKey, TriConsumer<Entry, Material, T> handler) {
-            addProcessingHandler((orePrefix, material) -> {
+        public void addProcessingHandler(String key, IOreRegistrationHandler processingHandler) {
+            oreProcessingHandlers.put(Objects.requireNonNull(key), Objects.requireNonNull(processingHandler));
+        }
+
+        public boolean removeProcessingHandler(String key) {
+            return oreProcessingHandlers.remove(key) != null;
+        }
+
+        public <T extends IMaterialProperty<T>> void setDefaultProcessingHandler(PropertyKey<T> propertyKey, TriConsumer<Entry, Material, T> handler) {
+            addProcessingHandler("default", propertyKey, handler);
+        }
+
+        public <T extends IMaterialProperty<T>> void addProcessingHandler(String key, PropertyKey<T> propertyKey, TriConsumer<Entry, Material, T> handler) {
+            addProcessingHandler(key, (orePrefix, material) -> {
                 if (material.hasProperty(propertyKey)) {
                     handler.accept(orePrefix, material, material.getProperty(propertyKey));
                 }
@@ -573,7 +583,7 @@ public class TagDictionary {
             currentProcessingPrefix.set(this);
             for (Material registeredMaterial : generatedMaterials) {
                 currentMaterial.set(registeredMaterial);
-                for (IOreRegistrationHandler registrationHandler : oreProcessingHandlers) {
+                for (IOreRegistrationHandler registrationHandler : oreProcessingHandlers.values()) {
                     registrationHandler.processMaterial(this, registeredMaterial);
                 }
                 currentMaterial.set(null);
