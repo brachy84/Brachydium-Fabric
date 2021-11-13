@@ -7,21 +7,21 @@ public class Voltage {
     //public static final Voltage ZERO = new Voltage(Integer.MIN_VALUE, 0, "ZERO");
 
     //public static final Voltage ELV = new Voltage(0, 2L, "ELV");
-    public static final Voltage ULV = new Voltage(1, 8L, "ULV");
-    public static final Voltage LV = new Voltage(2, 32L, "LV");
-    public static final Voltage MV = new Voltage(3, 128L, "MV");
-    public static final Voltage HV = new Voltage(4, 512L, "HV");
-    public static final Voltage EV = new Voltage(5, 2048L, "EV");
-    public static final Voltage IV = new Voltage(6, 8192L, "IV");
-    public static final Voltage LuV = new Voltage(7, 32768L, "LuV");
-    public static final Voltage UV = new Voltage(8, 131072L, "UV"); // BEGONE ZPM !
-    public static final Voltage GV = new Voltage(9, 524288L, "GV");
-    public static final Voltage GMV = new Voltage(10, 2097152L, "GMV");
-    public static final Voltage GHV = new Voltage(11, 8388608L, "GHV");
-    public static final Voltage GEV = new Voltage(12, 33554432L, "GEV");
-    public static final Voltage GIV = new Voltage(13, 134217728L, "GIV");
-    public static final Voltage UGV = new Voltage(14, 536870912L, "UGV");
-    public static final Voltage UXGV = new Voltage(15, 2147483648L, "UXGV");
+    public static final Voltage ULV = new Voltage(0, 8L, "ULV");
+    public static final Voltage LV = new Voltage(1, 32L, "LV");
+    public static final Voltage MV = new Voltage(2, 128L, "MV");
+    public static final Voltage HV = new Voltage(3, 512L, "HV");
+    public static final Voltage EV = new Voltage(4, 2048L, "EV");
+    public static final Voltage IV = new Voltage(5, 8192L, "IV");
+    public static final Voltage LuV = new Voltage(6, 32768L, "LuV");
+    public static final Voltage UV = new Voltage(7, 131072L, "UV"); // BEGONE ZPM !
+    public static final Voltage GV = new Voltage(8, 524288L, "GV");
+    public static final Voltage GMV = new Voltage(9, 2097152L, "GMV");
+    public static final Voltage GHV = new Voltage(10, 8388608L, "GHV");
+    public static final Voltage GEV = new Voltage(11, 33554432L, "GEV");
+    public static final Voltage GIV = new Voltage(12, 134217728L, "GIV");
+    public static final Voltage UGV = new Voltage(13, 536870912L, "UGV");
+    public static final Voltage UXGV = new Voltage(14, 2147483648L, "UXGV");
 
     //             8.589.934.592                     omega     OV
     //            34.359.738.368                high omega    HOV
