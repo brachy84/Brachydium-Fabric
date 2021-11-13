@@ -2,7 +2,6 @@ package brachy84.brachydium.api.render.models;
 
 import brachy84.brachydium.api.fluid.SimpleFluidRenderer;
 import brachy84.brachydium.gui.api.math.Color;
-import io.github.astrarre.transfer.internal.mixin.BucketItemAccess_AccessFluid;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView;
@@ -43,9 +42,9 @@ public abstract class DynamicFluidItemModel implements BakedModel, FabricBakedMo
     @Override
     public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
         Fluid fluid = Fluids.EMPTY;
-        if (stack.getItem() instanceof BucketItemAccess_AccessFluid) {
+        /*if (stack.getItem() instanceof BucketItemAccess_AccessFluid) {
             fluid = ((BucketItemAccess_AccessFluid) stack.getItem()).getFluid();
-        }
+        }*/
         BakedModelManager bakedModelManager = MinecraftClient.getInstance().getBakedModelManager();
         context.fallbackConsumer().accept(bakedModelManager.getModel(getBaseModel()));
         //context.fallbackConsumer().accept(bakedModelManager.getModel(getBackgroundModel()));

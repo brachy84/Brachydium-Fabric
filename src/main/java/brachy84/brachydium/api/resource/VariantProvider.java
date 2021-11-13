@@ -1,7 +1,5 @@
 package brachy84.brachydium.api.resource;
 
-import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.render.models.BucketModel;
 import net.fabricmc.fabric.api.client.model.ModelProviderContext;
 import net.fabricmc.fabric.api.client.model.ModelProviderException;
 import net.fabricmc.fabric.api.client.model.ModelVariantProvider;
@@ -20,12 +18,12 @@ public class VariantProvider implements ModelVariantProvider {
 
     @Override
     public @Nullable UnbakedModel loadModelVariant(ModelIdentifier modelId, ModelProviderContext context) throws ModelProviderException {
-        if(modelId.getNamespace().equals(Brachydium.MOD_ID)) {
+        /*if(modelId.getNamespace().equals(Brachydium.MOD_ID)) {
             if(modelId.getPath().endsWith("_bucket")) {
                 Brachydium.LOGGER.info("Loading model: " + modelId);
                 return new SimpleUnbaked<>(BucketModel::new);
             }
-        }
+        }*/
         return null;
     }
 }

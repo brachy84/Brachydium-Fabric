@@ -4,10 +4,8 @@
   "package": "brachy84.brachydium.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "DiffKeyMixin",
     "ItemMixin",
     "RecipeManagerMixin",
-    "TagManagerLoaderMixin",
     "TagManagerMixin"
   ],
   "client": [

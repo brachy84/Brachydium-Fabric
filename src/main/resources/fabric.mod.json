@@ -45,7 +45,7 @@
     "minecraft": "1.17.1",
     "nbtcrafting": ">=2.0.0",
     "cloth-config2": ">=5.1.40",
-    "rei": ">=6.0.2",
+    "roughlyenoughitems": ">=6.0.2",
     "java": ">=16"
   },
   "breaks": {
