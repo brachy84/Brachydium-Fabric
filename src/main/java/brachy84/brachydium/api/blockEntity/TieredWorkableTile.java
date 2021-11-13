@@ -4,6 +4,7 @@ import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.blockEntity.trait.RecipeLogicEnergy;
 import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.energy.IEnergyContainer;
+import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.handlers.EnergyContainerHandler;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.Textures;
@@ -21,13 +22,8 @@ public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
     public TieredWorkableTile(RecipeTable<?> recipeTable, int tier) {
         super(recipeTable);
         this.tier = tier;
-        energyContainer = new EnergyContainerHandler(this, (long) Math.pow(2, tier) * 8, (long) Math.pow(2, tier), true);
+        energyContainer = new EnergyContainerHandler(this, Voltage.get(tier) * 8, Voltage.get(tier), true);
     }
-
-    /*@Override
-    public TileEntity createCopy(BlockEntityHolder holder) {
-        return new TieredWorkableTile(getRecipeTable(), tier);
-    }*/
 
     @Override
     public @NotNull TileEntity createNewTileEntity() {
