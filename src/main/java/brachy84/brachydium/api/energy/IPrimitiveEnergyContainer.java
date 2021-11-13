@@ -1,9 +1,5 @@
 package brachy84.brachydium.api.energy;
 
-import io.github.astrarre.transfer.v0.api.Participant;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 /**
  * A simple energy container similar to what forge uses
  */
@@ -21,6 +17,7 @@ public interface IPrimitiveEnergyContainer {
 
     /**
      * changes the stored energy by a given amount
+     *
      * @param dif amount of energy to change
      * @return amount of changed energy
      */
@@ -28,6 +25,7 @@ public interface IPrimitiveEnergyContainer {
 
     /**
      * removes stored energy by the given amount
+     *
      * @param amount to remove
      * @return energy removed
      */
@@ -37,6 +35,7 @@ public interface IPrimitiveEnergyContainer {
 
     /**
      * adds stored energy by the given amount
+     *
      * @param amount to add
      * @return energy added
      */

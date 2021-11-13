@@ -27,15 +27,12 @@ public class IngotProcessor {
     }
 
     private static void processPlate(TagDictionary.Entry tag, Material material) {
-        Brachydium.LOGGER.info("Adding plate recipe");
         if(material.hasProperty(PropertyKey.INGOT)) {
             CraftingRecipe.Shaped recipe = CraftingRecipe.shaped("plate_" + material)
                     .pattern("H", "I", "I")
                     .tag('I', TagDictionary.ingot.createTagId(material))
                     .result(Brachydium.id(MaterialItem.createItemId(material, tag)));
             recipe.end();
-            if(material == Materials.Copper)
-                Brachydium.LOGGER.info(recipe);
         }
     }
 }

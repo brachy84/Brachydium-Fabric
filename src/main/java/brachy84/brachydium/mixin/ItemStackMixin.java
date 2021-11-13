@@ -1,5 +1,6 @@
 package brachy84.brachydium.mixin;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.item.tool.IToolItem;
 import brachy84.brachydium.api.util.ITagHolder;
 import brachy84.brachydium.api.util.NbtFormatter;
@@ -44,17 +45,21 @@ public abstract class ItemStackMixin {
 
     @Inject(method = "getTooltip", at = @At("RETURN"), cancellable = true)
     public void tooltip(PlayerEntity player, TooltipContext context, CallbackInfoReturnable<List<Text>> cir) {
-        if (context.isAdvanced() && hasNbt()) {
+        if (context.isAdvanced()) {
             List<Text> list = cir.getReturnValue();
-            for (Identifier tag : ((ITagHolder) getItem()).getTags()) {
-                list.add(new LiteralText("#" + tag.toString()).formatted(Formatting.DARK_GRAY));
+            if(Brachydium.getConfig().misc.showTags) {
+                for (Identifier tag : ((ITagHolder) getItem()).getTags()) {
+                    list.add(new LiteralText("#" + tag.toString()).formatted(Formatting.DARK_GRAY));
+                }
             }
-            list.add(new LiteralText(" - NBT tag - ").formatted(Formatting.AQUA));
-            for (String line : NbtFormatter.format(nbt)) {
-                list.add(new LiteralText(line).formatted(Formatting.DARK_GRAY));
+            if (Brachydium.getConfig().misc.showNbt && hasNbt()) {
+                list.add(new LiteralText(" - NBT tag - ").formatted(Formatting.AQUA));
+                for (String line : NbtFormatter.format(nbt)) {
+                    list.add(new LiteralText(line).formatted(Formatting.DARK_GRAY));
+                }
+                //list.add(new LiteralText(tag.asString()).formatted(Formatting.DARK_GRAY));
+                cir.setReturnValue(list);
             }
-            //list.add(new LiteralText(tag.asString()).formatted(Formatting.DARK_GRAY));
-            cir.setReturnValue(list);
         }
     }
 
@@ -80,7 +85,7 @@ public abstract class ItemStackMixin {
     public void setDamage(int damage, CallbackInfo ci) {
         if (getItem() instanceof IToolItem toolItem) {
             toolItem.setDamage((ItemStack) (Object) this, damage);
-            if (damage >= toolItem.getMaxItemDamage((ItemStack) (Object) this) - 1 && !empty) {
+            if (damage >= toolItem.getMaxItemDamage((ItemStack) (Object) this) && !empty) {
                 setCount(0);
             }
             ci.cancel();
