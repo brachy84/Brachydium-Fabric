@@ -23,8 +23,8 @@ public interface BrachydiumInitializer {
     default void registerGeneral() {}
 
     /**
-     * register brachydium machine recipes here
-     * use {@link #registerGeneral()} for vanilla recipes
+     * Register any kind of recipe here.
+     * {@link brachy84.brachydium.api.unification.ore.IOreRegistrationHandler} too
      */
     default void registerRecipes() {}
 }

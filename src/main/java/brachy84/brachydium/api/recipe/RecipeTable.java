@@ -188,7 +188,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 throw new IllegalStateException("A recipe with name " + recipe.getName() + " is already registered in " + this);
             }
             recipeMap.put(recipe.getName(), recipe);
-        } else /*if (ConfigHolder.debug) */{
+        } else if (Brachydium.isDebug()) {
             Brachydium.LOGGER.debug("Recipe: " + recipe.toString() + " is a duplicate and was not added");
         }
     }
@@ -281,45 +281,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     public int getMaxFluidOutputs() {
         return maxFluidOutputs;
     }
-
-    /*public Recipe findRecipe(Inventory inventory, IFluidHandler fluidHandler, long voltage) {
-        List<ItemStack> items = new ArrayList<>();
-        for(int i = 0; i < inventory.size(); i++) {
-            items.add(inventory.getStack(i));
-        }
-        List<FluidStack> fluids = new ArrayList<>();
-        for(int i = 0; i < fluidHandler.getTanks(); i++) {
-            fluids.add(fluidHandler.getStackAt(i));
-        }
-        return findRecipe(items, fluids, voltage);
-    }
-
-    public Recipe findRecipe(List<ItemStack> items, List<FluidStack> fluids, long voltage) {
-        for(Recipe recipe : recipeSet) {
-            if(tryRecipe(recipe, items, fluids, voltage))
-                return recipe;
-        }
-        return null;
-    }
-
-    public boolean tryRecipe(Recipe recipe, List<ItemStack> items, List<FluidStack> fluids, long voltage) {
-        if(recipe.getEUt() > voltage)
-            return false;
-        if(maxInputs > 0) {
-            for(RecipeItem ci : recipe.getInputs()) {
-                if(!InventoryHelper.containsIngredient(items, ci))
-                    return false;
-            }
-        }
-        if(maxFluidInputs > 0) {
-            for(FluidStack stack : recipe.getFluidInputs()) {
-                if(!InventoryHelper.containsFluidStack(fluids, stack))
-                    return false;
-            }
-        }
-        return true;
-    }*/
-
 
     @Nullable
     public Recipe findRecipe(long voltage, Storage<ItemVariant> inputs, Storage<FluidVariant> fluidInputs, int outputFluidTankCapacity, MatchingMode matchingMode) {

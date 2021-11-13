@@ -9,7 +9,9 @@ import brachy84.brachydium.api.render.Textures;
 import brachy84.brachydium.api.resource.CraftingRecipe;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.ResourceReloadListener;
+import brachy84.brachydium.api.unification.Elements;
 import brachy84.brachydium.api.unification.TagRegistry;
+import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.MaterialRegistry;
 import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
@@ -36,6 +38,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static brachy84.brachydium.api.unification.material.Materials.EXT2_METAL;
+import static brachy84.brachydium.api.unification.material.Materials.Neutronium;
+import static brachy84.brachydium.api.unification.material.info.MaterialFlags.*;
 
 public class Brachydium implements ModInitializer {
 
@@ -82,6 +88,17 @@ public class Brachydium implements ModInitializer {
         //MaterialRegistry.finalizeMaterials(false);
         //TODO: load custom materials (kubeJS, json, ...)
 
+        // in case some addon sets the default material to null
+        if(Materials.Neutronium == null) {
+            Materials.Neutronium = new Material.Builder(127, "neutronium")
+                    .ingot(6).fluid()
+                    .color(0xFAFAFA)
+                    .flags(EXT2_METAL, GENERATE_ROTOR, GENERATE_SMALL_GEAR, GENERATE_FRAME)
+                    .element(Elements.Nt)
+                    .toolStats(24.0f, 12.0f, 655360, 21)
+                    .fluidPipeProperties(1000000, 2800, true)
+                    .build();
+        }
         MaterialRegistry.finalizeMaterials(true);
 
         BrachydiumItems.init();

@@ -13,10 +13,8 @@ public interface IMaterialItem {
         NbtCompound nbt = stack.getNbt();
         if(nbt == null || !nbt.contains("Material"))
             return Materials.Neutronium;
-        String material = nbt.getString("Material");
-        if(material.startsWith("$"))
-            return Materials.Neutronium;
-        return MaterialRegistry.MATERIAL_REGISTRY.tryGetEntry(material);
+        Material material = MaterialRegistry.MATERIAL_REGISTRY.tryGetEntry(nbt.getString("Material"));
+        return material == null ? Materials.Neutronium : material;
     }
 
     default void writeMaterial(Material material, ItemStack stack) {
