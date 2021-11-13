@@ -1,17 +1,25 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.recipe.RecipeLoadEvent;
+import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.unification.LoadableTag;
+import brachy84.brachydium.api.util.ITagGroupGetter;
+import brachy84.brachydium.api.util.ITagHolder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+import net.minecraft.item.Item;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.tag.ServerTagManagerHolder;
+import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagGroup;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 public class ResourceReloadListener implements SimpleSynchronousResourceReloadListener {
 
@@ -30,7 +38,13 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
     @Override
     public void reload(ResourceManager manager) {
         LoadableTag.loadTags();
-        RecipeLoadEvent.EVENT.invoker().load();
+        TagGroup<Item> group = ((ITagGroupGetter) ServerTagManagerHolder.getTagManager()).getTagGroup2(Registry.ITEM_KEY);
+        for (Map.Entry<Identifier, Tag<Item>> entry : group.getTags().entrySet()) {
+            for (Item item : entry.getValue().values()) {
+                ((ITagHolder) item).addTag(entry.getKey());
+            }
+        }
+        RecipeTable.loadRecipes();
         /*for(Identifier id : manager.findResources("brachydium", path -> path.endsWith(".json"))) {
             if(id.getPath().contains("/recipes/")) {
                 try(InputStream stream = manager.getResource(id).getInputStream()) {

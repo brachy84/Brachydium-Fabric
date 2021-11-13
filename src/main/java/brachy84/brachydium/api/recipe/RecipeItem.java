@@ -11,6 +11,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.tag.Tag;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -18,34 +19,38 @@ import java.util.stream.Collectors;
 
 public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
 
-    private final List<ItemStack> values;
-    private final List<Tag<Item>> tags;
+    private final Collection<ItemStack> values;
+    private final Tag<Item> tag;
     private final List<ItemStack> allValid = new ArrayList<>();
     private final int amount;
     private final float chance;
 
     private boolean loadedLoadables;
 
-    public RecipeItem(List<ItemStack> values, List<Tag<Item>> tags, int amount, float chance) {
-        this.values = Objects.requireNonNull(values);
-        this.tags = Objects.requireNonNull(tags);
+    private RecipeItem(@Nullable Collection<ItemStack> values, @Nullable Tag<Item> tag, int amount, float chance) {
+        this.values = values == null ? Collections.emptyList() : values;
+        this.tag = tag;
         this.amount = amount;
         this.chance = chance;
-        if(values.size() == 0 && tags.size() == 0) {
+        if (this.values.size() == 0 && tag == null) {
             throw new IllegalArgumentException("Ingredient can't be empty");
         }
-        if(amount < 0)
+        if (amount < 0)
             throw new IllegalArgumentException("Amount in ingredient can't be null");
-        loadedLoadables = LoadableTag.isLoaded();
+        loadedLoadables = LoadableTag.isLoaded() && !(tag instanceof LoadableTag);
         buildValidList();
     }
 
-    public RecipeItem(int amount, float chance, Tag<Item>... tags) {
-        this(new ArrayList<>(), Lists.newArrayList(tags), amount, chance);
+    public RecipeItem(Tag<Item> tag, int amount, float chance) {
+        this(new ArrayList<>(), tag, amount, chance);
+    }
+
+    public RecipeItem(Collection<ItemStack> values, int amount, float chance) {
+        this(values, null, amount, chance);
     }
 
     public RecipeItem(int amount, float chance, ItemStack... values) {
-        this(Lists.newArrayList(values), new ArrayList<>(), amount, chance);
+        this(Lists.newArrayList(values), null, amount, chance);
     }
 
     public RecipeItem(ItemStack stack, float chance) {
@@ -61,15 +66,19 @@ public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
     }
 
     public static RecipeItem ofTagId(Identifier id, int amount, float chance) {
-        return new RecipeItem(amount, chance, LoadableTag.getItemTag(id));
+        return new RecipeItem(LoadableTag.getItemTag(id), amount, chance);
+    }
+
+    public static RecipeItem ofTagId(String id, int amount, float chance) {
+        return ofTagId(new Identifier(id), amount, chance);
     }
 
     @Override
     public boolean test(ItemStack stack) {
-        if(stack == null || stack.isEmpty())
+        if (stack == null || stack.isEmpty())
             return false;
-        for(ItemStack t : getAllValid()) {
-            if(areStacksEqual(stack, t))
+        for (ItemStack t : getAllValid()) {
+            if (areStacksEqual(stack, t))
                 return true;
         }
         return false;
@@ -84,19 +93,19 @@ public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
     }
 
     private static boolean areStacksEqual(ItemStack stack, ItemStack stack1) {
-        if(stack.getItem() != stack1.getItem())
+        if (stack.getItem() != stack1.getItem())
             return false;
         NbtCompound nbt = stack.getNbt();
         NbtCompound nbt1 = stack1.getNbt();
-        if(nbt == null && nbt1 == null)
+        if (nbt == null && nbt1 == null)
             return true;
-        if(nbt == null || nbt1 == null)
+        if (nbt == null || nbt1 == null)
             return false;
         return nbt.equals(nbt1);
     }
 
     public List<ItemStack> getAllValid() {
-        if(!loadedLoadables && LoadableTag.isLoaded()) {
+        if (!loadedLoadables && LoadableTag.isLoaded()) {
             buildValidList();
             loadedLoadables = true;
         }
@@ -106,9 +115,8 @@ public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
     private void buildValidList() {
         allValid.clear();
         allValid.addAll(values);
-        for(Tag<Item> tag : tags) {
+        if (tag != null)
             allValid.addAll(tag.values().stream().map(ItemStack::new).collect(Collectors.toList()));
-        }
     }
 
     @NotNull
@@ -119,52 +127,9 @@ public class RecipeItem implements Predicate<ItemStack>, Iterable<ItemStack> {
 
     public EntryIngredient toEntryStack() {
         EntryIngredient entries = EntryIngredients.ofItemStacks(getAllValid());
-        for(EntryStack<?> entryStack : entries) {
-            ((ItemStack)entryStack.getValue()).setCount(amount);
+        for (EntryStack<?> entryStack : entries) {
+            ((ItemStack) entryStack.getValue()).setCount(amount);
         }
         return entries;
-    }
-
-    public static class Builder {
-        private final List<ItemStack> values = new ArrayList<>();
-        private final List<Tag<Item>> tags= new ArrayList<>();
-        private int amount = 0;
-        private float chance = 1f;
-
-        public Builder() {
-        }
-
-        public Builder setAmount(int amount) {
-            this.amount = amount;
-            return this;
-        }
-
-        public Builder setChance(float chance) {
-            this.chance = chance;
-            return this;
-        }
-
-        public Builder setNotConsumed() {
-            this.chance = 0f;
-            return this;
-        }
-
-        public Builder addValues(ItemStack... values) {
-            for(ItemStack t : values) {
-                this.values.add(Objects.requireNonNull(t));
-            }
-            return this;
-        }
-
-        public Builder addTags(Tag<Item>... values) {
-            for(Tag<Item> t : values) {
-                this.tags.add(Objects.requireNonNull(t));
-            }
-            return this;
-        }
-
-        public RecipeItem build() {
-            return new RecipeItem(values, tags, amount, chance);
-        }
     }
 }

@@ -27,6 +27,7 @@ import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
 import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -145,6 +146,34 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return recipeMap.get(name);
     }
 
+    @ApiStatus.Internal
+    public static void loadRecipes() {
+        Brachydium.LOGGER.info("Loading Brachydium recipes");
+        for(RecipeTable<?> recipeTable : RECIPE_TABLES.values()) {
+            for(Recipe recipe : recipeTable.recipeSet) {
+                for (RecipeItem countableIngredient : recipe.getInputs()) {
+                    List<ItemStack> stacks = countableIngredient.getAllValid();
+                    for (ItemStack itemStack : stacks) {
+                        ItemVariant stackKey = KeySharedStack.getRegisteredStack(itemStack);
+                        recipeTable.recipeItemMap.computeIfPresent(stackKey, (k, v) -> {
+                            v.add(recipe);
+                            return v;
+                        });
+                        recipeTable.recipeItemMap.computeIfAbsent(stackKey, k -> new HashSet<>()).add(recipe);
+                    }
+                }
+                for (FluidStack fluid : recipe.getFluidInputs()) {
+                    FluidVariant fluidKey = fluid.asFluidVariant();
+                    recipeTable.recipeFluidMap.computeIfPresent(fluidKey, (k, v) -> {
+                        v.add(recipe);
+                        return v;
+                    });
+                    recipeTable.recipeFluidMap.computeIfAbsent(fluidKey, k -> new HashSet<>()).add(recipe);
+                }
+            }
+        }
+    }
+
     public void addRecipe(ValidationResult<Recipe> validationResult) {
         validationResult = postValidateRecipe(validationResult);
         if(validationResult.doSkip())
@@ -159,25 +188,6 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 throw new IllegalStateException("A recipe with name " + recipe.getName() + " is already registered in " + this);
             }
             recipeMap.put(recipe.getName(), recipe);
-            for (RecipeItem countableIngredient : recipe.getInputs()) {
-                List<ItemStack> stacks = countableIngredient.getAllValid();
-                for (ItemStack itemStack : stacks) {
-                    ItemVariant stackKey = KeySharedStack.getRegisteredStack(itemStack);
-                    recipeItemMap.computeIfPresent(stackKey, (k, v) -> {
-                        v.add(recipe);
-                        return v;
-                    });
-                    recipeItemMap.computeIfAbsent(stackKey, k -> new HashSet<>()).add(recipe);
-                }
-            }
-            for (FluidStack fluid : recipe.getFluidInputs()) {
-                FluidVariant fluidKey = fluid.asFluidVariant();
-                recipeFluidMap.computeIfPresent(fluidKey, (k, v) -> {
-                    v.add(recipe);
-                    return v;
-                });
-                recipeFluidMap.computeIfAbsent(fluidKey, k -> new HashSet<>()).add(recipe);
-            }
         } else /*if (ConfigHolder.debug) */{
             Brachydium.LOGGER.debug("Recipe: " + recipe.toString() + " is a duplicate and was not added");
         }

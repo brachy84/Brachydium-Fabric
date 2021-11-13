@@ -107,7 +107,7 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
     }
 
     public R input(Tag<Item> tag, int amount) {
-        return inputs(new RecipeItem(amount, 1f, tag));
+        return inputs(new RecipeItem(tag, amount, 1f));
     }
 
     public R input(TagDictionary.Entry tag, Material material, int amount) {
