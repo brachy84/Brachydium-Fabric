@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.unification.ore;
 
 import brachy84.brachydium.api.item.MaterialItem;
+import brachy84.brachydium.api.unification.TagRegistry;
 import brachy84.brachydium.api.unification.material.MarkerMaterials;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.MaterialRegistry;
@@ -12,7 +13,6 @@ import brachy84.brachydium.api.unification.stack.MaterialStack;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import net.minecraft.client.resource.language.I18n;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.Identifier;
 import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.util.TriConsumer;
@@ -21,7 +21,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import static brachy84.brachydium.api.ByValues.M;
@@ -632,9 +631,9 @@ public class TagDictionary {
     }
 
     public static void registerComponents() {
-        for(Entry entry : values()) {
-            for(Material material : MaterialRegistry.MATERIAL_REGISTRY) {
-                if(entry.registerer != null && entry.doGenerateItem(material)) {
+        for (Entry entry : values()) {
+            for (Material material : MaterialRegistry.MATERIAL_REGISTRY) {
+                if (entry.registerer != null && entry.doGenerateItem(material)) {
                     entry.registerer.accept(entry, material);
                     entry.processOreRegistration(material);
                 }
@@ -643,9 +642,17 @@ public class TagDictionary {
     }
 
     public static void runMaterialHandlers() {
+        registerTag(gem, Materials.Diamond, "diamond");
+        registerTag(gem, Materials.Emerald, "emerald");
+        registerTag(ingot, Materials.Iron, "iron_ingot");
+        registerTag(ingot, Materials.Gold, "gold_ingot");
         for (Entry tagDictionary : ENTRIES.values()) {
             tagDictionary.runGeneratedMaterialHandlers();
         }
+    }
+
+    private static void registerTag(Entry tag, Material material, String item) {
+        TagRegistry.registerItems(tag.createTagId(material), new Identifier(item));
     }
 
     public static Entry getEntry(String prefixName) {

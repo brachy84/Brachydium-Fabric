@@ -1,104 +1,98 @@
 package brachy84.brachydium.api.resource;
 
-import java.util.function.Function;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+
+import java.util.function.Consumer;
 
 public class NbtItemBuilder {
 
-    private String item = "";
-
-    protected NbtItemBuilder(String item) {
-        this.item += "\"item\": \"" + item + "\"";
+    public static Consumer<NbtItemBuilder> require(Consumer<NbtItemBuilder> builder) {
+        return builder1 -> builder1.group("require", builder);
     }
 
-    public NbtItemBuilder data(Function<GroupBuilder, GroupBuilder> groupBuilder) {
-        return group("data", groupBuilder, "{}");
+    public static Consumer<NbtItemBuilder> deny(Consumer<NbtItemBuilder> builder) {
+        return builder1 -> builder1.group("require", builder);
     }
 
-    public NbtItemBuilder remainder(Function<GroupBuilder, GroupBuilder> groupBuilder) {
-        return group("remainder", groupBuilder, "{}");
+    private final JsonObject data = new JsonObject();
+
+    public JsonObject getData() {
+        return data;
     }
 
-    public NbtItemBuilder group(String name, Function<GroupBuilder, GroupBuilder> groupBuilder, String type) {
-        appendComma();
-        item += groupBuilder.apply(new GroupBuilder(name, type)).end();
+    public NbtItemBuilder group(String key, Consumer<NbtItemBuilder> builder) {
+        NbtItemBuilder subBuilder = new NbtItemBuilder();
+        builder.accept(subBuilder);
+        data.add(key, subBuilder.data);
         return this;
     }
 
-    public NbtItemBuilder group(Function<GroupBuilder, GroupBuilder> groupBuilder) {
-        appendComma();
-        item += groupBuilder.apply(new GroupBuilder()).end();
+    public NbtItemBuilder entry(String key, Number value) {
+        data.addProperty(key, value);
         return this;
     }
 
-    public String end() {
-        return item;
+    public NbtItemBuilder entry(String key, String value) {
+        data.addProperty(key, value);
+        return this;
     }
 
-    private void appendComma() {
-        String lastChar = Character.toString(item.charAt(item.length() - 1));
-        if(",".equals(lastChar) || "{".equals(lastChar) || "[".equals(lastChar) || System.getProperty("line.separator").equals(lastChar)) {
-            return;
-        }
-        item += ",\n";
+    public NbtItemBuilder entry(String key, boolean value) {
+        data.addProperty(key, value);
+        return this;
     }
 
-    public class GroupBuilder {
-
-        private String group = "";
-        private String type = "{}"; // {} or []
-
-        private GroupBuilder(String name, String type) {
-            this.type = type;
-            group += "     \"" + name + "\": " + type.charAt(0) + "";
-        }
-
-        private GroupBuilder() {
-            this.type = "[]";
-            group += "      " + type.charAt(0) +"";
-        }
-
-        public GroupBuilder group(String name, Function<GroupBuilder, GroupBuilder> groupBuilder, String type) {
-            appendComma();
-            group += groupBuilder.apply(new GroupBuilder(name, type)).end();
-            return this;
-        }
-
-        public GroupBuilder group(Function<GroupBuilder, GroupBuilder> groupBuilder) {
-            appendComma();
-            group += groupBuilder.apply(new GroupBuilder()).end();
-            return this;
-        }
-
-        public GroupBuilder entry(String key, String value) {
-            appendComma();
-            group += "        \"" + key + "\": \"" + value + "\"";
-            return this;
-        }
-
-        public GroupBuilder entry(String key, int value) {
-            appendComma();
-            group += "        \"" + key + "\": " + value + "";
-            return this;
-        }
-
-        public GroupBuilder entry(String key, float value) {
-            appendComma();
-            group += "        \"" + key + "\": " + value + "";
-            return this;
-        }
-
-        public String end() {
-            group += "      " + type.charAt(1);
-            return group;
-        }
-
-        private void appendComma() {
-            String lastChar = Character.toString(group.charAt(group.length() - 1));
-            if(",".equals(lastChar) || "{".equals(lastChar) || "[".equals(lastChar) || System.getProperty("line.separator").equals(lastChar)) {
-                return;
-            }
-            group += ",\n";
-        }
+    public NbtItemBuilder entry(String key, char value) {
+        data.addProperty(key, value);
+        return this;
     }
 
+    @SafeVarargs
+    public final NbtItemBuilder array(String key, Consumer<NbtItemBuilder>... builders) {
+        JsonArray jsonArray = new JsonArray();
+        for (Consumer<NbtItemBuilder> builder : builders) {
+            NbtItemBuilder subBuilder = new NbtItemBuilder();
+            builder.accept(subBuilder);
+            jsonArray.add(subBuilder.data);
+        }
+        data.add(key, jsonArray);
+        return this;
+    }
+
+    public NbtItemBuilder array(String key, Number... values) {
+        JsonArray jsonArray = new JsonArray();
+        for (Number value : values) {
+            jsonArray.add(value);
+        }
+        data.add(key, jsonArray);
+        return this;
+    }
+
+    public NbtItemBuilder array(String key, String... values) {
+        JsonArray jsonArray = new JsonArray();
+        for (String value : values) {
+            jsonArray.add(value);
+        }
+        data.add(key, jsonArray);
+        return this;
+    }
+
+    public NbtItemBuilder array(String key, boolean... values) {
+        JsonArray jsonArray = new JsonArray();
+        for (boolean value : values) {
+            jsonArray.add(value);
+        }
+        data.add(key, jsonArray);
+        return this;
+    }
+
+    public NbtItemBuilder array(String key, char... values) {
+        JsonArray jsonArray = new JsonArray();
+        for (char value : values) {
+            jsonArray.add(value);
+        }
+        data.add(key, jsonArray);
+        return this;
+    }
 }

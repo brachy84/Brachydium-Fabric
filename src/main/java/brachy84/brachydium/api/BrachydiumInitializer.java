@@ -7,6 +7,14 @@ public interface BrachydiumInitializer {
      */
     String getModId();
 
+    /**
+     * @return the name that will appear in tooltips of items registered by this mod
+     */
+    String getModName();
+
+    /**
+     * register brachydium materials here
+     */
     default void registerMaterials() {}
 
     /**
@@ -14,5 +22,9 @@ public interface BrachydiumInitializer {
      */
     default void registerGeneral() {}
 
+    /**
+     * register brachydium machine recipes here
+     * use {@link #registerGeneral()} for vanilla recipes
+     */
     default void registerRecipes() {}
 }

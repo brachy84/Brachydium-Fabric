@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.util;
 
-import brachy84.brachydium.Brachydium;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -8,7 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class BrachydiumRegistry<K, V> implements Iterable<V> {
 
@@ -54,22 +52,12 @@ public class BrachydiumRegistry<K, V> implements Iterable<V> {
 
     @Nullable
     public V tryGetEntry(K k) {
-        try {
-            return getEntry(k);
-        } catch (NullPointerException e) {
-            Brachydium.LOGGER.error("Could not find entry for key " + k);
-            return null;
-        }
+        return registries.get(k);
     }
 
     @Nullable
     public K tryGetKey(V v) {
-        try {
-            return getKey(v);
-        } catch (NullPointerException e) {
-            Brachydium.LOGGER.error("Could not find key for entry " + v);
-            return null;
-        }
+        return keyMap.get(v);
     }
 
     public void freeze() {

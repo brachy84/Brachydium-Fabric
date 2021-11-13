@@ -1,14 +1,11 @@
 package brachy84.brachydium.api.blockEntity.trait;
 
-import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.render.IRenderable;
 import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.Face;
 import com.google.common.collect.Lists;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
 
 import java.util.*;
@@ -20,7 +17,6 @@ public class TileEntityRenderer extends TileTrait {
 
     public TileEntityRenderer(TileEntity tile, Map<Face, List<IRenderable>> overlays) {
         super(tile);
-        Brachydium.LOGGER.info("Creating RenderTrait with base texture");
         for (Face face : Face.values()) {
             this.overlays.put(face, new ArrayList<>());
         }

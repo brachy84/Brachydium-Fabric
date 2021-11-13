@@ -1,7 +1,6 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.recipe.JsonRecipe;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.unification.LoadableTag;
 import com.google.gson.JsonElement;
@@ -20,7 +19,8 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
 
     public static final Identifier RELOAD_CHANNEL = Brachydium.id("reload_resources");
 
-    private ResourceReloadListener() {}
+    private ResourceReloadListener() {
+    }
 
     @Override
     public Identifier getFabricId() {

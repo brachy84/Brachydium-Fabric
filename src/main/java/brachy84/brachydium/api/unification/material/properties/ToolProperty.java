@@ -6,6 +6,8 @@ import net.minecraft.enchantment.Enchantment;
 import java.util.ArrayList;
 import java.util.List;
 
+import static brachy84.brachydium.api.unification.material.info.MaterialFlags.GENERATE_PLATE;
+
 public class ToolProperty implements IMaterialProperty<ToolProperty> {
 
     /**
@@ -96,6 +98,7 @@ public class ToolProperty implements IMaterialProperty<ToolProperty> {
     @Override
     public void verifyProperty(MaterialProperties properties) {
         if (!properties.hasProperty(PropertyKey.GEM)) properties.ensureSet(PropertyKey.INGOT, true);
+        properties.getMaterial().addFlags(GENERATE_PLATE);
     }
 
     public void addEnchantmentForTools(Enchantment enchantment, int level) {

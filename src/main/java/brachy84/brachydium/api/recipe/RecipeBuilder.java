@@ -140,10 +140,6 @@ public abstract class RecipeBuilder<R extends RecipeBuilder<R>> {
         return inputs(RecipeItem.of(ingredient, 1, 0f));
     }
 
-    public R notConsumable(BrachydiumItem.Definition item) {
-        return inputs(new RecipeItem(1, 0f, item.asStack()));
-    }
-
     public R notConsumable(Fluid fluid) {
         return fluidInputs(new FluidStack(fluid, 0));
     }

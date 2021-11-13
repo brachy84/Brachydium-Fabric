@@ -53,6 +53,12 @@
   "component.tool_head_saw": "%s Saw Head",
   "component.tool_head_universal_spade": "%s Spade Head",
 
+  "brachydium.item.tool.hammer": "%s Hammer",
+  "brachydium.item.tool.file": "%s File",
+  "brachydium.item.tool.screwdriver": "%s Screwdriver",
+  "brachydium.item.tool.wrench": "%s Wrench",
+  "brachydium.item.tool.saw": "%s Saw",
+
   "material.actinium": "Actinium",
   "material.adamantium": "Adamantium",
   "material.aluminium": "Aluminium",

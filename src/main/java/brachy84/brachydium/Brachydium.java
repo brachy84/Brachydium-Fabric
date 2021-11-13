@@ -2,8 +2,12 @@ package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
+import brachy84.brachydium.api.item.BrachydiumItem;
+import brachy84.brachydium.api.item.BrachydiumItems;
+import brachy84.brachydium.api.item.tool.ToolItem;
 import brachy84.brachydium.api.recipe.RecipeLoadEvent;
 import brachy84.brachydium.api.render.Textures;
+import brachy84.brachydium.api.resource.CraftingRecipe;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.resource.ResourceReloadListener;
 import brachy84.brachydium.api.unification.TagRegistry;
@@ -11,6 +15,7 @@ import brachy84.brachydium.api.unification.material.MaterialRegistry;
 import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.gui.internal.UIFactory;
+import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ModInitializer;
@@ -22,11 +27,11 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.ApiStatus;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Brachydium implements ModInitializer {
 
@@ -36,6 +41,7 @@ public class Brachydium implements ModInitializer {
     public static final RuntimeResourcePack RESOURCE_PACK = RuntimeResourcePack.create(MOD_ID + ":generated");
 
     private static String currentRegisteringMod = MOD_ID;
+    private static String currentRegisteringModName = NAME;
 
     public static Identifier id(String path) {
         return new Identifier(MOD_ID, path);
@@ -49,11 +55,7 @@ public class Brachydium implements ModInitializer {
     public void onInitialize() {
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
         RecipeLoadEvent.EVENT.register(() -> {
-            for (BrachydiumInitializer plugin : plugins) {
-                currentRegisteringMod = plugin.getModId();
-                plugin.registerRecipes();
-            }
-            currentRegisteringMod = MOD_ID;
+            runPlugin(BrachydiumInitializer::registerRecipes);
         });
         Textures.init();
         UIFactory.register(TileEntityUiFactory.INSTANCE);
@@ -63,19 +65,23 @@ public class Brachydium implements ModInitializer {
 
         Materials.register();
         MaterialRegistry.EVENT.invoker().register();
-        for (BrachydiumInitializer plugin : plugins) {
-            currentRegisteringMod = plugin.getModId();
-            plugin.registerMaterials();
-            plugin.registerGeneral();
-        }
-        currentRegisteringMod = MOD_ID;
+
+        runPlugin(BrachydiumInitializer::registerMaterials);
         //MaterialRegistry.finalizeMaterials(false);
         //TODO: load custom materials (kubeJS, json, ...)
 
         MaterialRegistry.finalizeMaterials(true);
 
+        BrachydiumItems.init();
+        BrachydiumItem.registerItems();
+        IngotProcessor.init();
+        runPlugin(BrachydiumInitializer::registerGeneral);
+        ToolItem.createAndRegister();
+
         TagDictionary.registerComponents();
         TagDictionary.runMaterialHandlers();
+
+        CraftingRecipe.init();
 
         TagRegistry.EVENT.invoker().load();
         RRPHelper.initOtherResources();
@@ -85,11 +91,21 @@ public class Brachydium implements ModInitializer {
         System.out.println("-------------- Finished loading Brachydium --------------");
     }
 
-    public static boolean currentPluginIsNone() {
-        return currentRegisteringMod.equals("NONE");
+    private static void runPlugin(Consumer<BrachydiumInitializer> pluginConsumer) {
+        for (BrachydiumInitializer plugin : plugins) {
+            currentRegisteringMod = plugin.getModId();
+            currentRegisteringModName = plugin.getModName();
+            pluginConsumer.accept(plugin);
+        }
+        currentRegisteringMod = MOD_ID;
+        currentRegisteringModName = NAME;
     }
 
     public static String getCurrentPlugin() {
-        return currentPluginIsNone() ? "" : currentRegisteringMod;
+        return currentRegisteringMod;
+    }
+
+    public static String getCurrentRegisteringModName() {
+        return currentRegisteringModName;
     }
 }

@@ -9,6 +9,7 @@ import net.devtech.arrp.json.blockstate.JState;
 import net.devtech.arrp.json.blockstate.JWhen;
 import net.devtech.arrp.json.models.JModel;
 import net.devtech.arrp.json.models.JTextures;
+import net.devtech.arrp.json.tags.JTag;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
@@ -41,12 +42,6 @@ public class RRPHelper {
         }
     }
 
-    public static void addNbtRecipe(String id, Function<CraftingRecipeBuilder, CraftingRecipeBuilder> recipeBuilder) {
-            String recipe = recipeBuilder.apply(new CraftingRecipeBuilder(id)).end();
-            //System.out.println("Adding recipe: \n" + recipe);
-            otherResources.put("recipes/" + id + ".json", recipe.getBytes());
-    }
-
     public static void addBasicMaterialItemModel(Material material, TagDictionary.Entry tag, boolean withOverlay) {
         Identifier path = Brachydium.id("item/material/" + tag.lowerCaseName + "." + material);
         String texture = MaterialItem.getTexturePath(material, tag);
@@ -74,6 +69,14 @@ public class RRPHelper {
         Identifier path = new Identifier("c", "items/" + material + "_" + tag.lowerCaseName + "s");
         Identifier item = Brachydium.id(MaterialItem.createItemId(material, tag));
         RESOURCE_PACK.addTag(path, tag().add(item));
+    }
+
+    public static void addItemTag(String tag, Identifier... values) {
+        JTag jTag = tag();
+        for(Identifier id : values) {
+            jTag.add(id);
+        }
+        RESOURCE_PACK.addTag(new Identifier(tag), jTag);
     }
 
     public static void addSimpleLootTable(String block) {

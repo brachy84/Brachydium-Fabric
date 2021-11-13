@@ -1,9 +1,7 @@
 package brachy84.brachydium.api.item;
 
-import brachy84.brachydium.Brachydium;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.minecraft.client.item.TooltipContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
@@ -13,45 +11,60 @@ import net.minecraft.entity.attribute.EntityAttributeModifier;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.World;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.*;
 
 public class BrachydiumItem extends Item {
 
-    private static final List<Definition> ITEMS = new ArrayList<>();
+    private static final Map<String, BrachydiumItem> ITEMS = new HashMap<>();
 
-    public static List<Definition> getDefinitions() {
-        return Collections.unmodifiableList(ITEMS);
+    @Nullable
+    public static BrachydiumItem get(String name) {
+        return ITEMS.get(name);
+    }
+
+    @ApiStatus.Internal
+    public static void registerItems() {
+        ITEMS.values().forEach(brachydiumItem -> Registry.register(Registry.ITEM, brachydiumItem.id, brachydiumItem));
     }
 
     private final Identifier id;
-    private final List<ItemBehaviour> behaviours;
+    private final List<ItemBehaviour> behaviours = new ArrayList<>();
 
-    protected BrachydiumItem(Identifier id, Settings settings, List<ItemBehaviour> behaviours) {
+    protected BrachydiumItem(Identifier id, Settings settings) {
         super(settings);
-        this.id = id;
-        this.behaviours = behaviours;
+        this.id = Objects.requireNonNull(id);
+        ITEMS.put(id.getPath(), this);
     }
 
-    public static Definition create(String path) {
-        return create(Brachydium.id(path));
+    public BrachydiumItem appendBehaviour(ItemBehaviour behaviour) {
+        this.behaviours.add(Objects.requireNonNull(behaviour));
+        return this;
     }
 
-    public static Definition create(Identifier id) {
-        return new Definition(id);
+    public String getRegistryName() {
+        return id.getPath();
+    }
+
+    public Identifier getId() {
+        return id;
+    }
+
+    public ItemStack asStack() {
+        return asStack(1);
+    }
+
+    public ItemStack asStack(int amount) {
+        return new ItemStack(this, amount);
     }
 
     @Override
@@ -132,7 +145,7 @@ public class BrachydiumItem extends Item {
     @Override
     public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
         for (ItemBehaviour behaviour : behaviours) {
-            if(behaviour.onLeftClickEntity(stack, target, attacker)) {
+            if (behaviour.onLeftClickEntity(stack, target, attacker)) {
                 return true;
             }
         }
@@ -146,73 +159,17 @@ public class BrachydiumItem extends Item {
 
     /**
      * Called when the cursor clicks on this stack
-     * @param stack this stack
-     * @param cursorStack current cursor Stack
-     * @param slot slot the stack is currently in
-     * @param clickType click type
-     * @param player clicking player
+     *
+     * @param stack                this stack
+     * @param cursorStack          current cursor Stack
+     * @param slot                 slot the stack is currently in
+     * @param clickType            click type
+     * @param player               clicking player
      * @param cursorStackReference cursor stack reference
      * @return false if successfull ?????
      */
     @Override
     public boolean onClicked(ItemStack stack, ItemStack cursorStack, Slot slot, ClickType clickType, PlayerEntity player, StackReference cursorStackReference) {
         return super.onClicked(stack, cursorStack, slot, clickType, player, cursorStackReference);
-    }
-
-    public static class Definition {
-
-        private BrachydiumItem item;
-
-        private final Identifier id;
-        private Settings settings;
-        private final List<ItemBehaviour> behaviours = new ArrayList<>();
-
-        private Definition(Identifier id) {
-            this.id = id;
-            ITEMS.add(this);
-            this.settings = new FabricItemSettings();
-        }
-
-        public Definition buildSettings(Settings settings) {
-            checkBuildable();
-            this.settings = Objects.requireNonNull(settings);
-            return this;
-        }
-
-        public Definition setGroup(ItemGroup group) {
-            checkBuildable();
-            settings.group(Objects.requireNonNull(group));
-            return this;
-        }
-
-        public Definition appendBehaviour(ItemBehaviour behaviour) {
-            checkBuildable();
-            this.behaviours.add(Objects.requireNonNull(behaviour));
-            return this;
-        }
-
-        public BrachydiumItem register() {
-            item = new BrachydiumItem(id, settings, behaviours);
-            return item;
-        }
-
-        public String getUnlocalizedName() {
-            return id.getPath();
-        }
-
-        public ItemStack asStack() {
-            return asStack(1);
-        }
-
-        public ItemStack asStack(int amount) {
-            if(item == null)
-                throw new IllegalStateException("Item " + id + " is not registered yet");
-            return new ItemStack(item, amount);
-        }
-
-        public void checkBuildable() {
-            if(item != null)
-                throw new IllegalStateException("Can't edit item after registration");
-        }
     }
 }

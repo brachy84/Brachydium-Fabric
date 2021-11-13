@@ -2,6 +2,7 @@ package brachy84.brachydium.api.unification.material;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.fluid.FluidStack;
+import brachy84.brachydium.api.item.BrachydiumItem;
 import brachy84.brachydium.api.unification.Element;
 import brachy84.brachydium.api.unification.Elements;
 import brachy84.brachydium.api.unification.material.info.MaterialFlag;
@@ -277,6 +278,10 @@ public class Material implements Comparable<Material> {
         return materialInfo.mod;
     }
 
+    public String getModName() {
+        return materialInfo.modName;
+    }
+
     public String toCamelCaseString() {
         return CaseFormat.LOWER_UNDERSCORE.to(CaseFormat.UPPER_CAMEL, toString());
     }
@@ -383,13 +388,6 @@ public class Material implements Comparable<Material> {
         @Deprecated
         public Builder(int id, String name) {
             this(name);
-        }
-
-        public Builder byMod(String mod) {
-            if(mod == null)
-                mod = "";
-            materialInfo.mod = mod;
-            return this;
         }
 
         /*
@@ -810,7 +808,11 @@ public class Material implements Comparable<Material> {
          */
         private final String name;
 
+        /**
+         * The Name if the registering mod
+         */
         private String mod;
+        private String modName;
 
         /**
          * The MetaItem ID of this Material.
@@ -851,10 +853,17 @@ public class Material implements Comparable<Material> {
 
         private MaterialInfo(String name) {
             this.name = name;
-            this.mod = Brachydium.NAME;
         }
 
         private void verifyInfo(MaterialProperties p, boolean averageRGB) {
+            if(mod == null) {
+                mod = Brachydium.getCurrentPlugin();
+                modName = Brachydium.getCurrentRegisteringModName();
+                if(mod == null) {
+                    mod = Brachydium.MOD_ID;
+                    modName = Brachydium.NAME;
+                }
+            }
 
             // Verify IconSet
             if (iconSet == null) {
