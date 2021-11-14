@@ -27,7 +27,7 @@ import java.util.List;
 public class MaterialItem extends BrachydiumItem implements IMaterialItem {
 
     public static MaterialItem createAndRegister(@NotNull TagDictionary.Entry tag, @NotNull Material material) {
-        Identifier id = Brachydium.id(String.format("material/%s.%s", tag.lowerCaseName, material.toString()));
+        Identifier id = Brachydium.id(String.format("material/%s.%s", tag.lowerCaseName, material));
         Item.Settings settings = new FabricItemSettings().group(ItemGroups.MATERIALS)
                 .maxCount(tag.maxStackSize);
 
@@ -38,8 +38,8 @@ public class MaterialItem extends BrachydiumItem implements IMaterialItem {
         return item;
     }
 
-    public static String createItemId(Material material, TagDictionary.Entry tag) {
-        return String.format("material/%s.%s", tag.lowerCaseName, material.toString());
+    public static Identifier createItemId(Material material, TagDictionary.Entry tag) {
+        return Brachydium.id(String.format("material/%s.%s", tag.lowerCaseName, material.toString()));
     }
 
     public static String getTexturePath(Material material, TagDictionary.Entry tag) {
@@ -48,11 +48,9 @@ public class MaterialItem extends BrachydiumItem implements IMaterialItem {
 
     private final TagDictionary.Entry tag;
     private final Material material;
-    private String translationKey;
-    private ColorProvider colorProvider;
 
     public MaterialItem(TagDictionary.Entry tag, Material material, Item.Settings settings) {
-        super(Brachydium.id(createItemId(material, tag)), settings);
+        super(createItemId(material, tag), settings);
         this.tag = tag;
         this.material = material;
     }
@@ -71,10 +69,6 @@ public class MaterialItem extends BrachydiumItem implements IMaterialItem {
             }
             entity.damage(source, dmg);
         }
-    }
-
-    public ColorProvider getColorProvider() {
-        return colorProvider;
     }
 
     @Override

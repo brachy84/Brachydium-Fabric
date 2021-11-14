@@ -3,10 +3,12 @@ package brachy84.brachydium.api.resource;
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.unification.material.Material;
+import brachy84.brachydium.api.unification.material.info.MaterialIconSet;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import net.devtech.arrp.json.blockstate.JBlockModel;
 import net.devtech.arrp.json.blockstate.JState;
 import net.devtech.arrp.json.blockstate.JWhen;
+import net.devtech.arrp.json.loot.JLootTable;
 import net.devtech.arrp.json.models.JModel;
 import net.devtech.arrp.json.models.JTextures;
 import net.devtech.arrp.json.tags.JTag;
@@ -50,24 +52,30 @@ public class RRPHelper {
             textures.layer1(texture + "_overlay");
         RESOURCE_PACK.addModel(model().parent("item/generated").textures(textures), path);
     }
-
-    public static void addBasicMaterialItemModel(String material, String component) {
-        //itemModels.put("material/" + material + "." + component, model().parent("item/generated").textures(new JTextures().layer0("mechtech:item/component/" + component)));
-        RESOURCE_PACK.addModel(model().parent("item/generated").textures(new JTextures().layer0("brachydium:item/materials/" + component)), mtId("item/material/" + component + "." + material));
-    }
-    public static void addBasicMaterialBlockState(String material, String component) {
-        //blockStates.put("material/" + material + "." + component, state(JState.variant(JState.model("mechtech:block/component/" + component))));
-        RESOURCE_PACK.addBlockState(state(JState.variant(JState.model("brachydium:item/material." + component + "_" + material))), mtId("material." + material + "_" + component));
+    public static void addBasicMaterialBlockState(Material material, TagDictionary.Entry tag) {
+        Identifier path = Brachydium.id("material/" + tag.lowerCaseName + "." + material);
+        JState state = state(variant(JState.model("brachydium:block/material_sets/" + material.getMaterialIconSet().name + "/" + tag.lowerCaseName)));
+        RESOURCE_PACK.addBlockState(state, path);
     }
 
-    public static void addBasicMaterialBlockItemModel(String material, String component) {
-        //itemModels.put("item/material/" + material + "." + component, model().parent("mechtech:block/component/" + component));
-        RESOURCE_PACK.addModel(model().parent("brachydium:block/component/" + component), mtId("item/material/" + material + "." + component));
+    public static void generateMaterialBlockModel(TagDictionary.Entry tag) {
+        for(MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
+            Identifier path = Brachydium.id("block/material_sets/" + iconSet.name + "/" + tag.lowerCaseName);
+            String texture = "brachydium:block/material_sets/" + iconSet.name + "/" + tag.lowerCaseName;
+            JModel model = model().parent("brachydium:block/all_side_template").textures(textures().var("all", texture));
+            RESOURCE_PACK.addModel(model, path);
+        }
+    }
+
+    public static void addBasicMaterialBlockItemModel(Material material, TagDictionary.Entry tag) {
+        Identifier path = Brachydium.id("item/material/" + tag.lowerCaseName + "." + material);
+        JModel model = model().parent("brachydium:block/material_sets/" + material.getMaterialIconSet().name + "/" + tag.lowerCaseName);
+        RESOURCE_PACK.addModel(model, path);
     }
 
     public static void addSimpleMaterialItemTag(Material material, TagDictionary.Entry tag) {
         Identifier path = new Identifier("c", "items/" + material + "_" + tag.lowerCaseName + "s");
-        Identifier item = Brachydium.id(MaterialItem.createItemId(material, tag));
+        Identifier item = MaterialItem.createItemId(material, tag);
         RESOURCE_PACK.addTag(path, tag().add(item));
     }
 
@@ -79,13 +87,14 @@ public class RRPHelper {
         RESOURCE_PACK.addTag(new Identifier(tag), jTag);
     }
 
-    public static void addSimpleLootTable(String block) {
-        String fullBlock = mtId(block).toString();
-        RESOURCE_PACK.addLootTable(mtId("blocks/" + block), loot(fullBlock)
+    public static void addSimpleLootTable(Identifier id) {
+        JLootTable lootTable = loot("minecraft:block")
                 .pool(pool()
                         .rolls(1)
-                        .entry(entry().type("minecraft:item").name(fullBlock))
-                ));
+                        .entry(entry()
+                                .type("minecraft:item")
+                                .name(id.toString())));
+        RESOURCE_PACK.addLootTable(new Identifier(id.getNamespace(), "blocks/" + id.getPath()), lootTable);
     }
 
     public static void addPipeBlockState(String material, int size) {

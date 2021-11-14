@@ -18,11 +18,11 @@ public class IngotProcessor {
         CraftingRecipe.shapeless("ingot_of_nugget_" + material.toString())
                 .tag(TagDictionary.nugget.createTagId(material))
                 .repeat(8)
-                .result(Brachydium.id(MaterialItem.createItemId(material, tag))).end();
+                .result(MaterialItem.createItemId(material, tag)).end();
 
         CraftingRecipe.shapeless("nugget_of_ingot_" + material)
                 .tag(tag.createTagId(material))
-                .result(Brachydium.id(MaterialItem.createItemId(material, TagDictionary.nugget)), 9).end();
+                .result(MaterialItem.createItemId(material, TagDictionary.nugget), 9).end();
     }
 
     private static void processPlate(TagDictionary.Entry tag, Material material) {
@@ -30,7 +30,7 @@ public class IngotProcessor {
             CraftingRecipe.Shaped recipe = CraftingRecipe.shaped("plate_" + material)
                     .pattern("H", "I", "I")
                     .tag('I', TagDictionary.ingot.createTagId(material))
-                    .result(Brachydium.id(MaterialItem.createItemId(material, tag)));
+                    .result(MaterialItem.createItemId(material, tag));
             recipe.end();
         }
     }

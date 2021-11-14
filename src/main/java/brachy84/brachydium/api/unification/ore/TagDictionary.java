@@ -1,5 +1,6 @@
 package brachy84.brachydium.api.unification.ore;
 
+import brachy84.brachydium.api.block.MaterialBlock;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.unification.TagRegistry;
 import brachy84.brachydium.api.unification.material.MarkerMaterials;
@@ -14,7 +15,6 @@ import com.google.common.base.CaseFormat;
 import com.google.common.base.Preconditions;
 import net.minecraft.client.resource.language.I18n;
 import net.minecraft.util.Identifier;
-import org.apache.commons.lang3.Validate;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +37,11 @@ public class TagDictionary {
     public static final Predicate<Material> hasDustProperty = mat -> mat.hasProperty(PropertyKey.DUST);
     public static final Predicate<Material> hasIngotProperty = mat -> mat.hasProperty(PropertyKey.INGOT);
     public static final Predicate<Material> hasBlastProperty = mat -> mat.hasProperty(PropertyKey.BLAST);
+    private static final Predicate<Material> blockGenerate = material -> {
+        if(material.hasProperty(PropertyKey.INGOT) || material.hasProperty(PropertyKey.GEM))
+            return true;
+        return material.hasProperty(PropertyKey.DUST) && !material.hasProperty(PropertyKey.ORE);
+    };
     //}
 
     public static final BiConsumer<Entry, Material> materialItemGenerator = MaterialItem::createAndRegister;
@@ -65,11 +70,11 @@ public class TagDictionary {
     public static final Entry oreEndstone = new Entry("oreEndstone", -1, null, MaterialIconType.ore, Flags.ENABLE_UNIFICATION, hasOreProperty);
 
     public static final Entry crushedCentrifuged = new Entry("crushedCentrifuged", -1, null, MaterialIconType.crushedCentrifuged, Flags.ENABLE_UNIFICATION, hasOreProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     public static final Entry crushedPurified = new Entry("crushedPurified", -1, null, MaterialIconType.crushedPurified, Flags.ENABLE_UNIFICATION, hasOreProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     public static final Entry crushed = new Entry("crushed", -1, null, MaterialIconType.crushed, Flags.ENABLE_UNIFICATION, hasOreProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // Introduced by Mekanism
     public static final Entry shard = new Entry("shard", -1, null, null, Flags.ENABLE_UNIFICATION, null);
@@ -82,126 +87,140 @@ public class TagDictionary {
 
     // A hot Ingot, which has to be cooled down by a Vacuum Freezer.
     public static final Entry ingotHot = new Entry("ingotHot", M, null, MaterialIconType.ingotHot, Flags.ENABLE_UNIFICATION, hasBlastProperty.and(mat -> mat.getProperty(PropertyKey.BLAST).getBlastTemperature() > 1750))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // A regular Ingot. Introduced by Eloraam
     public static final Entry ingot = new Entry("ingot", M, null, MaterialIconType.ingot, Flags.ENABLE_UNIFICATION, hasIngotProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // A regular Gem worth one Dust. Introduced by Eloraam
     public static final Entry gem = new Entry("gem", M, null, MaterialIconType.gem, Flags.ENABLE_UNIFICATION, hasGemProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // A regular Gem worth one small Dust. Introduced by TerraFirmaCraft
     public static final Entry gemChipped = new Entry("gemChipped", M / 4, null, MaterialIconType.gemChipped, Flags.ENABLE_UNIFICATION, hasGemProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // A regular Gem worth two small Dusts. Introduced by TerraFirmaCraft
     public static final Entry gemFlawed = new Entry("gemFlawed", M / 2, null, MaterialIconType.gemFlawed, Flags.ENABLE_UNIFICATION, hasGemProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // A regular Gem worth two Dusts. Introduced by TerraFirmaCraft
     public static final Entry gemFlawless = new Entry("gemFlawless", M * 2, null, MaterialIconType.gemFlawless, Flags.ENABLE_UNIFICATION, hasGemProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // A regular Gem worth four Dusts. Introduced by TerraFirmaCraft
     public static final Entry gemExquisite = new Entry("gemExquisite", M * 4, null, MaterialIconType.gemExquisite, Flags.ENABLE_UNIFICATION, hasGemProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // 1/4th of a Dust.
     public static final Entry dustSmall = new Entry("dustSmall", M / 4, null, MaterialIconType.dustSmall, Flags.ENABLE_UNIFICATION, hasDustProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // 1/9th of a Dust.
     public static final Entry dustTiny = new Entry("dustTiny", M / 9, null, MaterialIconType.dustTiny, Flags.ENABLE_UNIFICATION, hasDustProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // Dust with impurities. 1 Unit of Main Material and 1/9 - 1/4 Unit of secondary Material
     public static final Entry dustImpure = new Entry("dustImpure", M, null, MaterialIconType.dustImpure, Flags.ENABLE_UNIFICATION, hasOreProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // Pure Dust worth of one Ingot or Gem. Introduced by Alblaka.
     public static final Entry dustPure = new Entry("dustPure", M, null, MaterialIconType.dustPure, Flags.ENABLE_UNIFICATION, hasOreProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     public static final Entry dust = new Entry("dust", M, null, MaterialIconType.dust, Flags.ENABLE_UNIFICATION, hasDustProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // A Nugget. Introduced by Eloraam
     public static final Entry nugget = new Entry("nugget", M / 9, null, MaterialIconType.nugget, Flags.ENABLE_UNIFICATION, hasIngotProperty)
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // 9 Plates combined in one Item.
     public static final Entry plateDense = new Entry("plateDense", M * 9, null, MaterialIconType.plateDense, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_DENSE) && !mat.hasFlag(NO_SMASHING));
     // 2 Plates combined in one Item
     public static final Entry plateDouble = new Entry("plateDouble", M * 2, null, MaterialIconType.plateDouble, Flags.ENABLE_UNIFICATION, hasIngotProperty.and(mat -> mat.hasFlag(GENERATE_PLATE) && !mat.hasFlag(NO_SMASHING)))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // Regular Plate made of one Ingot/Dust. Introduced by Calclavia
     public static final Entry plate = new Entry("plate", M, null, MaterialIconType.plate, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_PLATE))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // Round made of 1 Nugget
     public static final Entry round = new Entry("round", M / 9, null, MaterialIconType.round, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_ROUND));
     // Foil made of 1/4 Ingot/Dust.
     public static final Entry foil = new Entry("foil", M / 4, null, MaterialIconType.foil, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_FOIL))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // Stick made of an Ingot.
     public static final Entry stickLong = new Entry("stickLong", M, null, MaterialIconType.stickLong, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_LONG_ROD))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // Stick made of half an Ingot. Introduced by Eloraam
     public static final Entry stick = new Entry("stick", M / 2, null, MaterialIconType.stick, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_ROD))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // consisting out of 1/8 Ingot or 1/4 Stick.
     public static final Entry bolt = new Entry("bolt", M / 8, null, MaterialIconType.bolt, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_BOLT_SCREW))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 1/9 Ingot.
     public static final Entry screw = new Entry("screw", M / 9, null, MaterialIconType.screw, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_BOLT_SCREW))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 1/2 Stick.
     public static final Entry ring = new Entry("ring", M / 4, null, MaterialIconType.ring, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_RING))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 1 Fine Wire.
     public static final Entry springSmall = new Entry("springSmall", M / 4, null, MaterialIconType.springSmall, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_SPRING_SMALL) && !mat.hasFlag(NO_SMASHING))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 2 Sticks.
     public static final Entry spring = new Entry("spring", M, null, MaterialIconType.spring, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_SPRING) && !mat.hasFlag(NO_SMASHING))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 1/8 Ingot or 1/4 Wire.
     public static final Entry wireFine = new Entry("wireFine", M / 8, null, MaterialIconType.wireFine, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_FINE_WIRE))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // consisting out of 4 Plates, 1 Ring and 1 Screw.
     public static final Entry rotor = new Entry("rotor", M * 4, null, MaterialIconType.rotor, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_ROTOR))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     public static final Entry gearSmall = new Entry("gearSmall", M, null, MaterialIconType.gearSmall, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_SMALL_GEAR))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // Introduced by me because BuildCraft has ruined the gear Prefix...
     public static final Entry gear = new Entry("gear", M * 4, null, MaterialIconType.gear, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_GEAR))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
     // 3/4 of a Plate or Gem used to shape a Lens. Normally only used on Transparent Materials.
     public static final Entry lens = new Entry("lens", (M * 3) / 4, null, MaterialIconType.lens, Flags.ENABLE_UNIFICATION, mat -> mat.hasFlag(GENERATE_LENS))
-            .setRegisterer(materialItemGenerator);
+            .setGenerator(materialItemGenerator);
 
     // made of 2 Ingots.
-    public static final Entry toolHeadSword = new Entry("toolHeadSword", M * 2, null, MaterialIconType.toolHeadSword, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadSword = new Entry("toolHeadSword", M * 2, null, MaterialIconType.toolHeadSword, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 3 Ingots.
-    public static final Entry toolHeadPickaxe = new Entry("toolHeadPickaxe", M * 3, null, MaterialIconType.toolHeadPickaxe, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadPickaxe = new Entry("toolHeadPickaxe", M * 3, null, MaterialIconType.toolHeadPickaxe, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 1 Ingots.
-    public static final Entry toolHeadShovel = new Entry("toolHeadShovel", M, null, MaterialIconType.toolHeadShovel, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadShovel = new Entry("toolHeadShovel", M, null, MaterialIconType.toolHeadShovel, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 1 Ingots.
-    public static final Entry toolHeadUniversalSpade = new Entry("toolHeadUniversalSpade", M, null, MaterialIconType.toolHeadUniversalSpade, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadUniversalSpade = new Entry("toolHeadUniversalSpade", M, null, MaterialIconType.toolHeadUniversalSpade, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 3 Ingots.
-    public static final Entry toolHeadAxe = new Entry("toolHeadAxe", M * 3, null, MaterialIconType.toolHeadAxe, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadAxe = new Entry("toolHeadAxe", M * 3, null, MaterialIconType.toolHeadAxe, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 2 Ingots.
-    public static final Entry toolHeadHoe = new Entry("toolHeadHoe", M * 2, null, MaterialIconType.toolHeadHoe, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadHoe = new Entry("toolHeadHoe", M * 2, null, MaterialIconType.toolHeadHoe, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 3 Ingots.
-    public static final Entry toolHeadSense = new Entry("toolHeadSense", M * 3, null, MaterialIconType.toolHeadSense, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadSense = new Entry("toolHeadSense", M * 3, null, MaterialIconType.toolHeadSense, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 2 Ingots.
-    public static final Entry toolHeadFile = new Entry("toolHeadFile", M * 2, null, MaterialIconType.toolHeadFile, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadFile = new Entry("toolHeadFile", M * 2, null, MaterialIconType.toolHeadFile, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 6 Ingots.
-    public static final Entry toolHeadHammer = new Entry("toolHeadHammer", M * 6, null, MaterialIconType.toolHeadHammer, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadHammer = new Entry("toolHeadHammer", M * 6, null, MaterialIconType.toolHeadHammer, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 2 Ingots.
-    public static final Entry toolHeadSaw = new Entry("toolHeadSaw", M * 2, null, MaterialIconType.toolHeadSaw, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadSaw = new Entry("toolHeadSaw", M * 2, null, MaterialIconType.toolHeadSaw, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 4 Ingots.
-    public static final Entry toolHeadBuzzSaw = new Entry("toolHeadBuzzSaw", M * 4, null, MaterialIconType.toolHeadBuzzSaw, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadBuzzSaw = new Entry("toolHeadBuzzSaw", M * 4, null, MaterialIconType.toolHeadBuzzSaw, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 1 Ingots.
-    public static final Entry toolHeadScrewdriver = new Entry("toolHeadScrewdriver", M, null, MaterialIconType.toolHeadScrewdriver, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadScrewdriver = new Entry("toolHeadScrewdriver", M, null, MaterialIconType.toolHeadScrewdriver, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 4 Ingots.
-    public static final Entry toolHeadDrill = new Entry("toolHeadDrill", M * 4, null, MaterialIconType.toolHeadDrill, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadDrill = new Entry("toolHeadDrill", M * 4, null, MaterialIconType.toolHeadDrill, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 2 Ingots.
-    public static final Entry toolHeadChainsaw = new Entry("toolHeadChainsaw", M * 2, null, MaterialIconType.toolHeadChainsaw, Flags.ENABLE_UNIFICATION, hasToolProperty);
+    public static final Entry toolHeadChainsaw = new Entry("toolHeadChainsaw", M * 2, null, MaterialIconType.toolHeadChainsaw, Flags.ENABLE_UNIFICATION, hasToolProperty)
+            .setGenerator(materialItemGenerator);
     // made of 4 Ingots.
     public static final Entry toolHeadWrench = new Entry("toolHeadWrench", M * 4, null, MaterialIconType.toolHeadWrench, Flags.ENABLE_UNIFICATION, hasToolProperty);
     // made of 5 Ingots.
@@ -211,7 +230,7 @@ public class TagDictionary {
     public static final Entry blockGlass = new Entry("blockGlass", -1, MarkerMaterials.Color.Colorless, null, Flags.SELF_REFERENCING, null);
 
     // Storage Block consisting out of 9 Ingots/Gems/Dusts. Introduced by CovertJaguar
-    public static final Entry block = new Entry("block", M * 9, null, MaterialIconType.block, Flags.ENABLE_UNIFICATION, null);
+    public static final Entry block = new Entry("block", M * 9, null, MaterialIconType.block, Flags.ENABLE_UNIFICATION, blockGenerate);
 
     // Prefix used for Logs. Usually as "logWood". Introduced by Eloraam
     public static final Entry log = new Entry("log", -1, null, null, 0, null);
@@ -432,7 +451,7 @@ public class TagDictionary {
 
         public final long materialAmount;
 
-        private BiConsumer<Entry, Material> registerer;
+        private BiConsumer<Entry, Material> generator;
 
         /**
          * Contains a default material type for self-referencing OrePrefix
@@ -471,8 +490,8 @@ public class TagDictionary {
             ENTRIES.put(name, this);
         }
 
-        public TagDictionary.Entry setRegisterer(BiConsumer<Entry, Material> registerer) {
-            this.registerer = registerer;
+        public TagDictionary.Entry setGenerator(BiConsumer<Entry, Material> generator) {
+            this.generator = generator;
             return this;
         }
 
@@ -643,8 +662,8 @@ public class TagDictionary {
     public static void registerComponents() {
         for (Entry entry : values()) {
             for (Material material : MaterialRegistry.MATERIAL_REGISTRY) {
-                if (entry.registerer != null && entry.doGenerateItem(material)) {
-                    entry.registerer.accept(entry, material);
+                if (entry.generator != null && entry.doGenerateItem(material)) {
+                    entry.generator.accept(entry, material);
                     entry.processOreRegistration(material);
                 }
             }

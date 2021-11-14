@@ -1,6 +1,7 @@
 package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
+import brachy84.brachydium.api.block.BrachydiumBlocks;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.item.BrachydiumItem;
 import brachy84.brachydium.api.item.BrachydiumItems;
@@ -102,9 +103,10 @@ public class Brachydium implements ModInitializer {
         MaterialRegistry.finalizeMaterials(true);
 
         BrachydiumItems.init();
-        BrachydiumItem.registerItems();
+        BrachydiumBlocks.init();
         IngotProcessor.init();
         runPlugin(BrachydiumInitializer::registerGeneral);
+        BrachydiumItem.registerItems();
         runPlugin(BrachydiumInitializer::registerRecipes);
         ToolItem.createAndRegister();
 
@@ -114,6 +116,7 @@ public class Brachydium implements ModInitializer {
         CraftingRecipe.init();
 
         TagRegistry.EVENT.invoker().load();
+
         RRPHelper.initOtherResources();
         //RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
