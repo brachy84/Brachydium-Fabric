@@ -12,6 +12,7 @@
   "component.nugget": "%s Nugget",
   "component.block": "Block of %s",
   "component.frame_gt": "%s Frame",
+  "component.ore": "%s Ore",
   "component.plate": "%s Plate",
   "component.plate_double": "Double %s Plate",
   "component.plate_dense": "Dense %s Plate",

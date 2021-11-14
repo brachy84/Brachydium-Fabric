@@ -1,25 +1,25 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.block.OreVariants;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.info.MaterialIconSet;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import net.devtech.arrp.json.blockstate.JBlockModel;
 import net.devtech.arrp.json.blockstate.JState;
+import net.devtech.arrp.json.blockstate.JVariant;
 import net.devtech.arrp.json.blockstate.JWhen;
 import net.devtech.arrp.json.loot.JLootTable;
 import net.devtech.arrp.json.models.JModel;
 import net.devtech.arrp.json.models.JTextures;
 import net.devtech.arrp.json.tags.JTag;
-import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
 
 import static brachy84.brachydium.Brachydium.RESOURCE_PACK;
 import static net.devtech.arrp.json.blockstate.JState.*;
@@ -38,7 +38,7 @@ public class RRPHelper {
     public static final Map<String, byte[]> otherResources = new HashMap<>();
 
     public static void initOtherResources() {
-        for(Map.Entry<String, byte[]> entry : otherResources.entrySet()) {
+        for (Map.Entry<String, byte[]> entry : otherResources.entrySet()) {
             //System.out.println("Loading other resources: " + entry.getKey());
             RESOURCE_PACK.addResource(ResourceType.SERVER_DATA, Brachydium.id(entry.getKey()), entry.getValue());
         }
@@ -48,38 +48,39 @@ public class RRPHelper {
         Identifier path = Brachydium.id("item/material/" + tag.lowerCaseName + "." + material);
         String texture = MaterialItem.getTexturePath(material, tag);
         JTextures textures = new JTextures().layer0(texture);
-        if(withOverlay)
+        if (withOverlay)
             textures.layer1(texture + "_overlay");
         RESOURCE_PACK.addModel(model().parent("item/generated").textures(textures), path);
     }
+
     public static void addBasicMaterialBlockState(Material material, TagDictionary.Entry tag) {
         Identifier path = Brachydium.id("material/" + tag.lowerCaseName + "." + material);
         JState state = state(variant(JState.model("brachydium:block/material_sets/" + material.getMaterialIconSet().name + "/" + tag.lowerCaseName)));
         RESOURCE_PACK.addBlockState(state, path);
     }
 
-    public static void addOreBlockState(Material material, Map<String, String> variants) {
+    public static void addOreBlockState(Material material) {
         Identifier path = Brachydium.id("material/" + TagDictionary.ore.lowerCaseName + "." + material);
-        JState state = state();
-        for(Map.Entry<String, String> entry : variants.entrySet()) {
-            state.add(variant().put("type", entry.getKey(), JState.model(Brachydium.id("block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/" + entry.getKey()))));
+        JVariant jVariant = variant();
+        for (OreVariants variant : OreVariants.values()) {
+            jVariant.put("type", variant.name, JState.model(Brachydium.id("block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/" + variant.name)));
         }
-        RESOURCE_PACK.addBlockState(state, path);
+        RESOURCE_PACK.addBlockState(state(jVariant), path);
     }
 
-    public static void generateOreModels(Map<String, String> variants) {
-        for(MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
-            for(Map.Entry<String, String> entry : variants.entrySet()) {
+    public static void generateOreModels() {
+        for (MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
+            for (OreVariants variant : OreVariants.values()) {
                 JModel model = model("brachydium:block/ore_template")
-                        .textures(textures().var("base", entry.getValue())
+                        .textures(textures().var("base", variant.texturePath)
                                 .var("overlay", "brachydium:block/material_sets/" + iconSet.name + "/" + TagDictionary.ore.lowerCaseName));
-                RESOURCE_PACK.addModel(model, Brachydium.id("block/material_sets/" + iconSet.name + "/ore_type/" + entry.getKey()));
+                RESOURCE_PACK.addModel(model, Brachydium.id("block/material_sets/" + iconSet.name + "/ore_type/" + variant.name));
             }
         }
     }
 
     public static void generateMaterialBlockModel(TagDictionary.Entry tag) {
-        for(MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
+        for (MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
             Identifier path = Brachydium.id("block/material_sets/" + iconSet.name + "/" + tag.lowerCaseName);
             String texture = "brachydium:block/material_sets/" + iconSet.name + "/" + tag.lowerCaseName;
             JModel model = model().parent("brachydium:block/all_side_template").textures(textures().var("all", texture));
@@ -107,7 +108,7 @@ public class RRPHelper {
 
     public static void addItemTag(String tag, Identifier... values) {
         JTag jTag = tag();
-        for(Identifier id : values) {
+        for (Identifier id : values) {
             jTag.add(id);
         }
         RESOURCE_PACK.addTag(new Identifier(tag), jTag);
@@ -154,25 +155,25 @@ public class RRPHelper {
                 textures().particle("#" + texture) // rrp doesn't add # to particle texture for some reason
         ).element(
                 element().from(from, from, from).to(to, to, to)
-                .faces(faces()
-                        .up(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .down(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .north(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .south(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .east(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .west(face(texture).tintIndex(1).uv(from, from, to, to))
-                ).shade()
+                        .faces(faces()
+                                .up(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .down(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .north(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .south(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .east(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .west(face(texture).tintIndex(1).uv(from, from, to, to))
+                        ).shade()
         );
         JModel side = model().textures(textures().particle(texture)).element(
                 element().from(from, from, 0).to(to, to, from)
-                .faces(faces()
-                        .up(face(texture).tintIndex(1).uv(from, 0, to, from))
-                        .down(face(texture).tintIndex(1).uv(from, 0, to, from))
-                        .north(face(texture).tintIndex(1).uv(from, from, to, to).cullface(Direction.SOUTH))
-                        .south(face(texture).tintIndex(1).uv(from, from, to, to))
-                        .east(face(texture).tintIndex(1).uv(from, 0, to, from).rot270())
-                        .west(face(texture).tintIndex(1).uv(from, 0, to, from).rot90())
-                ).shade()
+                        .faces(faces()
+                                .up(face(texture).tintIndex(1).uv(from, 0, to, from))
+                                .down(face(texture).tintIndex(1).uv(from, 0, to, from))
+                                .north(face(texture).tintIndex(1).uv(from, from, to, to).cullface(Direction.SOUTH))
+                                .south(face(texture).tintIndex(1).uv(from, from, to, to))
+                                .east(face(texture).tintIndex(1).uv(from, 0, to, from).rot270())
+                                .west(face(texture).tintIndex(1).uv(from, 0, to, from).rot90())
+                        ).shade()
         );
         RESOURCE_PACK.addModel(core, mtId("block/cable/base_core_" + size));
         RESOURCE_PACK.addModel(side, mtId("block/cable/base_side_" + size));

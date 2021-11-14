@@ -1,5 +1,7 @@
 package brachy84.brachydium.api.worldgen.feature;
 
+import brachy84.brachydium.api.block.OreBlock;
+import brachy84.brachydium.api.block.OreVariants;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -128,6 +130,12 @@ public class OreVeinFeature extends Feature<OreVeinFeatureConfig> {
 
                     BlockState blockState = getStateForGeneration(random, config, existingState, proximityToTheBorder);
                     if (blockState != null) {
+                        if(blockState.getBlock() instanceof OreBlock) {
+                            OreVariants variant = OreVariants.getOf(existingState.getBlock());
+                            if(variant != null) {
+                                blockState = blockState.with(OreBlock.VARIANT, variant);
+                            }
+                        }
                         context.getWorld().setBlockState(mutableBlockPos, blockState, Block.NOTIFY_LISTENERS);
                         oreBlocksGenerated++;
                     }

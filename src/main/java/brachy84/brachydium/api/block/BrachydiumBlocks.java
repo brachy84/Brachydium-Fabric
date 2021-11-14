@@ -15,7 +15,7 @@ public class BrachydiumBlocks {
         // material set models
         RRPHelper.generateMaterialBlockModel(TagDictionary.block);
         RRPHelper.generateMaterialBlockModel(TagDictionary.frameGt);
-        RRPHelper.generateOreModels(OreBlock.VARIANTS);
+        RRPHelper.generateOreModels();
 
         JTag climbable = JTag.tag(); // FIXME
 

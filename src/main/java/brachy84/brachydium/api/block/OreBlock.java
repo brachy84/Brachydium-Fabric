@@ -1,16 +1,21 @@
 package brachy84.brachydium.api.block;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.ItemGroups;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
+import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.item.v1.FabricItemSettings;
 import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.tool.attribute.v1.FabricToolTags;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
@@ -29,15 +34,9 @@ public class OreBlock extends MaterialBlock {
         return ORES.get(material);
     }
 
-    public static final Map<String, String> VARIANTS = new HashMap<>();
-
-    static {
-        Brachydium.LOGGER.info("init ore variants");
-        VARIANTS.put("stone", "minecraft:block/stone");
-    }
-
     public static OreBlock createAndRegister(@NotNull TagDictionary.Entry tag, @NotNull Material material) {
-        return createAndRegister(tag, material, settings -> {});
+        return createAndRegister(tag, material, settings -> {
+        });
     }
 
     public static OreBlock createAndRegister(@NotNull TagDictionary.Entry tag, @NotNull Material material, Consumer<FabricBlockSettings> blockSettingsConsumer) {
@@ -53,16 +52,25 @@ public class OreBlock extends MaterialBlock {
         MaterialBlockItem item = Registry.register(Registry.ITEM, id, new MaterialBlockItem(materialBlock, settings));
 
         RRPHelper.addSimpleMaterialItemTag(material, tag);
-        RRPHelper.addOreBlockState(material, VARIANTS);
+        RRPHelper.addOreBlockState(material);
         RRPHelper.addOreBlockItemModel(material);
         RRPHelper.addSimpleLootTable(id);
+        BlockRenderLayerMap.INSTANCE.putBlock(materialBlock, RenderLayer.getCutout());
         ColorProviderRegistry.BLOCK.register((state, world, pos, tintIndex) -> tintIndex == 1 ? material.getMaterialRGB() : -1, materialBlock);
         ColorProviderRegistry.ITEM.register((stack, tintIndex) -> tintIndex == 1 ? material.getMaterialRGB() : -1, item);
         return materialBlock;
     }
 
+    public static final EnumProperty<OreVariants> VARIANT = EnumProperty.of("type", OreVariants.class);
+
     public OreBlock(Material material, TagDictionary.Entry tag, Settings settings) {
         super(material, tag, settings);
         ORES.put(material, this);
+        setDefaultState(this.getStateManager().getDefaultState().with(VARIANT, OreVariants.STONE));
+    }
+
+    @Override
+    protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+        builder.add(VARIANT);
     }
 }
