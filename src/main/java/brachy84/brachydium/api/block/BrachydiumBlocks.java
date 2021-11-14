@@ -15,9 +15,9 @@ public class BrachydiumBlocks {
         // material set models
         RRPHelper.generateMaterialBlockModel(TagDictionary.block);
         RRPHelper.generateMaterialBlockModel(TagDictionary.frameGt);
-        RRPHelper.generateMaterialBlockModel(TagDictionary.ore);
+        RRPHelper.generateOreModels(OreBlock.VARIANTS);
 
-        JTag climbable = JTag.tag();
+        JTag climbable = JTag.tag(); // FIXME
 
         TagDictionary.block.setGenerator(MaterialBlock::createAndRegister);
         TagDictionary.frameGt.setGenerator((tag, material) -> {
@@ -26,5 +26,9 @@ public class BrachydiumBlocks {
             climbable.add(MaterialItem.createItemId(material, tag));
         });
         Brachydium.RESOURCE_PACK.addTag(new Identifier("minecraft", "blocks/climbable"), climbable);
+
+        TagDictionary.ore.setGenerator((tag, material) -> {
+            OreBlock oreBlock = OreBlock.createAndRegister(tag, material);
+        });
     }
 }

@@ -58,6 +58,26 @@ public class RRPHelper {
         RESOURCE_PACK.addBlockState(state, path);
     }
 
+    public static void addOreBlockState(Material material, Map<String, String> variants) {
+        Identifier path = Brachydium.id("material/" + TagDictionary.ore.lowerCaseName + "." + material);
+        JState state = state();
+        for(Map.Entry<String, String> entry : variants.entrySet()) {
+            state.add(variant().put("type", entry.getKey(), JState.model(Brachydium.id("block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/" + entry.getKey()))));
+        }
+        RESOURCE_PACK.addBlockState(state, path);
+    }
+
+    public static void generateOreModels(Map<String, String> variants) {
+        for(MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
+            for(Map.Entry<String, String> entry : variants.entrySet()) {
+                JModel model = model("brachydium:block/ore_template")
+                        .textures(textures().var("base", entry.getValue())
+                                .var("overlay", "brachydium:block/material_sets/" + iconSet.name + "/" + TagDictionary.ore.lowerCaseName));
+                RESOURCE_PACK.addModel(model, Brachydium.id("block/material_sets/" + iconSet.name + "/ore_type/" + entry.getKey()));
+            }
+        }
+    }
+
     public static void generateMaterialBlockModel(TagDictionary.Entry tag) {
         for(MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
             Identifier path = Brachydium.id("block/material_sets/" + iconSet.name + "/" + tag.lowerCaseName);
@@ -70,6 +90,12 @@ public class RRPHelper {
     public static void addBasicMaterialBlockItemModel(Material material, TagDictionary.Entry tag) {
         Identifier path = Brachydium.id("item/material/" + tag.lowerCaseName + "." + material);
         JModel model = model().parent("brachydium:block/material_sets/" + material.getMaterialIconSet().name + "/" + tag.lowerCaseName);
+        RESOURCE_PACK.addModel(model, path);
+    }
+
+    public static void addOreBlockItemModel(Material material) {
+        Identifier path = Brachydium.id("item/material/" + TagDictionary.ore.lowerCaseName + "." + material);
+        JModel model = model().parent("brachydium:block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/stone");
         RESOURCE_PACK.addModel(model, path);
     }
 

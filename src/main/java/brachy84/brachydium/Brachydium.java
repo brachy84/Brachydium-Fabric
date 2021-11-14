@@ -16,6 +16,9 @@ import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.MaterialRegistry;
 import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
+import brachy84.brachydium.api.worldgen.OreVein;
+import brachy84.brachydium.api.worldgen.feature.BrachydiumFeatures;
+import brachy84.brachydium.api.worldgen.feature.WorldgenLoader;
 import brachy84.brachydium.gui.internal.UIFactory;
 import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -77,6 +80,8 @@ public class Brachydium implements ModInitializer {
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
 
+        WorldgenLoader.INSTANCE.register();
+        BrachydiumFeatures.ensureInitialized();
         Textures.init();
         UIFactory.register(TileEntityUiFactory.INSTANCE);
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
@@ -120,6 +125,7 @@ public class Brachydium implements ModInitializer {
         RRPHelper.initOtherResources();
         //RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
+        OreVein.init();
 
         LOGGER.info("-------------- Finished loading Brachydium --------------");
     }
