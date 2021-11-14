@@ -21,21 +21,26 @@ import brachy84.brachydium.api.worldgen.feature.BrachydiumFeatures;
 import brachy84.brachydium.api.worldgen.feature.WorldgenLoader;
 import brachy84.brachydium.gui.internal.UIFactory;
 import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
+import com.google.common.collect.Lists;
 import me.shedaniel.autoconfig.AutoConfig;
 import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
-import me.shedaniel.autoconfig.serializer.YamlConfigSerializer;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.util.TypedActionResult;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.World;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -67,8 +72,19 @@ public class Brachydium implements ModInitializer {
 
     // dummy item to load the void texture
     public static final Item VOID_ITEM = new Item(new Item.Settings()) {
+        private final List<Block> blocks = Lists.newArrayList(Blocks.STONE, Blocks.DIRT, Blocks.GRASS_BLOCK, Blocks.WATER, Blocks.LAVA);
+        private final List<Block> sneakBlocks = Lists.newArrayList(Blocks.GRANITE, Blocks.DIORITE, Blocks.ANDESITE, Blocks.GRAVEL, Blocks.COAL_ORE, Blocks.IRON_ORE, Blocks.COPPER_ORE);
+
         @Override
-        public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
+        public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+            BlockPos player = user.getBlockPos();
+            int range = 64;
+            for (BlockPos pos : BlockPos.iterate(player.getX() - range, Math.max(0, player.getY() - range), player.getZ() - range, player.getX() + range, Math.min(155, player.getY() + range), player.getZ() + range)) {
+                Block block = world.getBlockState(pos).getBlock();
+                if (blocks.contains(block) || (user.isSneaking() && sneakBlocks.contains(block)))
+                    world.setBlockState(pos, Blocks.AIR.getDefaultState());
+            }
+            return TypedActionResult.success(user.getStackInHand(hand));
         }
     };
 
@@ -123,7 +139,7 @@ public class Brachydium implements ModInitializer {
         TagRegistry.EVENT.invoker().load();
 
         RRPHelper.initOtherResources();
-        if(config.misc.dumpGeneratedAssets)
+        if (config.misc.dumpGeneratedAssets)
             RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
         OreVein.init();

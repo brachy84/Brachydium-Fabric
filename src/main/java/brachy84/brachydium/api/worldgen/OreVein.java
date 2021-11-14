@@ -39,16 +39,18 @@ public class OreVein {
     public static void init() {
         new Builder("copper")
                 .addOre(Materials.Copper, 1)
-                .addOre(Materials.Iron, 1)
+                .addOre(Materials.Iron, 2)
                 .surfaceBlock(Blocks.CAKE.getDefaultState())
-                .minSize(12, 2, 12)
-                .maxSize(24, 6, 24)
+                .minSize(4, 4, 4)
+                .maxSize(12, 4, 12)
                 .spawnY(30, 60)
+                .density(0.5f)
+                .chance(3)
                 .build();
     }
 
     public static class Builder {
-        public int radiusXmin = 4, radiusYmin = 4, radiusZmin = 4, radiusXmax = 4, radiusYmax = 4, radiusZmax = 4, minY = 10, maxY = 50, minForSurfaceStone = 200;
+        public int radiusXmin = 4, radiusYmin = 4, radiusZmin = 4, radiusXmax = 4, radiusYmax = 4, radiusZmax = 4, chance = 20, minY = 10, maxY = 50, minForSurfaceStone = 200;
         public float surfaceStoneChance = 0.2f;
         public float density = 0.8f;
         public final Map<BlockState, Integer> ores = new HashMap<>();
@@ -97,6 +99,11 @@ public class OreVein {
 
         public Builder addOre(BlockState state, int weight) {
             ores.put(state, weight);
+            return this;
+        }
+
+        public Builder chance(int chance) {
+            this.chance = chance;
             return this;
         }
 
@@ -157,7 +164,7 @@ public class OreVein {
                     surfaceStoneChance
             )).decorate(new ConfiguredDecorator<>(Decorator.RANGE, new RangeDecoratorConfig(
                     UniformHeightProvider.create(YOffset.aboveBottom(minY), YOffset.fixed(maxY))
-            )));
+            ))).applyChance(chance);
 
             RegistryKey<ConfiguredFeature<?, ?>> featureKey = RegistryKey.of(Registry.CONFIGURED_FEATURE_KEY,
                     Brachydium.id(name));
