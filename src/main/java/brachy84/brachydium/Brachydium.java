@@ -22,7 +22,8 @@ import brachy84.brachydium.api.worldgen.feature.WorldgenLoader;
 import brachy84.brachydium.gui.internal.UIFactory;
 import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
 import me.shedaniel.autoconfig.AutoConfig;
-import me.shedaniel.autoconfig.serializer.Toml4jConfigSerializer;
+import me.shedaniel.autoconfig.serializer.JanksonConfigSerializer;
+import me.shedaniel.autoconfig.serializer.YamlConfigSerializer;
 import net.devtech.arrp.api.RRPCallback;
 import net.devtech.arrp.api.RuntimeResourcePack;
 import net.fabricmc.api.ModInitializer;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import static brachy84.brachydium.api.unification.material.Materials.EXT2_METAL;
-import static brachy84.brachydium.api.unification.material.Materials.Neutronium;
 import static brachy84.brachydium.api.unification.material.info.MaterialFlags.*;
 
 public class Brachydium implements ModInitializer {
@@ -75,7 +75,7 @@ public class Brachydium implements ModInitializer {
     @Override
     public void onInitialize() {
         LOGGER.info("-------------- Loading Brachydium --------------");
-        AutoConfig.register(BrachydiumConfig.class, Toml4jConfigSerializer::new);
+        AutoConfig.register(BrachydiumConfig.class, JanksonConfigSerializer::new);
         config = AutoConfig.getConfigHolder(BrachydiumConfig.class).getConfig();
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
@@ -95,7 +95,7 @@ public class Brachydium implements ModInitializer {
         //TODO: load custom materials (kubeJS, json, ...)
 
         // in case some addon sets the default material to null
-        if(Materials.Neutronium == null) {
+        if (Materials.Neutronium == null) {
             Materials.Neutronium = new Material.Builder(127, "neutronium")
                     .ingot(6).fluid()
                     .color(0xFAFAFA)
@@ -123,7 +123,8 @@ public class Brachydium implements ModInitializer {
         TagRegistry.EVENT.invoker().load();
 
         RRPHelper.initOtherResources();
-        //RESOURCE_PACK.dump(new File("brachydium_assets"));
+        if(config.misc.dumpGeneratedAssets)
+            RESOURCE_PACK.dump(new File("brachydium_assets"));
         RRPCallback.BEFORE_VANILLA.register(a -> a.add(RESOURCE_PACK));
         OreVein.init();
 

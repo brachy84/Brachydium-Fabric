@@ -24,5 +24,6 @@ public class BrachydiumConfig implements ConfigData {
     public static class Misc {
         public boolean showTags = true;
         public boolean showNbt = true;
+        public boolean dumpGeneratedAssets = false;
     }
 }
