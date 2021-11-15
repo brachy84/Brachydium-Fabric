@@ -2,6 +2,8 @@ package brachy84.brachydium;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
 import brachy84.brachydium.api.block.BrachydiumBlocks;
+import brachy84.brachydium.api.block.OreBlock;
+import brachy84.brachydium.api.block.OreVariant;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.item.BrachydiumItem;
 import brachy84.brachydium.api.item.BrachydiumItems;
@@ -18,7 +20,6 @@ import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.worldgen.OreVein;
 import brachy84.brachydium.api.worldgen.feature.BrachydiumFeatures;
-import brachy84.brachydium.api.worldgen.feature.WorldgenLoader;
 import brachy84.brachydium.gui.internal.UIFactory;
 import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
 import com.google.common.collect.Lists;
@@ -95,11 +96,8 @@ public class Brachydium implements ModInitializer {
         config = AutoConfig.getConfigHolder(BrachydiumConfig.class).getConfig();
 
         ResourceManagerHelper.get(ResourceType.SERVER_DATA).registerReloadListener(ResourceReloadListener.INSTANCE);
-
-        WorldgenLoader.INSTANCE.register();
-        BrachydiumFeatures.ensureInitialized();
+        //WorldgenLoader.INSTANCE.register();
         Textures.init();
-        UIFactory.register(TileEntityUiFactory.INSTANCE);
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
         Registry.register(Registry.ITEM, id("void"), VOID_ITEM);
 
@@ -123,6 +121,10 @@ public class Brachydium implements ModInitializer {
         }
         MaterialRegistry.finalizeMaterials(true);
 
+        BrachydiumFeatures.ensureInitialized();
+        OreVariant.init();
+
+        UIFactory.register(TileEntityUiFactory.INSTANCE);
         BrachydiumItems.init();
         BrachydiumBlocks.init();
         IngotProcessor.init();
@@ -130,6 +132,8 @@ public class Brachydium implements ModInitializer {
         BrachydiumItem.registerItems();
         runPlugin(BrachydiumInitializer::registerRecipes);
         ToolItem.createAndRegister();
+
+        OreBlock.initVariantState();
 
         TagDictionary.registerComponents();
         TagDictionary.runMaterialHandlers();

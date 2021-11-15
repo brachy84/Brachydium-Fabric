@@ -94,7 +94,10 @@ public class OreVein {
         }
 
         public Builder addOre(Material material, int weight) {
-            return addOre(OreBlock.getOre(material).getDefaultState(), weight);
+            OreBlock oreBlock = OreBlock.getOre(material);
+            if(oreBlock == null)
+                return this;
+            return addOre(oreBlock.getDefaultState(), weight);
         }
 
         public Builder addOre(BlockState state, int weight) {

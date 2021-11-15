@@ -3,6 +3,7 @@ package brachy84.brachydium.api.worldgen.feature;
 import brachy84.brachydium.Brachydium;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.gen.feature.Feature;
+import org.jetbrains.annotations.ApiStatus;
 
 public class BrachydiumFeatures {
 
@@ -12,6 +13,7 @@ public class BrachydiumFeatures {
         return Registry.register(Registry.FEATURE, Brachydium.id(name), feature);
     }
 
+    @ApiStatus.Internal
     public static void ensureInitialized() {
         register("ore_vein", ORE_VEIN);
     }

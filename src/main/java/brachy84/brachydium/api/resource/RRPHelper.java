@@ -1,7 +1,7 @@
 package brachy84.brachydium.api.resource;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.api.block.OreVariants;
+import brachy84.brachydium.api.block.OreVariant;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.info.MaterialIconSet;
@@ -62,19 +62,19 @@ public class RRPHelper {
     public static void addOreBlockState(Material material) {
         Identifier path = Brachydium.id("material/" + TagDictionary.ore.lowerCaseName + "." + material);
         JVariant jVariant = variant();
-        for (OreVariants variant : OreVariants.values()) {
-            jVariant.put("type", variant.name, JState.model(Brachydium.id("block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/" + variant.name)));
+        for (OreVariant.Variant variant : OreVariant.getAll()) {
+            jVariant.put("variant", variant.getName(), JState.model(Brachydium.id("block/material_sets/" + material.getMaterialIconSet().name + "/ore_type/" + variant.getName())));
         }
         RESOURCE_PACK.addBlockState(state(jVariant), path);
     }
 
     public static void generateOreModels() {
         for (MaterialIconSet iconSet : MaterialIconSet.ICON_SETS.values()) {
-            for (OreVariants variant : OreVariants.values()) {
+            for (OreVariant.Variant variant : OreVariant.getAll()) {
                 JModel model = model("brachydium:block/ore_template")
-                        .textures(textures().var("base", variant.texturePath)
+                        .textures(textures().var("base", variant.getTexturePath())
                                 .var("overlay", "brachydium:block/material_sets/" + iconSet.name + "/" + TagDictionary.ore.lowerCaseName));
-                RESOURCE_PACK.addModel(model, Brachydium.id("block/material_sets/" + iconSet.name + "/ore_type/" + variant.name));
+                RESOURCE_PACK.addModel(model, Brachydium.id("block/material_sets/" + iconSet.name + "/ore_type/" + variant.getName()));
             }
         }
     }

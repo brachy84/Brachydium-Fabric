@@ -15,9 +15,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
 import net.minecraft.state.StateManager;
-import net.minecraft.state.property.EnumProperty;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,16 +61,29 @@ public class OreBlock extends MaterialBlock {
         return materialBlock;
     }
 
-    public static final EnumProperty<OreVariants> VARIANT = EnumProperty.of("type", OreVariants.class);
+    @ApiStatus.Internal
+    public static void initVariantState() {
+        variant = OreVariant.createWithAll("variant");
+    }
+
+    private static OreVariant variant;
+
+    public static OreVariant getVariantProperty() {
+        return variant;
+    }
 
     public OreBlock(Material material, TagDictionary.Entry tag, Settings settings) {
         super(material, tag, settings);
         ORES.put(material, this);
-        setDefaultState(this.getStateManager().getDefaultState().with(VARIANT, OreVariants.STONE));
+        setDefaultState(this.getStateManager().getDefaultState().with(variant, variant.getDefaultVariant()));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(VARIANT);
+        builder.add(variant);
+    }
+
+    public OreVariant getVariant() {
+        return variant;
     }
 }
