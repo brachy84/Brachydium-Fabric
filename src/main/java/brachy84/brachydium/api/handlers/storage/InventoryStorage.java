@@ -16,7 +16,7 @@ public class InventoryStorage extends CombinedStorage<ItemVariant, InventoryStor
     private final Inventory inventory;
 
     public InventoryStorage(Inventory inventory) {
-        super(new ArrayList());
+        super(new ArrayList<>());
         this.inventory = inventory;
         for (int i = 0; i < inventory.size(); i++) {
             parts.add(new InventorySlot(inventory, i));

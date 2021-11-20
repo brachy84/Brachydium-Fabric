@@ -12,12 +12,12 @@ import java.util.Set;
 public interface IFluidHandler extends Clearable, InventoryListener, INotifiableHandler {
 
     default Storage<FluidVariant> asStorage() {
-        return FluidInventoryStorage.of(this);
+        return new FluidInventoryStorage(this);
     }
 
-    int getTanks();
+    int size();
 
-    FluidStack getStackAt(int slot);
+    FluidStack getFluid(int slot);
 
     long getCapacityAt(int slot);
 
@@ -28,16 +28,16 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
      *
      * @return the removed items as a stack
      */
-    FluidStack removeStack(int slot, int amount);
+    FluidStack removeFluid(int slot, long amount);
 
     /**
      * Removes the stack currently stored at the indicated slot.
      *
      * @return the stack previously stored at the indicated slot.
      */
-    FluidStack removeStack(int slot);
+    FluidStack removeFluid(int slot);
 
-    void setStack(int slot, FluidStack stack);
+    void setFluid(int slot, FluidStack stack);
 
     default void markDirty() {
     }
@@ -55,8 +55,8 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
      */
     default long count(FluidStack stack) {
         long i = 0;
-        for (int j = 0; j < this.getTanks(); ++j) {
-            FluidStack fluidStack = this.getStackAt(j);
+        for (int j = 0; j < this.size(); ++j) {
+            FluidStack fluidStack = this.getFluid(j);
             if (FluidStack.matchesStack(fluidStack, stack)) {
                 i += fluidStack.getAmount();
             }
@@ -70,8 +70,8 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
      * Ignores amount
      */
     default boolean containsAny(Set<FluidStack> fluids) {
-        for (int i = 0; i < this.getTanks(); ++i) {
-            FluidStack fluidStack = this.getStackAt(i);
+        for (int i = 0; i < this.size(); ++i) {
+            FluidStack fluidStack = this.getFluid(i);
             if (!fluidStack.isEmpty() && fluids.contains(fluidStack)) {
                 return true;
             }
@@ -82,8 +82,8 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
 
     @Override
     default void clear() {
-        for (int i = 0; i < getTanks(); i++) {
-            setStack(i, FluidStack.EMPTY);
+        for (int i = 0; i < size(); i++) {
+            setFluid(i, FluidStack.EMPTY);
         }
     }
 
@@ -93,12 +93,12 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
         }
 
         @Override
-        public int getTanks() {
+        public int size() {
             return 0;
         }
 
         @Override
-        public FluidStack getStackAt(int slot) {
+        public FluidStack getFluid(int slot) {
             return FluidStack.EMPTY;
         }
 
@@ -113,17 +113,17 @@ public interface IFluidHandler extends Clearable, InventoryListener, INotifiable
         }
 
         @Override
-        public FluidStack removeStack(int slot, int amount) {
+        public FluidStack removeFluid(int slot, long amount) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public FluidStack removeStack(int slot) {
+        public FluidStack removeFluid(int slot) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public void setStack(int slot, FluidStack stack) {
+        public void setFluid(int slot, FluidStack stack) {
         }
 
         @Override

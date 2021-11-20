@@ -209,11 +209,11 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
     }
 
     protected static int getMinTankCapacity(IFluidHandler tanks) {
-        if (tanks.getTanks() == 0) {
+        if (tanks.size() == 0) {
             return 0;
         }
         int result = Integer.MAX_VALUE;
-        for (int i = 0; i < tanks.getTanks(); i++) {
+        for (int i = 0; i < tanks.size(); i++) {
             result = (int) Math.min(tanks.getCapacityAt(i), result);
         }
         return result;

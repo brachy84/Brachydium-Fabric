@@ -1,80 +1,125 @@
 package brachy84.brachydium.api.handlers.storage;
 
-import com.google.common.collect.MapMaker;
+import brachy84.brachydium.api.fluid.FluidStack;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
+import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
+import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
 
 @ApiStatus.Experimental
 @Deprecated
 @ApiStatus.NonExtendable
 public class FluidInventoryStorage extends CombinedStorage<FluidVariant, SingleSlotStorage<FluidVariant>> {
 
-    private static final Map<IFluidHandler, FluidInventoryStorage> WRAPPERS = new MapMaker().weakValues().makeMap();
+    private final IFluidHandler inventory;
 
-    public static FluidInventoryStorage of(IFluidHandler fluidHandler) {
-        FluidInventoryStorage storage = WRAPPERS.computeIfAbsent(fluidHandler, inv -> {
-            return new FluidInventoryStorage(inv);
-        });
-        storage.resizeSlotList();
-        return storage;
-    }
-
-    final IFluidHandler inventory;
-    /**
-     * This {@code backingList} is the real list of wrappers.
-     * The {@code parts} in the superclass is the public-facing unmodifiable sublist with exactly the right amount of slots.
-     */
-    final List<FluidSlotWrapper> backingList;
-    /**
-     * This participant ensures that markDirty is only called once for the entire inventory.
-     */
-    final MarkDirtyParticipant markDirtyParticipant = new MarkDirtyParticipant();
-
-    FluidInventoryStorage(IFluidHandler inventory) {
-        super(Collections.emptyList());
+    public FluidInventoryStorage(IFluidHandler inventory) {
+        super(new ArrayList<>());
         this.inventory = inventory;
-        this.backingList = new ArrayList<>();
+        for (int i = 0; i < inventory.size(); i++) {
+            parts.add(new FluidTankSlot(inventory, i));
+        }
     }
 
-    public List<SingleSlotStorage<FluidVariant>> getSlots() {
-        return parts;
-    }
+    protected static class FluidTankSlot extends SnapshotParticipant<FluidStack> implements SingleSlotStorage<FluidVariant> {
 
-    /**
-     * Resize slot list to match the current size of the inventory.
-     */
-    private void resizeSlotList() {
-        int inventorySize = inventory.getTanks();
+        private final IFluidHandler inventory;
+        private final int index;
 
-        // If the public-facing list must change...
-        if (inventorySize != parts.size()) {
-            // Ensure we have enough wrappers in the backing list.
-            while (backingList.size() < inventorySize) {
-                backingList.add(new FluidSlotWrapper(this, backingList.size()));
+        private FluidTankSlot(IFluidHandler inventory, int index) {
+            this.inventory = inventory;
+            this.index = index;
+        }
+
+        public FluidStack getStack() {
+            return inventory.getFluid(index);
+        }
+
+        public void setStack(FluidStack stack) {
+            inventory.setFluid(index, stack);
+        }
+
+        @Override
+        public long insert(FluidVariant insertedVariant, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(insertedVariant, maxAmount);
+
+            FluidStack currentStack = getStack();
+
+            if (currentStack.isEmpty() || currentStack.matches(insertedVariant)) {
+                int insertedAmount = (int) Math.min(maxAmount, getCapacity() - currentStack.getAmount());
+
+                if (insertedAmount > 0) {
+                    updateSnapshots(transaction);
+
+                    if (currentStack.isEmpty()) {
+                        currentStack = new FluidStack(insertedVariant, insertedAmount);
+                    } else {
+                        currentStack.increment(insertedAmount);
+                    }
+
+                    setStack(currentStack);
+                }
+
+                return insertedAmount;
             }
 
-            // Update the public-facing list.
-            parts = Collections.unmodifiableList(backingList.subList(0, inventorySize));
-        }
-    }
-
-    // Boolean is used to prevent allocation. Null values are not allowed by SnapshotParticipant.
-    class MarkDirtyParticipant extends SnapshotParticipant<Boolean> {
-        @Override
-        protected Boolean createSnapshot() {
-            return Boolean.TRUE;
+            return 0;
         }
 
         @Override
-        protected void readSnapshot(Boolean snapshot) {
+        public long extract(FluidVariant variant, long maxAmount, TransactionContext transaction) {
+            StoragePreconditions.notBlankNotNegative(variant, maxAmount);
+
+            FluidStack currentStack = getStack();
+
+            if (currentStack.matches(variant)) {
+                int extracted = (int) Math.min(currentStack.getAmount(), maxAmount);
+
+                if (extracted > 0) {
+                    this.updateSnapshots(transaction);
+                    currentStack.decrement(extracted);
+                    setStack(currentStack);
+                }
+
+                return extracted;
+            }
+
+            return 0;
+        }
+
+        @Override
+        public boolean isResourceBlank() {
+            return getResource().isBlank();
+        }
+
+        @Override
+        public FluidVariant getResource() {
+            return getStack().asFluidVariant();
+        }
+
+        @Override
+        public long getAmount() {
+            return getStack().getAmount();
+        }
+
+        @Override
+        public long getCapacity() {
+            return inventory.getCapacityAt(index);
+        }
+
+        @Override
+        protected FluidStack createSnapshot() {
+            return getStack().copy();
+        }
+
+        @Override
+        protected void readSnapshot(FluidStack snapshot) {
+            setStack(snapshot);
         }
 
         @Override
