@@ -42,12 +42,12 @@ public class FluidInventory implements IFluidHandler {
     }
 
     @Override
-    public int getTanks() {
+    public int size() {
         return fluids.size();
     }
 
     @Override
-    public FluidStack getStackAt(int slot) {
+    public FluidStack getFluid(int slot) {
         return fluids.get(slot);
     }
 
@@ -66,8 +66,8 @@ public class FluidInventory implements IFluidHandler {
     }
 
     @Override
-    public FluidStack removeStack(int slot, int amount) {
-        FluidStack stack = getStackAt(slot);
+    public FluidStack removeFluid(int slot, long amount) {
+        FluidStack stack = getFluid(slot);
         amount = Math.min(amount, stack.getAmount());
         stack.decrement(amount);
         if (amount > 0)
@@ -76,16 +76,16 @@ public class FluidInventory implements IFluidHandler {
     }
 
     @Override
-    public FluidStack removeStack(int slot) {
-        FluidStack stack = getStackAt(slot);
-        setStack(slot, FluidStack.EMPTY);
+    public FluidStack removeFluid(int slot) {
+        FluidStack stack = getFluid(slot);
+        setFluid(slot, FluidStack.EMPTY);
         if (!stack.isEmpty())
             markDirty();
         return stack;
     }
 
     @Override
-    public void setStack(int slot, FluidStack stack) {
+    public void setFluid(int slot, FluidStack stack) {
         fluids.set(slot, stack);
         markDirty();
     }
