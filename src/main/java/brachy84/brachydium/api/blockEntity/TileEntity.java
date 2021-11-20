@@ -10,8 +10,8 @@ import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
 import brachy84.brachydium.api.handlers.storage.*;
 import brachy84.brachydium.api.util.TransferUtil;
+import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.UIHolder;
-import brachy84.brachydium.gui.internal.Gui;
 import com.google.common.collect.Lists;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -30,6 +30,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -47,6 +48,13 @@ import java.util.*;
 import java.util.function.Consumer;
 
 public abstract class TileEntity extends ApiHolder implements UIHolder, IOrientable, ICoverable {
+
+    public static class Const {
+        public static final int SYNC_INPUT_ITEMS = -100;
+        public static final int SYNC_OUTPUT_ITEMS = -101;
+        public static final int SYNC_INPUT_FLUIDS = -102;
+        public static final int SYNC_OUTPUT_FLUIDS = -103;
+    }
 
     @Nullable
     public static TileEntity getOf(BlockEntity blockEntity) {
@@ -135,31 +143,31 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         exportFluids.setNotifiableMetaTileEntity(this);
 
         importItems.addListener(() -> {
-            if (!getWorld().isClient()) {
-                syncCustomData(-1000, buf -> TransferUtil.pack(importItems, buf));
+            if (getWorld() != null && !getWorld().isClient()) {
+                syncCustomData(Const.SYNC_INPUT_ITEMS, buf -> TransferUtil.pack(importItems, buf));
             }
         });
         exportItems.addListener(() -> {
-            if (!getWorld().isClient()) {
-                syncCustomData(-1001, buf -> TransferUtil.pack(exportItems, buf));
+            if (getWorld() != null && !getWorld().isClient()) {
+                syncCustomData(Const.SYNC_OUTPUT_ITEMS, buf -> TransferUtil.pack(exportItems, buf));
             }
         });
 
         importFluids.addListener(() -> {
-            if (!getWorld().isClient()) {
-                syncCustomData(-1002, buf -> TransferUtil.pack(importFluids, buf));
+            if (getWorld() != null && !getWorld().isClient()) {
+                syncCustomData(Const.SYNC_INPUT_FLUIDS, buf -> TransferUtil.pack(importFluids, buf));
             }
         });
         exportFluids.addListener(() -> {
-            if (!getWorld().isClient()) {
-                syncCustomData(-1003, buf -> TransferUtil.pack(exportFluids, buf));
+            if (getWorld() != null && !getWorld().isClient()) {
+                syncCustomData(Const.SYNC_OUTPUT_FLUIDS, buf -> TransferUtil.pack(exportFluids, buf));
             }
         });
 
         this.importItemStorage = new InventoryStorage(importItems);
         this.exportItemStorage = new InventoryStorage(exportItems);
-        this.importFluidStorage = FluidInventoryStorage.of(importFluids);
-        this.exportFluidStorage = FluidInventoryStorage.of(exportFluids);
+        this.importFluidStorage = new FluidInventoryStorage(importFluids);
+        this.exportFluidStorage = new FluidInventoryStorage(exportFluids);
 
         this.itemStorage = new CombinedStorage<>(Lists.newArrayList(importItemStorage, exportItemStorage));
         this.fluidStorage = new CombinedStorage<>(Lists.newArrayList(importFluidStorage, exportFluidStorage));
@@ -315,8 +323,10 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if (TileEntityUiFactory.INSTANCE.openUI(this, player)) {
-            return ActionResult.SUCCESS;
+        if(!world.isClient) {
+            if (TileEntityUiFactory.INSTANCE.openUI(this, player)) {
+                return ActionResult.SUCCESS;
+            }
         }
         return ActionResult.PASS;
     }
@@ -451,58 +461,15 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
                 Cover cover = getCover(Direction.byId(buf.readByte()));
                 cover.readCustomData(buf.readVarInt(), buf);
             }
-            case -1000 -> TransferUtil.unpack(importItems, buf);
-            case -1001 -> TransferUtil.unpack(exportItems, buf);
-            case -1002 -> TransferUtil.unpack(importFluids, buf);
-            case -1003 -> TransferUtil.unpack(exportFluids, buf);
+            case Const.SYNC_INPUT_ITEMS -> TransferUtil.unpack(importItems, buf);
+            case Const.SYNC_OUTPUT_ITEMS -> TransferUtil.unpack(exportItems, buf);
+            case Const.SYNC_INPUT_FLUIDS -> TransferUtil.unpack(importFluids, buf);
+            case Const.SYNC_OUTPUT_FLUIDS -> TransferUtil.unpack(exportFluids, buf);
         }
     }
 
-    @ApiStatus.OverrideOnly
-    public void writeInitialData(PacketByteBuf buf) {
-        buf.writeByte(frontFacing.getId());
-        // buf.writeInt(this.paintingColor);
-        buf.writeShort(traits.size());
-        for (TileTrait trait : traits.values()) {
-            buf.writeString(trait.getName());
-            trait.writeInitialData(buf);
-        }
-        /*for (EnumFacing coverSide : EnumFacing.VALUES) {
-            CoverBehavior coverBehavior = getCoverAtSide(coverSide);
-            if (coverBehavior != null) {
-                int coverId = CoverDefinition.getNetworkIdForCover(coverBehavior.getCoverDefinition());
-                buf.writeVarInt(coverId);
-                coverBehavior.writeInitialSyncData(buf);
-            } else {
-                buf.writeVarInt(-1);
-            }
-        }*/
-    }
-
-    @ApiStatus.OverrideOnly
-    public void receiveInitialData(PacketByteBuf buf) {
-        this.frontFacing = Direction.byId(buf.readByte());
-        //this.paintingColor = buf.readInt();
-        int amountOfTraits = buf.readShort();
-        for (int i = 0; i < amountOfTraits; i++) {
-            TileTrait trait = getTrait(buf.readString());
-            trait.receiveInitialData(buf);
-        }
-        /*for (EnumFacing coverSide : EnumFacing.VALUES) {
-            int coverId = buf.readVarInt();
-            if (coverId != -1) {
-                CoverDefinition coverDefinition = CoverDefinition.getCoverByNetworkId(coverId);
-                CoverBehavior coverBehavior = coverDefinition.createCoverBehavior(this, coverSide);
-                coverBehavior.readInitialSyncData(buf);
-                this.coverBehaviors[coverSide.getIndex()] = coverBehavior;
-            }
-        }*/
-    }
-
-    public NbtCompound serializeTag() {
+    public NbtCompound serializeNbt() {
         NbtCompound tag = new NbtCompound();
-        tag.putInt("front", getFrontFace().getId());
-
         NbtCompound traitTag = new NbtCompound();
         for (TileTrait trait : traits.values()) {
             NbtCompound tag1 = trait.serializeNbt();
@@ -510,14 +477,17 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
                 traitTag.put(trait.getName(), tag1);
         }
         tag.put("MBETraits", traitTag);
-        tag.put("Covers", serializeCovers());
+        tag.put("Covers", serializeCovers(false));
+
+        tag.put("InputItems", TransferUtil.inventoryToNbt(getImportInventory()));
+        tag.put("OutputItems", TransferUtil.inventoryToNbt(getExportInventory()));
+        tag.put("InputFluids", TransferUtil.fluidHandlerToNbt(getImportFluidHandler()));
+        tag.put("OutputFluids", TransferUtil.fluidHandlerToNbt(getExportFluidHandler()));
 
         return tag;
     }
 
-    public void deserializeTag(NbtCompound tag) {
-        Direction facing = Direction.byId(tag.getInt("front"));
-        setFrontFace(facing);
+    public void deserializeNbt(NbtCompound tag) {
         NbtCompound traitTag = tag.getCompound("MBETraits");
         for (String key : traitTag.getKeys()) {
             TileTrait trait = getTrait(key);
@@ -525,7 +495,47 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
                 trait.deserializeNbt(traitTag.getCompound(key));
             }
         }
-        deserializeCovers(tag.getCompound("Covers"));
+        deserializeCovers(tag.getCompound("Covers"), false);
+
+        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStack);
+        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStack);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluid);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluid);
+    }
+
+    public NbtCompound serializeClientNbt() {
+        NbtCompound tag = new NbtCompound();
+        NbtCompound traitTag = new NbtCompound();
+        for (TileTrait trait : traits.values()) {
+            NbtCompound tag1 = trait.serializeClientNbt();
+            if (tag1 != null)
+                traitTag.put(trait.getName(), tag1);
+        }
+        tag.put("MBETraits", traitTag);
+        tag.put("Covers", serializeCovers(true));
+
+        tag.put("InputItems", TransferUtil.inventoryToNbt(getImportInventory()));
+        tag.put("OutputItems", TransferUtil.inventoryToNbt(getExportInventory()));
+        tag.put("InputFluids", TransferUtil.fluidHandlerToNbt(getImportFluidHandler()));
+        tag.put("OutputFluids", TransferUtil.fluidHandlerToNbt(getExportFluidHandler()));
+
+        return tag;
+    }
+
+    public void deserializeClientNbt(NbtCompound tag) {
+        NbtCompound traitTag = tag.getCompound("MBETraits");
+        for (String key : traitTag.getKeys()) {
+            TileTrait trait = getTrait(key);
+            if (trait != null) {
+                trait.deserializeClientNbt(traitTag.getCompound(key));
+            }
+        }
+        deserializeCovers(tag.getCompound("Covers"), true);
+
+        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStack);
+        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStack);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluid);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluid);
     }
 
     public boolean isValid() {
