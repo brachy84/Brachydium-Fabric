@@ -2,9 +2,10 @@ package brachy84.brachydium.compat.rei;
 
 import brachy84.brachydium.api.gui.FluidSlotWidget;
 import brachy84.brachydium.api.recipe.RecipeTable;
+import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
-import brachy84.brachydium.gui.internal.Gui;
+import brachy84.brachydium.gui.compat.rei.ReiGui;
 import me.shedaniel.math.Rectangle;
 import me.shedaniel.rei.api.client.gui.Renderer;
 import me.shedaniel.rei.api.client.gui.widgets.Label;
@@ -86,22 +87,18 @@ public class RecipeTableCategory implements DisplayCategory<RecipeTableDisplay> 
         for (Slot itemSlot : itemSlots) {
             if (itemSlot.getNoticeMark() == 1) {
                 if (!inputItems.hasNext()) continue;
-                //Brachydium.LOGGER.info(" - inputItem");
                 itemSlot.entries(inputItems.next());
             } else if (itemSlot.getNoticeMark() == 2) {
                 if (!outputItems.hasNext()) continue;
-                //Brachydium.LOGGER.info(" - outputItem");
                 itemSlot.entries(outputItems.next());
             }
         }
         for (Slot fluidSlot : fluidSlots) {
             if (fluidSlot.getNoticeMark() == 1) {
-                if (!inputItems.hasNext()) continue;
-                //Brachydium.LOGGER.info(" - inputFluid");
+                if (!inputFluids.hasNext()) continue;
                 fluidSlot.entries(inputFluids.next());
             } else if (fluidSlot.getNoticeMark() == 2) {
-                if (!outputItems.hasNext()) continue;
-                //Brachydium.LOGGER.info(" - outputFluid");
+                if (!outputFluids.hasNext()) continue;
                 fluidSlot.entries(outputFluids.next());
             }
         }

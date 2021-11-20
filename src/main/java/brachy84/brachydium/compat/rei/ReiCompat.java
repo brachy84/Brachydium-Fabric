@@ -39,31 +39,4 @@ public class ReiCompat implements REIClientPlugin {
             }
         }
     }
-
-    /*@Override
-    public void registerBounds(DisplayHelper displayHelper) {
-        BaseBoundsHandler boundsHandler = BaseBoundsHandler.getInstance();
-        boundsHandler.registerExclusionZones(ModularGuiHandledScreen.class, () -> {
-            List<Rectangle> zones = new ArrayList<>();
-            Screen screen = MinecraftClient.getInstance().currentScreen;
-            if(screen instanceof ModularGuiHandledScreen) {
-                zones.add(((ModularGuiHandledScreen) screen).getGui().getBounds().toReiRectangle());
-            }
-            return zones;
-        });
-        displayHelper.registerHandler(new OverlayDecider() {
-            @Override
-            public boolean isHandingScreen(Class<?> screen) {
-                return screen.isAssignableFrom(ModularGuiHandledScreen.class);
-            }
-
-            @Override
-            public ActionResult shouldScreenBeOverlayed(Class<?> screen) {
-                if(screen.isAssignableFrom(ModularGuiHandledScreen.class)) {
-                    return ActionResult.SUCCESS;
-                }
-                return ActionResult.PASS;
-            }
-        });
-    }*/
 }
