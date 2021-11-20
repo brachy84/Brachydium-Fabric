@@ -1,8 +1,8 @@
 package brachy84.brachydium.api.gui;
 
 import brachy84.brachydium.Brachydium;
-import brachy84.brachydium.gui.api.ProgressTexture;
-import brachy84.brachydium.gui.api.TextureArea;
+import brachy84.brachydium.gui.api.rendering.ProgressTexture;
+import brachy84.brachydium.gui.api.rendering.TextureArea;
 import net.minecraft.util.Identifier;
 
 public class GuiTextures {

@@ -137,7 +137,7 @@ public class Recipe {
      * @return true if the recipe matches the given inputs false otherwise.
      */
     public boolean matches(boolean consumeIfSuccessful, List<ItemStack> inputs, List<FluidStack> fluidInputs, MatchingMode matchingMode) {
-        Pair<Boolean, Integer[]> fluids = null;
+        Pair<Boolean, Long[]> fluids = null;
         Pair<Boolean, Integer[]> items = null;
 
         if (matchingMode == MatchingMode.IGNORE_FLUIDS) {
@@ -163,11 +163,11 @@ public class Recipe {
         }
 
         if (consumeIfSuccessful && matchingMode == MatchingMode.DEFAULT) {
-            Integer[] fluidAmountInTank = fluids.getValue();
+            Long[] fluidAmountInTank = fluids.getValue();
             Integer[] itemAmountInSlot = items.getValue();
             for (int i = 0; i < fluidAmountInTank.length; i++) {
                 FluidStack fluidStack = fluidInputs.get(i);
-                int fluidAmount = fluidAmountInTank[i];
+                long fluidAmount = fluidAmountInTank[i];
                 if (fluidStack == null || fluidStack.getAmount() == fluidAmount)
                     continue;
                 fluidStack.setAmount(fluidAmount);
@@ -217,8 +217,8 @@ public class Recipe {
         return Pair.of(true, itemAmountInSlot);
     }
 
-    private Pair<Boolean, Integer[]> matchesFluid(List<FluidStack> fluidInputs) {
-        Integer[] fluidAmountInTank = new Integer[fluidInputs.size()];
+    private Pair<Boolean, Long[]> matchesFluid(List<FluidStack> fluidInputs) {
+        Long[] fluidAmountInTank = new Long[fluidInputs.size()];
 
         for (int i = 0; i < fluidAmountInTank.length; i++) {
             FluidStack fluidInTank = fluidInputs.get(i);
@@ -226,7 +226,7 @@ public class Recipe {
         }
 
         for (FluidStack fluid : this.fluidInputs) {
-            int fluidAmount = fluid.getAmount();
+            long fluidAmount = fluid.getAmount();
             boolean isNotConsumed = false;
             if (fluidAmount == 0) {
                 fluidAmount = 1;
@@ -236,7 +236,7 @@ public class Recipe {
                 FluidStack tankFluid = fluidInputs.get(i);
                 if (tankFluid == null || !FluidStack.matchesStack(tankFluid, fluid))
                     continue;
-                int fluidAmountToConsume = Math.min(fluidAmountInTank[i], fluidAmount);
+                long fluidAmountToConsume = Math.min(fluidAmountInTank[i], fluidAmount);
                 fluidAmount -= fluidAmountToConsume;
                 if (!isNotConsumed) fluidAmountInTank[i] -= fluidAmountToConsume;
                 if (fluidAmount == 0) break;

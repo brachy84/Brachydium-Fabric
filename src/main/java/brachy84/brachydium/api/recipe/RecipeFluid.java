@@ -18,12 +18,12 @@ public class RecipeFluid implements Predicate<FluidStack>, Iterable<FluidStack> 
     private final List<FluidStack> values;
     private final List<Tag<Fluid>> tags;
     private final List<FluidStack> allValid = new ArrayList<>();
-    private final int amount;
+    private final long amount;
     private final float chance;
 
     private boolean loadedLoadables;
 
-    public RecipeFluid(List<FluidStack> values, List<Tag<Fluid>> tags, int amount, float chance) {
+    public RecipeFluid(List<FluidStack> values, List<Tag<Fluid>> tags, long amount, float chance) {
         this.values = Objects.requireNonNull(values);
         this.tags = Objects.requireNonNull(tags);
         this.amount = amount;
@@ -37,11 +37,11 @@ public class RecipeFluid implements Predicate<FluidStack>, Iterable<FluidStack> 
         buildValidList();
     }
 
-    public RecipeFluid(int amount, float chance, Tag<Fluid>... tags) {
+    public RecipeFluid(long amount, float chance, Tag<Fluid>... tags) {
         this(new ArrayList<>(), Lists.newArrayList(tags), amount, chance);
     }
 
-    public RecipeFluid(int amount, float chance, FluidStack... values) {
+    public RecipeFluid(long amount, float chance, FluidStack... values) {
         this(Lists.newArrayList(values), new ArrayList<>(), amount, chance);
     }
 
@@ -68,7 +68,7 @@ public class RecipeFluid implements Predicate<FluidStack>, Iterable<FluidStack> 
         return false;
     }
 
-    public int getAmount() {
+    public long getAmount() {
         return amount;
     }
 

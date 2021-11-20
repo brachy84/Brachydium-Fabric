@@ -14,13 +14,13 @@ import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.util.MathUtil;
 import brachy84.brachydium.api.util.TransferUtil;
 import brachy84.brachydium.api.util.ValidationResult;
-import brachy84.brachydium.gui.api.TextureArea;
+import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.math.AABB;
 import brachy84.brachydium.gui.api.math.Pos2d;
 import brachy84.brachydium.gui.api.math.Size;
+import brachy84.brachydium.gui.api.rendering.TextureArea;
 import brachy84.brachydium.gui.api.widgets.ItemSlotWidget;
 import brachy84.brachydium.gui.api.widgets.ProgressBarWidget;
-import brachy84.brachydium.gui.internal.Gui;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
@@ -45,11 +45,11 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     }
 
     public static <R extends RecipeBuilder<R>> Builder<R> builder(String unlocalizedName, R sample) {
-        if(unlocalizedName == null)
+        if (unlocalizedName == null)
             throw new NullPointerException("RecipeTable can not have a null name");
-        if(sample == null)
+        if (sample == null)
             throw new NullPointerException("RecipeTable can not have a null sample");
-        if(RECIPE_TABLES.containsKey(unlocalizedName))
+        if (RECIPE_TABLES.containsKey(unlocalizedName))
             throw new IllegalStateException("A RecipeTable with name '" + unlocalizedName + "' already exists!");
         return new Builder<R>(unlocalizedName, sample);
     }
@@ -93,8 +93,8 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     private TextureArea fluidSlotOverlay;
 
     private RecipeTable(String unlocalizedName, int minInputs, int maxInputs, int minOutputs,
-                       int maxOutputs, int minFluidInputs, int maxFluidInputs, int minFluidOutputs, int maxFluidOutputs,
-                       R defaultRecipe, BiConsumer<TileEntity, Gui.Builder> guiBuilder) {
+                        int maxOutputs, int minFluidInputs, int maxFluidInputs, int minFluidOutputs, int maxFluidOutputs,
+                        R defaultRecipe, BiConsumer<TileEntity, Gui.Builder> guiBuilder) {
 
         this.unlocalizedName = unlocalizedName;
 
@@ -149,8 +149,8 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
     @ApiStatus.Internal
     public static void loadRecipes() {
         Brachydium.LOGGER.info("Loading Brachydium recipes");
-        for(RecipeTable<?> recipeTable : RECIPE_TABLES.values()) {
-            for(Recipe recipe : recipeTable.recipeSet) {
+        for (RecipeTable<?> recipeTable : RECIPE_TABLES.values()) {
+            for (Recipe recipe : recipeTable.recipeSet) {
                 for (RecipeItem countableIngredient : recipe.getInputs()) {
                     List<ItemStack> stacks = countableIngredient.getAllValid();
                     for (ItemStack itemStack : stacks) {
@@ -176,15 +176,15 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
 
     public void addRecipe(ValidationResult<Recipe> validationResult) {
         validationResult = postValidateRecipe(validationResult);
-        if(validationResult.doSkip())
+        if (validationResult.doSkip())
             return;
-        else if(validationResult.isInvalid()) {
+        else if (validationResult.isInvalid()) {
             setFoundInvalidRecipe(true);
             return;
         }
         Recipe recipe = validationResult.getResult();
         if (recipeSet.add(recipe)) {
-            if(recipeMap.containsKey(recipe.getName())) {
+            if (recipeMap.containsKey(recipe.getName())) {
                 throw new IllegalStateException("A recipe with name " + recipe.getName() + " is already registered in " + this);
             }
             recipeMap.put(recipe.getName(), recipe);
@@ -206,7 +206,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
             Brachydium.LOGGER.error("Stacktrace:", new IllegalArgumentException());
             recipeStatus = ValidationResult.State.INVALID;
         }
-        if (!MathUtil.isInRange( recipe.getFluidInputs().size(), getMinFluidInputs(), getMaxFluidInputs())) {
+        if (!MathUtil.isInRange(recipe.getFluidInputs().size(), getMinFluidInputs(), getMaxFluidInputs())) {
             Brachydium.LOGGER.error("Invalid amount of recipe fluid inputs. Actual: {}. Should be between {} and {} inclusive.", recipe.getFluidInputs().size(), getMinFluidInputs(), getMaxFluidInputs());
             Brachydium.LOGGER.error("Stacktrace:", new IllegalArgumentException());
             recipeStatus = ValidationResult.State.INVALID;
@@ -377,10 +377,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                 }
             }
         }
-        return prioritizedRecipe(priorityRecipeMap,iteratedRecipes,inputs,fluidInputs,matchingMode);
+        return prioritizedRecipe(priorityRecipeMap, iteratedRecipes, inputs, fluidInputs, matchingMode);
     }
 
-    private Recipe prioritizedRecipe(Map<Integer, LinkedList<Recipe>> priorityRecipeMap, HashSet<Recipe> iteratedRecipes,List<ItemStack> inputs, List<FluidStack> fluidInputs, MatchingMode matchingMode) {
+    private Recipe prioritizedRecipe(Map<Integer, LinkedList<Recipe>> priorityRecipeMap, HashSet<Recipe> iteratedRecipes, List<ItemStack> inputs, List<FluidStack> fluidInputs, MatchingMode matchingMode) {
         for (int i = priorityRecipeMap.size(); i >= 0; i--) {
             if (priorityRecipeMap.containsKey(i)) {
                 for (Recipe tmpRecipe : priorityRecipeMap.get(i)) {
@@ -396,7 +396,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         return null;
     }
 
-    private void calculateRecipePriority(Recipe recipe, HashMap<Recipe, Integer> promotedTimes, Map<Integer, LinkedList<Recipe>> priorityRecipeMap ) {
+    private void calculateRecipePriority(Recipe recipe, HashMap<Recipe, Integer> promotedTimes, Map<Integer, LinkedList<Recipe>> priorityRecipeMap) {
         Integer p = promotedTimes.get(recipe);
         if (p == null) {
             p = 0;
@@ -462,7 +462,7 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                                          Inventory itemHandler,
                                          IFluidHandler fluidHandler, boolean isOutputs) {
         int itemInputsCount = itemHandler.size();
-        int fluidInputsCount = fluidHandler.getTanks();
+        int fluidInputsCount = fluidHandler.size();
         boolean invertFluids = false;
         if (itemInputsCount == 0) {
             int tmp = itemInputsCount;
@@ -506,7 +506,10 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
                            IFluidHandler fluidHandler, boolean isFluid, boolean isOutputs) {
         if (!isFluid) {
             ItemSlotWidget slot = new ItemSlotWidget(itemHandler, slotIndex, new Pos2d(x, y));
-            if (isOutputs) slot.markOutput();
+            if (isOutputs) {
+                slot.markOutput()
+                    .setInsertPredicate(stack -> false);
+            }
             else slot.markInput();
             builder.widget(slot);
         } else {
@@ -559,9 +562,9 @@ public class RecipeTable<R extends RecipeBuilder<R>> {
         private int minFluidInputs = 0, maxFluidInputs = 0, minFluidOutputs = 0, maxFluidOutputs = 0;
 
         private Builder(String name, R sample) {
-             this.unlocalizedName = name;
-             this.recipeBuilderSample = sample;
-         }
+            this.unlocalizedName = name;
+            this.recipeBuilderSample = sample;
+        }
 
         public Builder<R> itemInputs(int min, int max) {
             this.minInputs = min;

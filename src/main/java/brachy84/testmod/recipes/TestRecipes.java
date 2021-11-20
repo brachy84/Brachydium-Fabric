@@ -2,6 +2,8 @@ package brachy84.testmod.recipes;
 
 import brachy84.brachydium.api.recipe.RecipeTables;
 import brachy84.brachydium.api.unification.material.Materials;
+import net.minecraft.block.Blocks;
+import net.minecraft.fluid.Fluids;
 import net.minecraft.item.Items;
 
 import static brachy84.brachydium.api.unification.material.Materials.*;
@@ -24,6 +26,15 @@ public class TestRecipes {
                 .output(Items.IRON_INGOT, 2)
                 .duration(40)
                 .EUt(100)
+                .buildAndRegister();
+
+        RecipeTables.MIXER_RECIPES.recipeBuilder()
+                .input(plate, Bronze, 1)
+                .fluidInput(Fluids.WATER, 81000)
+                .fluidInput(Fluids.LAVA, 81000)
+                .output(Blocks.OBSIDIAN.asItem(), 2)
+                .duration(60)
+                .EUt(512)
                 .buildAndRegister();
 
         /*RecipeTables.ALLOYER_RECIPES.recipeBuilder("special_gold")

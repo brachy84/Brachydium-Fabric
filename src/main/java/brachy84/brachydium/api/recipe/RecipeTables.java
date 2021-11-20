@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.recipe;
 
-import brachy84.brachydium.api.gui.SlotGroup;
 import brachy84.brachydium.api.recipe.builders.SimpleRecipeBuilder;
 import brachy84.brachydium.gui.api.math.Alignment;
 import brachy84.brachydium.gui.api.math.EdgeInset;
@@ -12,12 +11,12 @@ public class RecipeTables {
             .itemOutputs(1, 1)
             .fluidInputs(0, 0)
             .fluidOutputs(0, 0)
-            .setGuiBuilder((tile, builder) -> {
+            /*.setGuiBuilder((tile, builder) -> {
                 builder.widget(new SlotGroup(tile.getImportInventory(), tile.getImportFluidHandler())
                             .setAlignment(Alignment.CenterLeft).setMargin(EdgeInset.left(8)))
                         .widget(new SlotGroup(tile.getExportInventory(), tile.getExportFluidHandler())
                                 .setAlignment(Alignment.CenterRight).setMargin(EdgeInset.right(8)));
-            })
+            })*/
             .build();
 
     public static final RecipeTable<SimpleRecipeBuilder> MIXER_RECIPES = RecipeTable.simpleBuilder("mixer")
@@ -25,12 +24,12 @@ public class RecipeTables {
             .itemOutputs(0, 1)
             .fluidInputs(0, 2)
             .fluidOutputs(0, 1)
-            .setGuiBuilder((tile, builder) -> {
+            /*.setGuiBuilder((tile, builder) -> {
                 builder.widget(new SlotGroup(tile.getImportInventory(), tile.getImportFluidHandler())
                         .setAlignment(Alignment.CenterLeft).setMargin(EdgeInset.left(8)))
                         .widget(new SlotGroup(tile.getExportInventory(), tile.getExportFluidHandler())
                                 .setAlignment(Alignment.CenterRight).setMargin(EdgeInset.right(8)));
-            })
+            })*/
             .build();
 
     /*public static final RecipeTable<SimpleRecipeBuilder> MACERATOR_RECIPES = new RecipeTable<>("macerator", 1, 1, 1, 3, 0, 0, 0, 0, new SimpleRecipeBuilder().duration(20).EUt(2));
