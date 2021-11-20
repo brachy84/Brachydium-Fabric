@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.block;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.blockEntity.TileEntityGroup;
@@ -43,9 +42,7 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         return ((world1, pos, state1, blockEntity) -> {
-            TileEntity tile = TileEntity.getOf(blockEntity);
-            if (tile != null && tile.isTicking())
-                tile.tick();
+            ((BlockEntityHolder) blockEntity).tick();
         });
     }
 
@@ -59,21 +56,21 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        Brachydium.LOGGER.info("Creating blockEntity");
         return new BlockEntityHolder(group, pos, state);
     }
 
     @Override
     public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.onPlaced(world, pos, state, placer, stack);
-        Brachydium.LOGGER.info("BlockEntity placed!");
-        //TODO: test this on server. If crashes, insert !isClient and sync facing
+        if (world.isClient)
+            return;
         if (stack.getItem() instanceof BlockMachineItem && stack.hasNbt()) {
             TileEntity tile = group.getBlockEntity(stack.getNbt());
             if (tile != null) {
                 BlockEntity blockEntity = world.getBlockEntity(pos);
-                if (blockEntity instanceof BlockEntityHolder) {
-                    ((BlockEntityHolder) blockEntity).setActiveTileEntity(tile, placer.getHorizontalFacing().getOpposite());
+                if (blockEntity instanceof BlockEntityHolder holder) {
+                    holder.setActiveTileEntity(tile, placer.getHorizontalFacing().getOpposite());
+                    holder.syncPlaceData();
                 }
             }
         }
@@ -109,7 +106,7 @@ public class BlockEntityHolderBlock extends Block implements BlockEntityProvider
     @Override
     public ItemStack getPickStack(BlockView world, BlockPos pos, BlockState state) {
         TileEntity tile = TileEntity.getOf(world, pos);
-        if(tile != null) {
+        if (tile != null) {
             return tile.asStack();
         }
         return group.getFallbackTile().asStack();

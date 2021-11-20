@@ -8,9 +8,9 @@ import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.handlers.EnergyContainerHandler;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.Textures;
+import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.math.Alignment;
 import brachy84.brachydium.gui.api.math.EdgeInset;
-import brachy84.brachydium.gui.internal.Gui;
 import net.minecraft.entity.player.PlayerEntity;
 import org.jetbrains.annotations.NotNull;
 

@@ -20,7 +20,7 @@ import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
 import brachy84.brachydium.api.worldgen.OreVein;
 import brachy84.brachydium.api.worldgen.feature.BrachydiumFeatures;
-import brachy84.brachydium.gui.internal.UIFactory;
+import brachy84.brachydium.gui.api.UIFactory;
 import brachy84.brachydium.loaders.tag_processing.IngotProcessor;
 import com.google.common.collect.Lists;
 import me.shedaniel.autoconfig.AutoConfig;
@@ -99,6 +99,7 @@ public class Brachydium implements ModInitializer {
         //WorldgenLoader.INSTANCE.register();
         Textures.init();
         plugins.addAll(FabricLoader.getInstance().getEntrypoints("brachydium", BrachydiumInitializer.class));
+        LOGGER.info("Found {} plugins", plugins.size());
         Registry.register(Registry.ITEM, id("void"), VOID_ITEM);
 
         Materials.register();

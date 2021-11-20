@@ -1,7 +1,6 @@
 package brachy84.testmod;
 
 import brachy84.brachydium.api.BrachydiumInitializer;
-import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.testmod.recipes.TestRecipes;
 
 public class BrachydiumPlugin implements BrachydiumInitializer {

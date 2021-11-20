@@ -55,6 +55,10 @@ public class TileEntityGroup {
         return tileEntities[readKey(tag)];
     }
 
+    public TileEntity getTile(int key) {
+        return tileEntities[key];
+    }
+
     public void writeNbt(NbtCompound tag, Integer key) {
         tag.putInt(TILE_KEY, key);
     }
@@ -73,7 +77,11 @@ public class TileEntityGroup {
     }
 
     @ApiStatus.Internal
-    public void setType(BlockEntityType<BlockEntityHolder> type) {
+    public void register(Block block, BlockItem item, BlockEntityType<BlockEntityHolder> type) {
+        if(this.type != null)
+            throw new IllegalStateException("register should only be called once");
+        this.block = block;
+        this.item = item;
         this.type = type;
     }
 
@@ -81,18 +89,8 @@ public class TileEntityGroup {
         return item;
     }
 
-    @ApiStatus.Internal
-    public void setItem(BlockItem item) {
-        this.item = item;
-    }
-
     public Block getBlock() {
         return block;
-    }
-
-    @ApiStatus.Internal
-    public void setBlock(Block block) {
-        this.block = block;
     }
 
     public Collection<TileEntity> getTileEntities() {

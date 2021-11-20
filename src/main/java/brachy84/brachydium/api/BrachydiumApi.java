@@ -1,5 +1,6 @@
 package brachy84.brachydium.api;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockEntityHolderBlock;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.*;
@@ -13,6 +14,7 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
 import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
 import net.minecraft.block.Block;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.BucketItem;
@@ -35,9 +37,9 @@ public class BrachydiumApi {
         Identifier id = group.id;
         Block block = registerBlock(id, new BlockEntityHolderBlock(group));
         BlockItem item = registerItem(id, new BlockMachineItem(block, group));
-        group.setBlock(block);
-        group.setItem(item);
-        group.setType(Registry.register(Registry.BLOCK_ENTITY_TYPE, id, FabricBlockEntityTypeBuilder.create((pos, state) -> new BlockEntityHolder(group, pos, state), block).build(null)));
+        BlockEntityType<BlockEntityHolder> type = FabricBlockEntityTypeBuilder.create((pos, state) -> new BlockEntityHolder(group, pos, state), block).build();
+        Registry.register(Registry.BLOCK_ENTITY_TYPE, id, type);
+        group.register(block, item, type);
         BLOCK_ENTITY_GROUP_REGISTRY.register(id, group);
         // register Apis
         Set<BlockApiLookup<Object, Object>> apis = new HashSet<>();

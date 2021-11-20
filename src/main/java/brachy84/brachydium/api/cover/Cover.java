@@ -98,6 +98,12 @@ public abstract class Cover {
      */
     public abstract void deserializeNbt(NbtCompound tag);
 
+    public void serializeClientNbt(NbtCompound tag) {
+    }
+
+    public void deserializeClientNbt(NbtCompound tag) {
+    }
+
     public Direction getAttachedSide() {
         return attachedSide;
     }

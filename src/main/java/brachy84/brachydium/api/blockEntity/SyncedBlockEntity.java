@@ -16,13 +16,13 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class SyncedBlockEntity extends BlockEntity {
-
-    private boolean didSyncInitial = false;
 
     public SyncedBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -46,39 +46,10 @@ public class SyncedBlockEntity extends BlockEntity {
     }
 
     public List<PlayerEntity> getPlayersInRange(double range) {
-        return world.getPlayers().stream().filter(player -> Math.sqrt(player.getBlockPos().getSquaredDistance(pos)) <= range).collect(Collectors.toList());
+        return world == null ? List.of() : world.getPlayers().stream().filter(player -> Math.sqrt(player.getBlockPos().getSquaredDistance(pos)) <= range).collect(Collectors.toList());
     }
 
     @Environment(EnvType.CLIENT)
     public void readCustomData(int id, PacketByteBuf buf) {
-    }
-
-    @ApiStatus.OverrideOnly
-    public void writeInitialData(PacketByteBuf buf) {
-    }
-
-    @ApiStatus.OverrideOnly
-    public void receiveInitialData(PacketByteBuf buf) {
-    }
-
-    public void syncInitialData() {
-        if (world != null && !world.isClient && !didSyncInitial) {
-            PacketByteBuf buf = PacketByteBufs.create();
-            buf.writeBlockPos(pos);
-            writeInitialData(buf);
-            getPlayersInRange(64)
-                    .forEach(player -> ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.SYNC_TILE_INIT, buf));
-            didSyncInitial = true;
-        }
-    }
-
-    @Override
-    public void setWorld(World world) {
-        super.setWorld(world);
-        syncInitialData();
-    }
-
-    public boolean didSyncInitial() {
-        return didSyncInitial;
     }
 }

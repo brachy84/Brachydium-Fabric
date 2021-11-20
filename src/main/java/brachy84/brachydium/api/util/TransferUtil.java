@@ -9,18 +9,39 @@ import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
 import net.fabricmc.fabric.api.transfer.v1.storage.StorageView;
 import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
+import net.fabricmc.fabric.mixin.transfer.BucketItemAccessor;
+import net.minecraft.fluid.Fluid;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 public class TransferUtil {
 
     private TransferUtil() {
+    }
+
+    private static final Map<Fluid, Item> BUCKET_ITEMS = new HashMap<>();
+
+    @Nullable
+    public static Item getBucketItem(Fluid fluid) {
+        return BUCKET_ITEMS.computeIfAbsent(fluid, key -> {
+            for (Item item : Registry.ITEM) {
+                if (item instanceof BucketItemAccessor bucketItem && bucketItem.fabric_getFluid() == fluid) {
+                    return item;
+                }
+            }
+            return null;
+        });
     }
 
     public static ItemStack itemStackWith(ItemStack stack, int count) {
@@ -44,8 +65,8 @@ public class TransferUtil {
 
     public static List<FluidStack> getFluidsOf(IFluidHandler fluidHandler) {
         List<FluidStack> fluids = new ArrayList<>();
-        for (int i = 0; i < fluidHandler.getTanks(); i++) {
-            FluidStack stack = fluidHandler.getStackAt(i);
+        for (int i = 0; i < fluidHandler.size(); i++) {
+            FluidStack stack = fluidHandler.getFluid(i);
             if (!stack.isEmpty())
                 fluids.add(stack);
         }
@@ -155,7 +176,7 @@ public class TransferUtil {
                     int toTake = item.getAmount();
                     for (ItemStack stack : item) {
                         toTake -= storage.extract(ItemVariant.of(stack), toTake, transaction1);
-                        if(toTake == 0) {
+                        if (toTake == 0) {
                             if (doTake)
                                 transaction1.commit();
                             else
@@ -203,14 +224,42 @@ public class TransferUtil {
     }
 
     public static void pack(IFluidHandler inventory, PacketByteBuf buf) {
-        for (int i = 0; i < inventory.getTanks(); i++) {
-            inventory.getStackAt(i).writeData(buf);
+        for (int i = 0; i < inventory.size(); i++) {
+            inventory.getFluid(i).writeData(buf);
         }
     }
 
     public static void unpack(IFluidHandler inventory, PacketByteBuf buf) {
-        for (int i = 0; i < inventory.getTanks(); i++) {
-            inventory.setStack(i, FluidStack.readData(buf));
+        for (int i = 0; i < inventory.size(); i++) {
+            inventory.setFluid(i, FluidStack.readData(buf));
+        }
+    }
+
+    public static NbtElement inventoryToNbt(Inventory inventory) {
+        NbtList list = new NbtList();
+        for (int i = 0; i < inventory.size(); i++) {
+            list.add(inventory.getStack(i).writeNbt(new NbtCompound()));
+        }
+        return list;
+    }
+
+    public static void inventoryFromNbt(NbtList list, BiConsumer<Integer, ItemStack> setter) {
+        for (int i = 0; i < list.size(); i++) {
+            setter.accept(i, ItemStack.fromNbt(list.getCompound(i)));
+        }
+    }
+
+    public static NbtElement fluidHandlerToNbt(IFluidHandler inventory) {
+        NbtList list = new NbtList();
+        for (int i = 0; i < inventory.size(); i++) {
+            list.add(inventory.getFluid(i).toNbt());
+        }
+        return list;
+    }
+
+    public static void fluidHandlerFromNbt(NbtList list, BiConsumer<Integer, FluidStack> setter) {
+        for (int i = 0; i < list.size(); i++) {
+            setter.accept(i, FluidStack.fromNbt(list.getCompound(i)));
         }
     }
 }

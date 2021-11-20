@@ -1,13 +1,18 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.gui.internal.Gui;
+import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.network.Channels;
+import brachy84.brachydium.gui.api.Gui;
 import net.fabricmc.fabric.api.block.entity.BlockEntityClientSerializable;
+import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -49,7 +54,7 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
     }
 
     public void tick() {
-        if (currentTile != null)
+        if (currentTile != null && currentTile.isTicking())
             currentTile.tick();
     }
 
@@ -60,31 +65,19 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
     }
 
     @Override
-    public void writeInitialData(PacketByteBuf buf) {
-        if (currentTile != null)
-            currentTile.writeInitialData(buf);
-    }
-
-    @Override
-    public void receiveInitialData(PacketByteBuf buf) {
-        if (currentTile != null)
-            currentTile.receiveInitialData(buf);
-    }
-
-    @Override
     public void setWorld(World world) {
         this.world = world;
         if (currentTile != null) {
-            syncInitialData();
+            super.setWorld(world);
         }
     }
 
     @Override
     public NbtCompound writeNbt(NbtCompound tag) {
         super.writeNbt(tag);
-        tag.putString("ID", group.id.toString());
+        Brachydium.LOGGER.info("Write NBT");
         if (currentTile != null) {
-            tag.put("Tile", currentTile.serializeTag());
+            tag.put("Tile", currentTile.serializeNbt());
             group.writeNbt(tag, currentTile.getGroupKey());
             tag.putInt("dir", currentTile.getFrontFace().getId());
         }
@@ -94,10 +87,13 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
     @Override
     public void readNbt(NbtCompound tag) {
         super.readNbt(tag);
+        Brachydium.LOGGER.info("Read NBT");
         if (currentTile == null) {
-            setActiveTileEntity(group.getBlockEntity(tag), Direction.byId(tag.getInt("dir")));
+            if (tag.contains(TileEntityGroup.TILE_KEY)) {
+                setActiveTileEntity(group.getBlockEntity(tag), Direction.byId(tag.getInt("dir")));
+                currentTile.deserializeNbt(tag.getCompound("Tile"));
+            }
         }
-        currentTile.deserializeTag(tag.getCompound("Tile"));
     }
 
     public void setActiveTileEntity(TileEntity tile, Direction front) {
@@ -105,11 +101,11 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
             this.currentTile.onDetach();
             this.currentTile.setHolder(null);
         }
+        Brachydium.LOGGER.info("Setting tile {}. World {}", tile.getGroupKey(), world == null ? "null" : world.isClient);
         this.currentTile = tile.createCopyInternal();
         this.currentTile.setHolder(this);
         this.currentTile.setFrontFace(front);
         this.currentTile.onAttach();
-        syncInitialData();
     }
 
     public TileEntity getActiveTileEntity() {
@@ -125,16 +121,13 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
     }
 
     public void scheduleRenderUpdate() {
-        if (world instanceof ClientWorld) {
-            ((ClientWorld) world).scheduleBlockRenders(pos.getX(), pos.getY(), pos.getZ());
+        if (world instanceof ClientWorld clientWorld) {
+            clientWorld.scheduleBlockRenders(pos.getX(), pos.getY(), pos.getZ());
         }
     }
 
     public boolean hasUI() {
-        if (currentTile != null) {
-            return currentTile.hasUI();
-        }
-        return false;
+        return currentTile != null && currentTile.hasUI();
     }
 
     public @NotNull Gui createUi(PlayerEntity player) {
@@ -144,11 +137,32 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
         return Gui.defaultBuilder(player).build();
     }
 
+    public void syncPlaceData() {
+        if (world != null && !world.isClient) {
+            PacketByteBuf buf = PacketByteBufs.create();
+            buf.writeBlockPos(pos);
+            buf.writeVarInt(currentTile.getGroupKey());
+            buf.writeVarInt(currentTile.getFrontFace().getId());
+            getPlayersInRange(64).forEach(player -> {
+                ServerPlayNetworking.send((ServerPlayerEntity) player, Channels.SYNC_TILE_INIT, buf);
+            });
+        }
+    }
+
+    public void readPlaceData(PacketByteBuf buf) {
+        int tileId = buf.readVarInt();
+        int front = buf.readVarInt();
+        if (currentTile == null) {
+            setActiveTileEntity(group.getTile(tileId), Direction.byId(front));
+        }
+    }
+
     @Override
     public void fromClientTag(NbtCompound tag) {
         if (currentTile == null) {
             setActiveTileEntity(group.getBlockEntity(tag), Direction.byId(tag.getInt("dir")));
         }
+        currentTile.deserializeClientNbt(tag.getCompound("Tile"));
     }
 
     @Override
@@ -156,6 +170,7 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
         if (currentTile == null) return tag;
         group.writeNbt(tag, currentTile.getGroupKey());
         tag.putInt("dir", currentTile.getFrontFace().getId());
+        tag.put("Tile", currentTile.serializeClientNbt());
         return tag;
     }
 }

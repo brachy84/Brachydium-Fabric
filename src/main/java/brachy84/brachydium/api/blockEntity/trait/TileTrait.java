@@ -70,14 +70,6 @@ public abstract class TileTrait extends ApiHolder {
     public void readCustomData(int id, PacketByteBuf buf) {
     }
 
-    @ApiStatus.OverrideOnly
-    public void writeInitialData(PacketByteBuf buf) {
-    }
-
-    @ApiStatus.OverrideOnly
-    public void receiveInitialData(PacketByteBuf buf) {
-    }
-
     /**
      * Gets called on MetaBlockEntity nbt serialization
      *
@@ -91,6 +83,13 @@ public abstract class TileTrait extends ApiHolder {
      * @param tag to deserialize
      */
     abstract public void deserializeNbt(NbtCompound tag);
+
+    public NbtCompound serializeClientNbt() {
+        return new NbtCompound();
+    }
+
+    public void deserializeClientNbt(NbtCompound tag) {
+    }
 
     public TileEntity getTile() {
         return tile;

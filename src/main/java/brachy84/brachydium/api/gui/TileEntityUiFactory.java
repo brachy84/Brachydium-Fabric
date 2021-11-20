@@ -2,7 +2,7 @@ package brachy84.brachydium.api.gui;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.TileEntity;
-import brachy84.brachydium.gui.internal.UIFactory;
+import brachy84.brachydium.gui.api.UIFactory;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.util.Identifier;
