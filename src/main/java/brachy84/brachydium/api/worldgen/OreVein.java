@@ -2,6 +2,7 @@ package brachy84.brachydium.api.worldgen;
 
 import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.OreBlock;
+import brachy84.brachydium.api.blockEntity.SurfaceStoneBlockEntity;
 import brachy84.brachydium.api.unification.material.Material;
 import brachy84.brachydium.api.unification.material.Materials;
 import brachy84.brachydium.api.worldgen.feature.BrachydiumFeatures;
@@ -13,7 +14,6 @@ import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
 import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.structure.rule.RuleTest;
 import net.minecraft.util.collection.DataPool;
 import net.minecraft.util.math.intprovider.UniformIntProvider;
@@ -40,9 +40,10 @@ public class OreVein {
         new Builder("copper")
                 .addOre(Materials.Copper, 1)
                 .addOre(Materials.Iron, 2)
-                .surfaceBlock(Blocks.CAKE.getDefaultState())
+                .surfaceMaterial(Materials.Copper)
                 .minSize(4, 4, 4)
                 .maxSize(12, 4, 12)
+                .surfaceSpawn(0.6f, 20)
                 .spawnY(30, 60)
                 .density(0.5f)
                 .chance(3)
@@ -50,15 +51,16 @@ public class OreVein {
     }
 
     public static class Builder {
+        public final Map<BlockState, Integer> ores = new HashMap<>();
+        public final String name;
         public int radiusXmin = 4, radiusYmin = 4, radiusZmin = 4, radiusXmax = 4, radiusYmax = 4, radiusZmax = 4, chance = 20, minY = 10, maxY = 50, minForSurfaceStone = 200;
         public float surfaceStoneChance = 0.2f;
         public float density = 0.8f;
-        public final Map<BlockState, Integer> ores = new HashMap<>();
         public BlockState surfaceBlock;
+        public Material surfaceMaterial;
         public int surfaceBlockCountMin = 1, surfaceBlockCountMax = 4, surfaceBlockRadiusMin = 6, surfaceBlockRadiusMax = 12;
         public boolean generateSurfaceBlockUnderwater = true;
         public RuleTest test = OreFeatureConfig.Rules.BASE_STONE_OVERWORLD;
-        public final String name;
         public Predicate<BiomeSelectionContext> biomeSelector = BiomeSelectors.foundInOverworld();
 
         public Builder(String name) {
@@ -67,6 +69,11 @@ public class OreVein {
 
         public Builder surfaceBlock(BlockState state) {
             this.surfaceBlock = state;
+            return this;
+        }
+
+        public Builder surfaceMaterial(Material material) {
+            this.surfaceMaterial = material;
             return this;
         }
 
@@ -95,7 +102,7 @@ public class OreVein {
 
         public Builder addOre(Material material, int weight) {
             OreBlock oreBlock = OreBlock.getOre(material);
-            if(oreBlock == null)
+            if (oreBlock == null)
                 return this;
             return addOre(oreBlock.getDefaultState(), weight);
         }
@@ -146,12 +153,15 @@ public class OreVein {
         }
 
         public ConfiguredFeature<?, ?> build() {
+            if (surfaceMaterial != null) {
+                surfaceBlock = SurfaceStoneBlockEntity.BLOCK.getDefaultState();
+            }
             ConfiguredOreVeinPopulator<?> populator = surfaceBlock == null ? null : OreVeinPopulators.SURFACE_BLOCK.configure(
                     new SurfaceBlockPopulatorConfig(
                             surfaceBlock,
                             UniformIntProvider.create(surfaceBlockCountMin, surfaceBlockCountMax),
                             generateSurfaceBlockUnderwater,
-                            UniformIntProvider.create(surfaceBlockRadiusMin, surfaceBlockRadiusMax)));
+                            UniformIntProvider.create(surfaceBlockRadiusMin, surfaceBlockRadiusMax), surfaceMaterial == null ? null : surfaceMaterial.toString()));
             DataPool.Builder<OreVeinFeatureConfig.TargetGroup> builder = DataPool.builder();
             for (Map.Entry<BlockState, Integer> entry : ores.entrySet()) {
                 builder.add(new OreVeinFeatureConfig.TargetGroup(List.of(new OreVeinFeatureConfig.Target(test, entry.getKey()))), entry.getValue());
@@ -159,8 +169,8 @@ public class OreVein {
 
             ConfiguredFeature<?, ?> feature = BrachydiumFeatures.ORE_VEIN.configure(new OreVeinFeatureConfig(
                     UniformIntProvider.create(radiusXmin, radiusXmax),
-                    UniformIntProvider.create(radiusXmin, radiusXmax),
-                    UniformIntProvider.create(radiusXmin, radiusXmax),
+                    UniformIntProvider.create(radiusZmin, radiusZmax),
+                    UniformIntProvider.create(radiusYmin, radiusYmax),
                     List.of(new OreVeinFeatureConfig.GenerationLayer(builder.build(), 0f, 1f, density, 1f, 1f)),
                     populator,
                     minForSurfaceStone,

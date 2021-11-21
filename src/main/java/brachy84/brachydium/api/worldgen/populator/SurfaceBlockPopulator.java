@@ -1,5 +1,9 @@
 package brachy84.brachydium.api.worldgen.populator;
 
+import brachy84.brachydium.api.block.SurfaceStoneBlock;
+import brachy84.brachydium.api.blockEntity.SurfaceStoneBlockEntity;
+import brachy84.brachydium.api.unification.material.Material;
+import brachy84.brachydium.api.unification.material.MaterialRegistry;
 import com.mojang.serialization.Codec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -51,6 +55,13 @@ public class SurfaceBlockPopulator extends OreVeinPopulator<SurfaceBlockPopulato
             BlockState blockState = config.getBlockState();
             if (!world.setBlockState(blockPos, blockState, Block.NOTIFY_LISTENERS)) {
                 continue;
+            }
+
+            if(blockState.getBlock() instanceof SurfaceStoneBlock) {
+                SurfaceStoneBlockEntity surfaceStoneBlockEntity = (SurfaceStoneBlockEntity) world.getBlockEntity(blockPos);
+                Material material = MaterialRegistry.get(config.getMaterial());
+                if(surfaceStoneBlockEntity != null && material != null)
+                    surfaceStoneBlockEntity.setMaterial(material);
             }
 
             if (isInsideOfTheWater && blockState.getBlock() instanceof Waterloggable waterloggable) {

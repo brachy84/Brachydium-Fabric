@@ -12,19 +12,22 @@ public class SurfaceBlockPopulatorConfig implements OreVeinPopulatorConfig {
                     BlockState.CODEC.fieldOf("block").forGetter(SurfaceBlockPopulatorConfig::getBlockState),
                     IntProvider.createValidatingCodec(0, 100).fieldOf("count").forGetter(SurfaceBlockPopulatorConfig::getBlockCount),
                     Codec.BOOL.optionalFieldOf("generate_underwater", true).forGetter(SurfaceBlockPopulatorConfig::shouldGenerateUnderwater),
-                    IntProvider.createValidatingCodec(1, 32).fieldOf("radius").forGetter(SurfaceBlockPopulatorConfig::getRadius)
+                    IntProvider.createValidatingCodec(1, 32).fieldOf("radius").forGetter(SurfaceBlockPopulatorConfig::getRadius),
+                    Codec.STRING.fieldOf("material").forGetter(SurfaceBlockPopulatorConfig::getMaterial)
             ).apply(instance, SurfaceBlockPopulatorConfig::new));
 
     private final BlockState blockState;
     private final IntProvider blockCount;
     private final boolean generateUnderwater;
     private final IntProvider radius;
+    private final String material;
 
-    public SurfaceBlockPopulatorConfig(BlockState blockState, IntProvider blockCount, boolean generateUnderwater, IntProvider radius) {
+    public SurfaceBlockPopulatorConfig(BlockState blockState, IntProvider blockCount, boolean generateUnderwater, IntProvider radius, String material) {
         this.blockState = blockState;
         this.blockCount = blockCount;
         this.generateUnderwater = generateUnderwater;
         this.radius = radius;
+        this.material = material;
     }
 
     public BlockState getBlockState() {
@@ -41,5 +44,9 @@ public class SurfaceBlockPopulatorConfig implements OreVeinPopulatorConfig {
 
     public IntProvider getRadius() {
         return radius;
+    }
+
+    public String getMaterial() {
+        return material;
     }
 }

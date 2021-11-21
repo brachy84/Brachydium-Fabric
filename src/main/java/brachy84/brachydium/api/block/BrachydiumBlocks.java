@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.block;
 
 import brachy84.brachydium.Brachydium;
+import brachy84.brachydium.api.blockEntity.SurfaceStoneBlockEntity;
 import brachy84.brachydium.api.item.MaterialItem;
 import brachy84.brachydium.api.resource.RRPHelper;
 import brachy84.brachydium.api.unification.ore.TagDictionary;
@@ -13,6 +14,7 @@ public class BrachydiumBlocks {
 
     public static void init() {
         // material set models
+        SurfaceStoneBlockEntity.init();
         RRPHelper.generateMaterialBlockModel(TagDictionary.block);
         RRPHelper.generateMaterialBlockModel(TagDictionary.frameGt);
         RRPHelper.generateOreModels();
