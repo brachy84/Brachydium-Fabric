@@ -38,7 +38,11 @@ public class InventoryStorage extends CombinedStorage<ItemVariant, InventoryStor
         }
 
         public void setStack(ItemStack stack) {
-            inventory.setStack(index, stack);
+            // only cause an update in onFinalCommit
+            if (inventory instanceof IItemHandler itemHandler)
+                itemHandler.setStackSilently(index, stack);
+            else
+                inventory.setStack(index, stack);
         }
 
         @Override

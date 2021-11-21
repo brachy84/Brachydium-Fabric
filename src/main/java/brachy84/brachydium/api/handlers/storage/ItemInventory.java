@@ -89,9 +89,8 @@ public class ItemInventory implements IItemHandler {
     }
 
     @Override
-    public void setStack(int slot, ItemStack stack) {
+    public void setStackSilently(int slot, ItemStack stack) {
         items.set(slot, stack);
-        markDirty();
     }
 
     @Override
@@ -103,11 +102,6 @@ public class ItemInventory implements IItemHandler {
     @Override
     public boolean canPlayerUse(PlayerEntity player) {
         return true;
-    }
-
-    @Override
-    public void clear() {
-        items.clear();
     }
 
     @Override

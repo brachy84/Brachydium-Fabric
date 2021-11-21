@@ -85,9 +85,8 @@ public class FluidInventory implements IFluidHandler {
     }
 
     @Override
-    public void setFluid(int slot, FluidStack stack) {
+    public void setFluidSilently(int slot, FluidStack stack) {
         fluids.set(slot, stack);
-        markDirty();
     }
 
     @Override

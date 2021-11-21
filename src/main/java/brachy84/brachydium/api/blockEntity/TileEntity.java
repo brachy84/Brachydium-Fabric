@@ -54,6 +54,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         public static final int SYNC_OUTPUT_ITEMS = -101;
         public static final int SYNC_INPUT_FLUIDS = -102;
         public static final int SYNC_OUTPUT_FLUIDS = -103;
+        public static final int SYNC_TRAIT_DATA = -104;
+        public static final int SYNC_COVER_DATA = -105;
     }
 
     @Nullable
@@ -431,7 +433,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public void syncTraitData(TileTrait trait, int internalId, Consumer<PacketByteBuf> dataWriter) {
-        syncCustomData(-4, buffer -> {
+        syncCustomData(Const.SYNC_TRAIT_DATA, buffer -> {
             buffer.writeString(trait.getName());
             buffer.writeVarInt(internalId);
             dataWriter.accept(buffer);
@@ -439,7 +441,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public void syncCoverData(Cover cover, int internalId, Consumer<PacketByteBuf> dataWriter) {
-        syncCustomData(-7, buffer -> {
+        syncCustomData(Const.SYNC_COVER_DATA, buffer -> {
             buffer.writeByte(cover.getAttachedSide().getId());
             buffer.writeVarInt(internalId);
             dataWriter.accept(buffer);
@@ -453,11 +455,11 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     @Environment(EnvType.CLIENT)
     public void readCustomData(int id, PacketByteBuf buf) {
         switch (id) {
-            case -4 -> {
+            case Const.SYNC_TRAIT_DATA -> {
                 TileTrait trait = getTrait(buf.readString());
                 trait.readCustomData(buf.readVarInt(), buf);
             }
-            case -7 -> {
+            case Const.SYNC_COVER_DATA -> {
                 Cover cover = getCover(Direction.byId(buf.readByte()));
                 cover.readCustomData(buf.readVarInt(), buf);
             }
@@ -497,10 +499,10 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         }
         deserializeCovers(tag.getCompound("Covers"), false);
 
-        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStack);
-        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStack);
-        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluid);
-        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluid);
+        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStackSilently);
+        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStackSilently);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluidSilently);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluidSilently);
     }
 
     public NbtCompound serializeClientNbt() {
@@ -532,10 +534,10 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         }
         deserializeCovers(tag.getCompound("Covers"), true);
 
-        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStack);
-        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStack);
-        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluid);
-        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluid);
+        TransferUtil.inventoryFromNbt(tag.getList("InputItems", NbtElement.COMPOUND_TYPE), getImportInventory()::setStackSilently);
+        TransferUtil.inventoryFromNbt(tag.getList("OutputItems", NbtElement.COMPOUND_TYPE), getExportInventory()::setStackSilently);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("InputFluids", NbtElement.COMPOUND_TYPE), getImportFluidHandler()::setFluidSilently);
+        TransferUtil.fluidHandlerFromNbt(tag.getList("OutputFluids", NbtElement.COMPOUND_TYPE), getExportFluidHandler()::setFluidSilently);
     }
 
     public boolean isValid() {
