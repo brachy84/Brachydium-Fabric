@@ -131,7 +131,7 @@ public class OreVeinFeature extends Feature<OreVeinFeatureConfig> {
                     BlockState blockState = getStateForGeneration(random, config, existingState, proximityToTheBorder);
                     if (blockState != null) {
                         if (blockState.getBlock() instanceof OreBlock) {
-                            OreVariant.setStateFor(OreBlock.getVariantProperty(), blockState, existingState);
+                            blockState = OreVariant.setStateFor(OreBlock.getVariantProperty(), blockState, existingState.getBlock());
                         }
                         context.getWorld().setBlockState(mutableBlockPos, blockState, Block.NOTIFY_LISTENERS);
                         oreBlocksGenerated++;

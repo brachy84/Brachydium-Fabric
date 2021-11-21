@@ -1,6 +1,7 @@
 package brachy84.brachydium.api.block;
 
 import com.google.common.base.Preconditions;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.state.property.Property;
@@ -14,20 +15,20 @@ public class OreVariant extends Property<OreVariant.Variant> {
 
     @ApiStatus.Internal
     public static void init() {
-        registerVariant("stone", "minecraft:block/stone", Blocks.STONE.getDefaultState());
-        registerVariant("granite", "minecraft:block/granite", Blocks.GRANITE.getDefaultState());
-        registerVariant("diorite", "minecraft:block/diorite", Blocks.DIORITE.getDefaultState());
-        registerVariant("andesite", "minecraft:block/andesite", Blocks.ANDESITE.getDefaultState());
+        registerVariant("stone", "minecraft:block/stone", Blocks.STONE);
+        registerVariant("granite", "minecraft:block/granite", Blocks.GRANITE);
+        registerVariant("diorite", "minecraft:block/diorite", Blocks.DIORITE);
+        registerVariant("andesite", "minecraft:block/andesite", Blocks.ANDESITE);
     }
 
-    private static final Map<BlockState, Variant> VARIANTS = new HashMap<>();
+    private static final Map<Block, Variant> VARIANTS = new HashMap<>();
 
     public static Collection<Variant> getAll() {
         return Collections.unmodifiableCollection(VARIANTS.values());
     }
 
     @Nullable
-    public static Variant getVariantFor(BlockState state) {
+    public static Variant getVariantFor(Block state) {
         return VARIANTS.get(state);
     }
 
@@ -39,12 +40,11 @@ public class OreVariant extends Property<OreVariant.Variant> {
      * @param stateToReplace   the block that got replaces
      * @return if the state successfully set
      */
-    public static boolean setStateFor(OreVariant propertyInstance, BlockState ore, BlockState stateToReplace) {
+    public static BlockState setStateFor(OreVariant propertyInstance, BlockState ore, Block stateToReplace) {
         Variant variant = getVariantFor(stateToReplace);
         if (variant == null)
-            return false;
-        ore.with(propertyInstance, variant);
-        return true;
+            return ore;
+        return ore.with(propertyInstance, variant);
     }
 
     /**
@@ -55,7 +55,7 @@ public class OreVariant extends Property<OreVariant.Variant> {
      * @param block       the block of the texture
      * @see #init() for examples
      */
-    public static void registerVariant(String uniqueName, String texturePath, BlockState block) {
+    public static void registerVariant(String uniqueName, String texturePath, Block block) {
         Preconditions.checkNotNull(uniqueName, "name for OreVariant can not be null");
         Preconditions.checkNotNull(texturePath, "texturePath for OreVariant can not be null");
         Preconditions.checkNotNull(block, "blockSate for OreVariant can not be null");
@@ -105,9 +105,9 @@ public class OreVariant extends Property<OreVariant.Variant> {
 
         private final String name;
         private final String texturePath;
-        private final BlockState block;
+        private final Block block;
 
-        private Variant(String name, String texturePath, BlockState block) {
+        private Variant(String name, String texturePath, Block block) {
             this.name = name;
             this.texturePath = texturePath;
             this.block = block;
@@ -117,7 +117,7 @@ public class OreVariant extends Property<OreVariant.Variant> {
             return name;
         }
 
-        public BlockState getBlock() {
+        public Block getBlock() {
             return block;
         }
 

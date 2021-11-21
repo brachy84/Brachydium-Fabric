@@ -18,7 +18,7 @@ public class SurfaceStoneBlock extends Block implements BlockEntityProvider {
     public static final VoxelShape SHAPE = VoxelShapes.cuboid(0.25, 0, 0.25, 0.75, 3 / 16D, 0.75);
 
     public SurfaceStoneBlock() {
-        super(FabricBlockSettings.of(Material.STONE).breakByHand(true).strength(2f, 2f));
+        super(FabricBlockSettings.of(Material.STONE).breakByHand(true).strength(0.5f, 0.5f));
     }
 
     @Nullable
