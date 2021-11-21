@@ -6,11 +6,12 @@
   "mixins": [
     "ItemMixin",
     "RecipeManagerMixin",
-    "TagManagerMixin"
+    "TagManagerMixin",
+    "ItemStackMixin"
   ],
   "client": [
-    "ItemStackMixin",
-    "SpriteAtlasTextureMixin"
+    "SpriteAtlasTextureMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
