@@ -470,13 +470,15 @@ public abstract class AbstractRecipeLogic extends TileTrait implements IWorkable
     }
 
     @Override
-    public void writeInitialData(PacketByteBuf buf) {
-        buf.writeBoolean(this.isActive);
+    public NbtCompound serializeClientNbt() {
+        NbtCompound nbt = new NbtCompound();
+        nbt.putBoolean("Active", isActive());
+        return nbt;
     }
 
     @Override
-    public void receiveInitialData(PacketByteBuf buf) {
-        this.isActive = buf.readBoolean();
+    public void deserializeClientNbt(NbtCompound tag) {
+        setActive(tag.getBoolean("Active"));
     }
 
     @Override
