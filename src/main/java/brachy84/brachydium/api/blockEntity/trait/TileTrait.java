@@ -1,11 +1,9 @@
 package brachy84.brachydium.api.blockEntity.trait;
 
-import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.handlers.ApiHolder;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import org.jetbrains.annotations.ApiStatus;
@@ -15,14 +13,6 @@ import java.util.function.Consumer;
 
 public abstract class TileTrait extends ApiHolder {
 
-    public static String getTraitName(Class<? extends TileTrait> clazz) {
-        return clazz.getSimpleName();
-    }
-
-    public static String getTraitName(TileTrait trait) {
-        return trait.getClass().getSimpleName();
-    }
-
     protected final TileEntity tile;
     private final String id;
 
@@ -30,6 +20,14 @@ public abstract class TileTrait extends ApiHolder {
         this.tile = Objects.requireNonNull(tile);
         this.id = getTraitName(this);
         this.tile.addTrait(this);
+    }
+
+    public static String getTraitName(Class<? extends TileTrait> clazz) {
+        return clazz.getSimpleName();
+    }
+
+    public static String getTraitName(TileTrait trait) {
+        return trait.getClass().getSimpleName();
     }
 
     /**

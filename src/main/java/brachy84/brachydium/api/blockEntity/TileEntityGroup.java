@@ -9,7 +9,9 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * A BlockEntityGroup can hold multiple {@link TileEntity} which are serialized in nbt
@@ -20,30 +22,26 @@ public class TileEntityGroup {
 
     protected final TileEntity[] tileEntities;
     public final Identifier id;
-    public final String tileName;
+    public final Identifier registryId;
     private BlockEntityType<BlockEntityHolder> type;
     private BlockItem item;
     private Block block;
 
     public TileEntityGroup(Identifier id, TileEntity... tileEntities) {
-        if (!Objects.requireNonNull(id).getPath().startsWith("tile/"))
-            id = new Identifier(id.getNamespace(), "tile/" + id.getPath());
-        this.id = id;
-        this.tileName = id.getPath().split("/")[1];
+        this.id = Objects.requireNonNull(id, "TileEntityGroup id can not be null");
+        this.registryId = new Identifier(id.getNamespace(), "tile/" + id.getPath());
         if(tileEntities.length == 0)
             throw new IllegalArgumentException("There must be at least one TileEntity in a group");
         this.tileEntities = tileEntities;
         for (int i = 0; i < tileEntities.length; i++) {
-            TileEntity tile = Objects.requireNonNull(this.tileEntities[i]);
-            if (!isValid(tile))
-                throw new IllegalArgumentException("Tile of type " + tile.getClass().getSimpleName() + " is not valid for " + this.getClass().getSimpleName());
+            TileEntity tile = Objects.requireNonNull(this.tileEntities[i], "Null TileEntities are not allowed. GroupId " + id);
             tile.setGroup(this, i);
             tile.setUp();
         }
     }
 
-    public boolean isValid(TileEntity tile) {
-        return true;
+    public TileEntityGroup(Identifier id, List<TileEntity> tileEntities) {
+        this(id, tileEntities.toArray(new TileEntity[0]));
     }
 
     public TileEntity getBlockEntity(NbtCompound tag) {
@@ -53,6 +51,15 @@ public class TileEntityGroup {
             throw new IllegalStateException("Tag does not contain " + TILE_KEY);
         }
         return tileEntities[readKey(tag)];
+    }
+
+    public Optional<TileEntity> tryGetBlockEntity(NbtCompound tag) {
+        if (tag == null || !tag.contains(TILE_KEY))
+            return Optional.empty();
+        int key = readKey(tag);
+        if(key >= tileEntities.length)
+            return Optional.empty();
+        return Optional.of(tileEntities[readKey(tag)]);
     }
 
     public TileEntity getTile(int key) {
@@ -76,6 +83,9 @@ public class TileEntityGroup {
         return type;
     }
 
+    /**
+     * Should only be called Internally from {@link brachy84.brachydium.api.BrachydiumApi#registerTileEntityGroup(TileEntityGroup)}
+     */
     @ApiStatus.Internal
     public void register(Block block, BlockItem item, BlockEntityType<BlockEntityHolder> type) {
         if(this.type != null)

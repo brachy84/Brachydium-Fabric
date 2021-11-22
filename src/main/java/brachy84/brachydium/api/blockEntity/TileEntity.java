@@ -1,7 +1,7 @@
 package brachy84.brachydium.api.blockEntity;
 
+import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.block.BlockMachineItem;
-import brachy84.brachydium.api.blockEntity.trait.TileEntityRenderer;
 import brachy84.brachydium.api.blockEntity.trait.TileTrait;
 import brachy84.brachydium.api.cover.Cover;
 import brachy84.brachydium.api.cover.CoverableApi;
@@ -11,6 +11,7 @@ import brachy84.brachydium.api.handlers.ApiHolder;
 import brachy84.brachydium.api.handlers.storage.*;
 import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.TransferUtil;
+import brachy84.brachydium.api.util.XSTR;
 import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.UIHolder;
 import com.google.common.collect.Lists;
@@ -36,6 +37,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Identifier;
@@ -53,13 +55,37 @@ import java.util.function.Consumer;
 
 public abstract class TileEntity extends ApiHolder implements UIHolder, IOrientable, ICoverable {
 
-    public static class Const {
-        public static final int SYNC_INPUT_ITEMS = -100;
-        public static final int SYNC_OUTPUT_ITEMS = -101;
-        public static final int SYNC_INPUT_FLUIDS = -102;
-        public static final int SYNC_OUTPUT_FLUIDS = -103;
-        public static final int SYNC_TRAIT_DATA = -104;
-        public static final int SYNC_COVER_DATA = -105;
+    public static final XSTR random = new XSTR();
+    private final Map<String, TileTrait> traits = new HashMap<>();
+    private final List<Runnable> onAttachListener = new ArrayList<>();
+    private final EnumMap<Direction, Cover> coverMap = new EnumMap<>(Direction.class);
+    // Create an offset [0,20) to distribute ticks more evenly
+    private final int offset = random.nextInt(20);
+    protected List<IItemHandler> notifiedItemOutputList = new ArrayList<>();
+    protected List<IItemHandler> notifiedItemInputList = new ArrayList<>();
+    protected List<IFluidHandler> notifiedFluidInputList = new ArrayList<>();
+    protected List<IFluidHandler> notifiedFluidOutputList = new ArrayList<>();
+    private Identifier tileId = Brachydium.id("not_yet_initialised");
+    private TileEntityGroup group;
+    private int key;
+    private BlockEntityHolder holder;
+    private Direction frontFacing;
+    private IItemHandler importItems;
+    private IItemHandler exportItems;
+    private IFluidHandler importFluids;
+    private IFluidHandler exportFluids;
+    private Storage<ItemVariant> importItemStorage;
+    private Storage<ItemVariant> exportItemStorage;
+    private Storage<FluidVariant> importFluidStorage;
+    private Storage<FluidVariant> exportFluidStorage;
+    private Storage<ItemVariant> itemStorage;
+    private Storage<FluidVariant> fluidStorage;
+    private long timer = 0L;
+    protected TileEntity() {
+        this.frontFacing = Direction.NORTH;
+        for (Direction direction : Direction.values()) {
+            coverMap.put(direction, null);
+        }
     }
 
     @Nullable
@@ -76,37 +102,18 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         return holder.getActiveTileEntity();
     }
 
-    private TileEntityGroup group;
-    private int key;
-    private BlockEntityHolder holder;
-    private final Map<String, TileTrait> traits = new HashMap<>();
-    private Direction frontFacing;
-    private final List<Runnable> onAttachListener = new ArrayList<>();
-    private final List<TileEntityRenderer> tileEntityRenderers = new ArrayList<>();
-    private final EnumMap<Direction, Cover> coverMap = new EnumMap<>(Direction.class);
-    private IItemHandler importItems;
-    private IItemHandler exportItems;
-    private IFluidHandler importFluids;
-    private IFluidHandler exportFluids;
+    public static TileEntity ofStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockMachineItem))
+            throw new IllegalArgumentException("Item is not BlockMachineItem");
+        if (!stack.hasNbt())
+            throw new IllegalArgumentException("Can't get TileEntity with a null tag");
+        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getNbt());
+    }
 
-    private Storage<ItemVariant> importItemStorage;
-    private Storage<ItemVariant> exportItemStorage;
-    private Storage<FluidVariant> importFluidStorage;
-    private Storage<FluidVariant> exportFluidStorage;
-
-    private Storage<ItemVariant> itemStorage;
-    private Storage<FluidVariant> fluidStorage;
-
-    protected List<IItemHandler> notifiedItemOutputList = new ArrayList<>();
-    protected List<IItemHandler> notifiedItemInputList = new ArrayList<>();
-    protected List<IFluidHandler> notifiedFluidInputList = new ArrayList<>();
-    protected List<IFluidHandler> notifiedFluidOutputList = new ArrayList<>();
-
-    protected TileEntity() {
-        this.frontFacing = Direction.NORTH;
-        for (Direction direction : Direction.values()) {
-            coverMap.put(direction, null);
-        }
+    public static Optional<TileEntity> tryOfStack(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockMachineItem) || !stack.hasNbt())
+            return Optional.empty();
+        return ((BlockMachineItem) stack.getItem()).getTileGroup().tryGetBlockEntity(stack.getNbt());
     }
 
     @ApiStatus.Internal
@@ -120,21 +127,12 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     @ApiStatus.OverrideOnly
     public abstract @NotNull TileEntity createNewTileEntity();
 
-    public static TileEntity ofStack(ItemStack stack) {
-        if (!(stack.getItem() instanceof BlockMachineItem))
-            throw new IllegalArgumentException("Item is not BlockMachineItem");
-        if (!stack.hasNbt())
-            throw new IllegalArgumentException("Can't get TileEntity with a null tag");
-        return ((BlockMachineItem) stack.getItem()).getTileGroup().getBlockEntity(stack.getNbt());
-    }
-
     /**
      * Gets called when a new TileEntity is created
      * It's basically a late constructor
      */
-    @ApiStatus.Internal
+    @ApiStatus.OverrideOnly
     public void setUp() {
-        Objects.requireNonNull(createBaseRenderer());
     }
 
     public void initializeInventories() {
@@ -307,6 +305,9 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public void tick() {
+        if (timer++ == 0) {
+            onFirstTick();
+        }
         traits.forEach((key, trait) -> {
             if (shouldTick(trait))
                 trait.tick();
@@ -318,12 +319,28 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         }
     }
 
+    public boolean isFirstTick() {
+        return timer == 0;
+    }
+
+    /**
+     * Replacement for former getTimer().
+     *
+     * @return Timer value with a random offset of [0,20].
+     */
+    public long getOffsetTimer() {
+        return timer + offset;
+    }
+
+    protected void onFirstTick() {
+    }
+
     public boolean shouldTick(TileTrait trait) {
-        return !(trait instanceof TileEntityRenderer);
+        return true;
     }
 
     public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
-        if(!world.isClient) {
+        if (!world.isClient) {
             if (TileEntityUiFactory.INSTANCE.openUI(this, player)) {
                 return ActionResult.SUCCESS;
             }
@@ -332,7 +349,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public boolean hasUI() {
-        return true;
+        return false;
     }
 
     @NotNull
@@ -342,7 +359,11 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
 
     @NotNull
     public Gui createUi(PlayerEntity player) {
-        return Gui.defaultBuilder(player).build();
+        return createUiTemplate(player).build();
+    }
+
+    public Gui.Builder createUiTemplate(PlayerEntity player) {
+        return Gui.defaultBuilder(player);
     }
 
     @NotNull
@@ -596,7 +617,24 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     }
 
     public void setFrontFace(Direction frontFacing) {
+        if (!isValidFrontFacing(frontFacing))
+            Brachydium.LOGGER.fatal("Tried to set {} as front of {}, but is invalid", frontFacing, tileId);
         this.frontFacing = frontFacing;
+    }
+
+    public boolean isValidFrontFacing(Direction direction) {
+        return direction.getAxis() != Direction.Axis.Y;
+    }
+
+    public void addTooltip(ItemStack stack, @Nullable World player, List<Text> tooltip, boolean advanced) {
+    }
+
+    public String getTranslationKeyBase() {
+        return String.format("tile.%s.%s", tileId.getNamespace(), tileId.getPath());
+    }
+
+    public String getNameKey() {
+        return getTranslationKeyBase() + ".name";
     }
 
     public BlockEntityType<BlockEntityHolder> getEntityType() {
@@ -614,10 +652,19 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         }
         this.group = group;
         this.key = key;
+        this.tileId = new Identifier(group.id.getNamespace(), group.id.getPath() + "." + getTileIdPostFix());
     }
 
     public int getGroupKey() {
         return key;
+    }
+
+    public String getTileIdPostFix() {
+        return String.valueOf(key);
+    }
+
+    public Identifier getTileId() {
+        return tileId;
     }
 
     public BlockItem asItem() {
@@ -637,5 +684,14 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
         if (group == null) return item;
         getGroup().writeNbt(item.getOrCreateNbt(), key);
         return item;
+    }
+
+    public static class Const {
+        public static final int SYNC_INPUT_ITEMS = -100;
+        public static final int SYNC_OUTPUT_ITEMS = -101;
+        public static final int SYNC_INPUT_FLUIDS = -102;
+        public static final int SYNC_OUTPUT_FLUIDS = -103;
+        public static final int SYNC_TRAIT_DATA = -104;
+        public static final int SYNC_COVER_DATA = -105;
     }
 }
