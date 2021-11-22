@@ -2,12 +2,12 @@ package brachy84.brachydium.api.cover;
 
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.item.BrachydiumItem;
-import brachy84.brachydium.api.render.Texture;
 import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.BrachydiumRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
+import net.minecraft.client.texture.Sprite;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
@@ -20,20 +20,18 @@ import java.util.function.Consumer;
 public abstract class Cover {
 
     public static final BrachydiumRegistry<Identifier, Cover> REGISTRY = new BrachydiumRegistry<>();
-
-    public static Cover register(Cover cover) {
-        REGISTRY.register(cover.id, cover);
-        return cover;
-    }
-
     private final Identifier id;
     private final BrachydiumItem itemForm;
     private Direction attachedSide;
     private ICoverable coverHolder;
-
     public Cover(BrachydiumItem item, Identifier id) {
         this.id = Objects.requireNonNull(id);
         this.itemForm = Objects.requireNonNull(item);
+    }
+
+    public static Cover register(Cover cover) {
+        REGISTRY.register(cover.id, cover);
+        return cover;
     }
 
     public Identifier getId() {
@@ -60,7 +58,7 @@ public abstract class Cover {
         TileRenderUtil.renderSide(emitter, side, getTexture());
     }
 
-    public abstract Texture getTexture();
+    public abstract Sprite getTexture();
 
     public float getPlateThickness() {
         return 2.0f;
@@ -74,7 +72,7 @@ public abstract class Cover {
     }
 
     public final void syncCustomData(int id, Consumer<PacketByteBuf> consumer) {
-        if(coverHolder instanceof TileEntity tile) {
+        if (coverHolder instanceof TileEntity tile) {
             tile.syncCoverData(this, id, consumer);
         } else {
             // TODO
@@ -88,12 +86,14 @@ public abstract class Cover {
 
     /**
      * Is called when the holder is serialized
+     *
      * @param tag to save to
      */
     public abstract void serializeNbt(NbtCompound tag);
 
     /**
      * Load saved data. {@link #isAttached()} should always be true
+     *
      * @param tag to load from
      */
     public abstract void deserializeNbt(NbtCompound tag);

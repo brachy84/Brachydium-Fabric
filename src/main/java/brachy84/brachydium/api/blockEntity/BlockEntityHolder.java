@@ -106,6 +106,9 @@ public class BlockEntityHolder extends SyncedBlockEntity implements BlockEntityC
         this.currentTile.setHolder(this);
         this.currentTile.setFrontFace(front);
         this.currentTile.onAttach();
+        if(world != null && world.isClient) {
+            scheduleRenderUpdate();
+        }
     }
 
     public TileEntity getActiveTileEntity() {

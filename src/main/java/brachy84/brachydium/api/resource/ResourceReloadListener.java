@@ -19,6 +19,7 @@ import net.minecraft.util.registry.Registry;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class ResourceReloadListener implements SimpleSynchronousResourceReloadListener {
@@ -28,6 +29,16 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
     public static final Identifier RELOAD_CHANNEL = Brachydium.id("reload_resources");
 
     private ResourceReloadListener() {
+    }
+
+    public static JsonElement toJsonElement(InputStream stream) throws IOException {
+        // According to stackoverflow this is the most efficient way to make a string from stream
+        ByteArrayOutputStream result = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        for (int length; (length = stream.read(buffer)) != -1; ) {
+            result.write(buffer, 0, length);
+        }
+        return new JsonParser().parse(result.toString(StandardCharsets.UTF_8));
     }
 
     @Override
@@ -62,16 +73,6 @@ public class ResourceReloadListener implements SimpleSynchronousResourceReloadLi
                 }
             }
         }*/
-    }
-
-    public static JsonElement toJsonElement(InputStream stream) throws IOException {
-        // According to stackoverflow this is the most efficient way to make a string from stream
-        ByteArrayOutputStream result = new ByteArrayOutputStream();
-        byte[] buffer = new byte[1024];
-        for (int length; (length = stream.read(buffer)) != -1; ) {
-            result.write(buffer, 0, length);
-        }
-        return new JsonParser().parse(result.toString("UTF-8"));
     }
 
 }

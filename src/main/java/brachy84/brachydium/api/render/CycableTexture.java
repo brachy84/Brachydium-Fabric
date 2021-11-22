@@ -8,29 +8,30 @@ import java.util.Objects;
 import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 
-public class CycableTexture implements IRenderable {
+public class CycableTexture {
 
-    private final IntSupplier supplier;
-    private final IRenderable[] textures;
+    private final Texture[] textures;
 
-    public CycableTexture(IntSupplier supplier, IRenderable... textures) {
-        this.supplier = Objects.requireNonNull(supplier);
+    public CycableTexture(Texture... textures) {
         this.textures = Objects.requireNonNull(textures);
     }
 
-    public static CycableTexture createDoubleTexture(BooleanSupplier supplier, IRenderable textureTrue, IRenderable textureFalse) {
-        return new CycableTexture(() -> supplier.getAsBoolean() ? 0 : 1, textureTrue, textureFalse);
+    public static CycableTexture createDoubleTexture(Texture textureTrue, Texture textureFalse) {
+        return new CycableTexture(textureTrue, textureFalse);
     }
 
-    public static CycableTexture createWorkableTexture(BooleanSupplier isActive, String face, Identifier basePath) {
+    public static CycableTexture createWorkableTexture(String face, Identifier basePath) {
         String path = basePath.getPath() + "/overlay_" + face.toLowerCase();
         Texture inactive = new Texture(new Identifier(basePath.getNamespace(), path));
         Texture active = new Texture(new Identifier(basePath.getNamespace(), path + "_active"));
-        return createDoubleTexture(isActive, active, inactive);
+        return createDoubleTexture(active, inactive);
     }
 
-    @Override
-    public @NotNull Sprite getSprite() {
-        return textures[supplier.getAsInt()].getSprite();
+    public @NotNull Sprite getSprite(int index) {
+        return textures[index].getSprite();
+    }
+
+    public @NotNull Sprite getSprite(boolean active) {
+        return textures[active ? 0 : 1].getSprite();
     }
 }

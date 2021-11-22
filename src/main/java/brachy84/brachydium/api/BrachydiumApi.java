@@ -31,10 +31,10 @@ public class BrachydiumApi {
     public static final BrachydiumRegistry<Identifier, TileEntityGroup> BLOCK_ENTITY_GROUP_REGISTRY = new BrachydiumRegistry<>();
 
     public static <T extends TileEntityGroup> T registerTileEntityGroup(T group) {
-        if(group == null || group.id == null) {
-            throw new NullPointerException("Can't register null BlockEntity or BlockEntity with null Identifier");
+        if(group == null) {
+            throw new NullPointerException("Can't register null BlockEntity");
         }
-        Identifier id = group.id;
+        Identifier id = group.registryId;
         Block block = registerBlock(id, new BlockEntityHolderBlock(group));
         BlockItem item = registerItem(id, new BlockMachineItem(block, group));
         BlockEntityType<BlockEntityHolder> type = FabricBlockEntityTypeBuilder.create((pos, state) -> new BlockEntityHolder(group, pos, state), block).build();

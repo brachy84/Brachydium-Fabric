@@ -3,6 +3,8 @@ package brachy84.brachydium.api.render.models;
 import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
+import brachy84.brachydium.api.render.SpriteLoader;
+import brachy84.brachydium.api.render.SpriteMap;
 import brachy84.brachydium.api.render.Texture;
 import brachy84.brachydium.api.render.Textures;
 import com.mojang.datafixers.util.Pair;
@@ -42,6 +44,8 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
     private static final Identifier DEFAULT_BLOCK_MODEL = new Identifier("minecraft:block/block");
 
     private ModelTransformation transformation;
+
+    private List<SpriteIdentifier> depends;
 
     @Override
     public boolean isVanillaAdapter() {
@@ -118,7 +122,10 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
 
     @Override
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
-        return Texture.getAll().stream().map((Texture::getSpriteId)).collect(Collectors.toList());
+        if(depends == null) {
+            depends = SpriteLoader.getAllSprites();
+        }
+        return depends;
     }
 
     @Nullable
@@ -127,7 +134,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
         System.out.println("baking model");
         JsonUnbakedModel defaultBlockModel = (JsonUnbakedModel) loader.getOrLoadModel(DEFAULT_BLOCK_MODEL);
         transformation = defaultBlockModel.getTransformations();
-        Texture.loadSprites(textureGetter);
+        SpriteLoader.load(textureGetter);
         if (RendererAccess.INSTANCE.hasRenderer()) {
             net.fabricmc.fabric.api.renderer.v1.Renderer renderer = RendererAccess.INSTANCE.getRenderer();
             MeshBuilder builder = renderer.meshBuilder();

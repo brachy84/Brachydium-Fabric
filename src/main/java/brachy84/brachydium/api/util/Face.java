@@ -4,27 +4,39 @@ import net.minecraft.util.math.Direction;
 
 public enum Face {
 
-    FRONT, BACK, TOP, BOTTOM, LEFT, RIGHT/*, SIDE*/;
+    FRONT("front"),
+    BACK("back"),
+    TOP("top"),
+    BOTTOM("bottom"),
+    LEFT("left"),
+    RIGHT("right"),
+    SIDE("side");
 
     public static final Face[] HORIZONTAL = {
             FRONT, RIGHT, BACK, LEFT
     };
 
+    public final String name;
+
+    Face(String name) {
+        this.name = name;
+    }
+
     /**
      * @return relative direction to front
      */
     public static Face getFace(Direction dir, Direction front) {
-        if(dir == front) {
+        if (dir == front) {
             return FRONT;
-        } else if(dir.getOpposite() == front) {
+        } else if (dir.getOpposite() == front) {
             return BACK;
-        } else if(dir == Direction.DOWN) {
+        } else if (dir == Direction.DOWN) {
             return BOTTOM;
-        } else if(dir == Direction.UP) {
+        } else if (dir == Direction.UP) {
             return TOP;
-        } else if(dir.rotateYClockwise() == front) {
+        } else if (dir.rotateYClockwise() == front) {
             return RIGHT;
-        } else if(dir.rotateYCounterclockwise() == front) {
+        } else if (dir.rotateYCounterclockwise() == front) {
             return LEFT;
         }
         throw new NullPointerException("Unable to get Face from Directions");

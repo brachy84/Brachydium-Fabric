@@ -9,6 +9,7 @@ import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
 import brachy84.brachydium.api.handlers.storage.*;
+import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.TransferUtil;
 import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.UIHolder;
@@ -26,6 +27,9 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedStorage;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.texture.MissingSprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
@@ -185,9 +189,6 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     public void addTrait(TileTrait trait) {
         Objects.requireNonNull(trait);
         traits.put(trait.getName(), trait);
-        if (trait instanceof TileEntityRenderer) {
-            tileEntityRenderers.add((TileEntityRenderer) trait);
-        }
     }
 
     /**
@@ -296,12 +297,9 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
     public void onDetach() {
     }
 
-    public abstract TileEntityRenderer createBaseRenderer();
-
+    @Environment(EnvType.CLIENT)
     public void render(QuadEmitter emitter) {
-        for (TileEntityRenderer tileEntityRenderer : tileEntityRenderers) {
-            tileEntityRenderer.onRender(emitter);
-        }
+        TileRenderUtil.renderCube(emitter, MinecraftClient.getInstance().getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).apply(MissingSprite.getMissingSpriteId()));
     }
 
     public boolean isTicking() {
