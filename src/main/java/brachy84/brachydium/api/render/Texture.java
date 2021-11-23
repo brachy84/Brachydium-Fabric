@@ -49,16 +49,15 @@ public class Texture extends SpriteLoader {
         sprite = spriteMap.loadSprite(spriteId);
     }
 
-    @Override
-    public void addSprites(List<SpriteIdentifier> sprites) {
-        sprites.add(blockSprite(spriteId));
-    }
-
     public Sprite getSprite() {
         return sprite;
     }
 
     public void render(QuadEmitter emitter, Direction direction) {
         TileRenderUtil.renderSide(emitter, direction, sprite);
+    }
+
+    public void renderCube(QuadEmitter emitter) {
+        TileRenderUtil.renderCube(emitter, sprite);
     }
 }

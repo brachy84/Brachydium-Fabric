@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.render;
 
-import brachy84.brachydium.Brachydium;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.texture.Sprite;
@@ -18,12 +17,28 @@ public abstract class SpriteLoader {
 
     private static final List<SpriteLoader> loaders = new ArrayList<>();
     private static boolean loaded = false;
-    private List<SpriteIdentifier> sprites;
 
     public SpriteLoader() {
         if (!loaded) {
             loaders.add(this);
         }
+    }
+
+    /**
+     * Helper method to create {@link SpriteIdentifier}
+     *
+     * @param id texture path
+     * @return Sprite Identifier
+     */
+    protected static SpriteIdentifier blockSprite(Identifier id) {
+        return new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, id);
+    }
+
+    @ApiStatus.Internal
+    public static List<SpriteIdentifier> gatherDependencies() {
+        SpriteMap map = new SpriteMap(null);
+        loaders.forEach(loader -> loader.loadSprites(map));
+        return SpriteMap.getSprites();
     }
 
     @ApiStatus.Internal
@@ -34,27 +49,13 @@ public abstract class SpriteLoader {
         loaded = true;
     }
 
-    public abstract void loadSprites(SpriteMap spriteMap);
+    /**
+     * Load you sprites here. This is important. Sprites that are not loaded with {@link SpriteMap#loadSprite(SpriteIdentifier)} will not be rendered.
+     * Will be called twice. First to get the ID's to make sure they are loaded and Second when the are actually loaded and Sprite is returned
+     *
+     * @param spriteMap sprites to load to
+     */
+    protected abstract void loadSprites(SpriteMap spriteMap);
 
-    public abstract void addSprites(List<SpriteIdentifier> sprites);
 
-    public static List<SpriteIdentifier> getAllSprites() {
-        List<SpriteIdentifier> sprites = new ArrayList<>();
-        for(SpriteLoader loader : loaders) {
-            sprites.addAll(loader.getSprites());
-        }
-        return sprites;
-    }
-
-    public List<SpriteIdentifier> getSprites() {
-        if(sprites == null) {
-            sprites = new ArrayList<>();
-            addSprites(sprites);
-        }
-        return sprites;
-    }
-
-    public static SpriteIdentifier blockSprite(Identifier id) {
-        return new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, id);
-    }
 }

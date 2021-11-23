@@ -4,11 +4,9 @@ import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.util.Face;
 import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.client.util.SpriteIdentifier;
 import net.minecraft.util.math.Direction;
 
 import java.util.EnumMap;
-import java.util.List;
 import java.util.Map;
 
 public class WorkableOverlayRenderer extends SpriteLoader {
@@ -31,16 +29,6 @@ public class WorkableOverlayRenderer extends SpriteLoader {
             textures.put(face, spriteMap.loadSprite(Brachydium.id(basePath)));
             basePath += "_active";
             activeTextures.put(face, spriteMap.loadSprite(Brachydium.id(basePath)));
-        }
-    }
-
-    @Override
-    public void addSprites(List<SpriteIdentifier> sprites) {
-        for (Face face : faces) {
-            String basePath = String.format("block/machines/%s/overlay_%s", base, face.name);
-            sprites.add(blockSprite(Brachydium.id(basePath)));
-            basePath += "_active";
-            sprites.add(blockSprite(Brachydium.id(basePath)));
         }
     }
 

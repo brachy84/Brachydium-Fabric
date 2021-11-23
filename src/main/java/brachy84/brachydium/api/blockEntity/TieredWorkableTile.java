@@ -1,6 +1,5 @@
 package brachy84.brachydium.api.blockEntity;
 
-import brachy84.brachydium.Brachydium;
 import brachy84.brachydium.api.blockEntity.trait.AbstractRecipeLogic;
 import brachy84.brachydium.api.blockEntity.trait.RecipeLogicEnergy;
 import brachy84.brachydium.api.energy.IEnergyContainer;
@@ -8,7 +7,6 @@ import brachy84.brachydium.api.energy.Voltage;
 import brachy84.brachydium.api.handlers.EnergyContainerHandler;
 import brachy84.brachydium.api.recipe.RecipeTable;
 import brachy84.brachydium.api.render.Textures;
-import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.render.WorkableOverlayRenderer;
 import brachy84.brachydium.gui.api.Gui;
 import brachy84.brachydium.gui.api.math.Alignment;
@@ -19,9 +17,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
 
+    protected final WorkableOverlayRenderer overlayRenderer;
     private final int tier;
     private final IEnergyContainer energyContainer;
-    protected final WorkableOverlayRenderer overlayRenderer;
 
     public TieredWorkableTile(RecipeTable<?> recipeTable, WorkableOverlayRenderer renderer, int tier) {
         super(recipeTable);
@@ -37,8 +35,7 @@ public class TieredWorkableTile extends WorkableTileEntity implements ITiered {
 
     @Override
     public void render(QuadEmitter emitter) {
-        //Brachydium.LOGGER.info("render");
-        TileRenderUtil.renderCube(emitter, Textures.MACHINECASING[tier].getSprite());
+        Textures.MACHINECASING[tier].renderCube(emitter);
         overlayRenderer.render(emitter, getFrontFace(), isActive());
     }
 

@@ -4,8 +4,6 @@ import brachy84.brachydium.api.block.BlockMachineItem;
 import brachy84.brachydium.api.blockEntity.BlockEntityHolder;
 import brachy84.brachydium.api.blockEntity.TileEntity;
 import brachy84.brachydium.api.render.SpriteLoader;
-import brachy84.brachydium.api.render.SpriteMap;
-import brachy84.brachydium.api.render.Texture;
 import brachy84.brachydium.api.render.Textures;
 import com.mojang.datafixers.util.Pair;
 import net.fabricmc.api.EnvType;
@@ -34,7 +32,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedModel {
@@ -123,7 +120,7 @@ public class MbeHolderModel implements UnbakedModel, BakedModel, FabricBakedMode
     @Override
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
         if(depends == null) {
-            depends = SpriteLoader.getAllSprites();
+            depends = SpriteLoader.gatherDependencies();
         }
         return depends;
     }

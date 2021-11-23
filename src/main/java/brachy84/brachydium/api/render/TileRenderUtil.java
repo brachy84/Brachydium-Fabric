@@ -11,6 +11,13 @@ import java.util.Map;
 
 public class TileRenderUtil {
 
+    /**
+     * Renders a sprite in a face relative to a direction.
+     *
+     * @param frontFacing face is relative to this
+     * @param sprite      sprite to render
+     * @param face        face to render on
+     */
     public static void renderFace(QuadEmitter emitter, Direction frontFacing, Sprite sprite, Face face) {
         if (face == Face.SIDE) {
             renderSide(emitter, Face.LEFT.getDirection(frontFacing), sprite);
@@ -55,6 +62,11 @@ public class TileRenderUtil {
     }
 
     public static void renderOrientedCube(QuadEmitter emitter, Direction front, Sprite side, Sprite topBottom) {
-        renderOrientedCube(emitter, front, Map.of(Face.TOP, topBottom, Face.BOTTOM, topBottom, Face.FRONT, side, Face.RIGHT, side, Face.BACK, side, Face.LEFT, side));
+        renderFace(emitter, front, topBottom, Face.TOP);
+        renderFace(emitter, front, topBottom, Face.BOTTOM);
+        renderFace(emitter, front, side, Face.FRONT);
+        renderFace(emitter, front, side, Face.LEFT);
+        renderFace(emitter, front, side, Face.RIGHT);
+        renderFace(emitter, front, side, Face.BACK);
     }
 }

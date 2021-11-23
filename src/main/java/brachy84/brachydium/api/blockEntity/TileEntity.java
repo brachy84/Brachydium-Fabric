@@ -9,6 +9,7 @@ import brachy84.brachydium.api.cover.ICoverable;
 import brachy84.brachydium.api.gui.TileEntityUiFactory;
 import brachy84.brachydium.api.handlers.ApiHolder;
 import brachy84.brachydium.api.handlers.storage.*;
+import brachy84.brachydium.api.render.SpriteMap;
 import brachy84.brachydium.api.render.TileRenderUtil;
 import brachy84.brachydium.api.util.TransferUtil;
 import brachy84.brachydium.api.util.XSTR;
@@ -90,8 +91,8 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
 
     @Nullable
     public static TileEntity getOf(BlockEntity blockEntity) {
-        if (blockEntity instanceof BlockEntityHolder)
-            return ((BlockEntityHolder) blockEntity).getActiveTileEntity();
+        if (blockEntity instanceof BlockEntityHolder holder)
+            return holder.getActiveTileEntity();
         return null;
     }
 
@@ -297,7 +298,7 @@ public abstract class TileEntity extends ApiHolder implements UIHolder, IOrienta
 
     @Environment(EnvType.CLIENT)
     public void render(QuadEmitter emitter) {
-        TileRenderUtil.renderCube(emitter, MinecraftClient.getInstance().getSpriteAtlas(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE).apply(MissingSprite.getMissingSpriteId()));
+        TileRenderUtil.renderCube(emitter, SpriteMap.getMissingSprite());
     }
 
     public boolean isTicking() {
